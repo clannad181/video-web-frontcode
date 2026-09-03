@@ -1,0 +1,263 @@
+:root {
+  /* bilibili 精确设计令牌 */
+  --brand_pink: #FF6699;
+  --brand_pink_thin: #FFECF1;
+  --brand_pink_hover: #FF8CB0;
+  --brand_pink_active: #E84B85;
+  --brand_blue: #00AEEC;
+  --brand_blue_thin: #DFF6FD;
+  --brand_blue_hover: #40C5F1;
+  --brand_blue_active: #008AC5;
+
+  /* 背景 */
+  --bg1: #FFFFFF;
+  --bg2: #F6F7F8;
+  --bg3: #F1F2F3;
+  --graph_bg_thin: #F6F7F8;
+  --graph_bg_regular: #F1F2F3;
+  --graph_bg_thick: #E3E5E7;
+
+  /* 文字 */
+  --text1: #18191C;
+  --text2: #61666D;
+  --text3: #9499A0;
+  --text4: #C9CCD0;
+  --text_link: #00699D;
+  --text_hover: #797F87;
+
+  /* 线条/边框 */
+  --line_light: #F1F2F3;
+  --line_regular: #E3E5E7;
+  --line_bold: #C9CCD0;
+
+  /* 兼容旧变量 */
+  --color-primary: var(--brand_pink);
+  --color-primary-hover: var(--brand_pink_hover);
+  --color-primary-light: var(--brand_pink_thin);
+  --bg-page: var(--bg3);
+  --bg-card: var(--bg1);
+  --bg-input: var(--bg2);
+  --bg-hover: var(--graph_bg_thick);
+  --text-primary: var(--text1);
+  --text-secondary: var(--text2);
+  --text-muted: var(--text3);
+  --border-color: var(--line_regular);
+  --border-light: var(--line_light);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei';
+
+  /* 布局 */
+  --header-height: 64px;
+  --layout-padding: 64px;
+  --container-max: 2078px;
+}
+
+.dark-mode {
+  --bg1: #222326;
+  --bg2: #2a2b30;
+  --bg3: #17181a;
+  --graph_bg_thin: #2a2b30;
+  --graph_bg_regular: #2a2b30;
+  --graph_bg_thick: #3a3b40;
+  --text1: #E1E2E3;
+  --text2: #A2A5AA;
+  --text3: #787A80;
+  --text4: #5C5E63;
+  --line_light: #2a2b30;
+  --line_regular: #3a3b40;
+  --line_bold: #5C5E63;
+}
+
+.compact-mode {
+  --header-height: 48px;
+  --layout-padding: 32px;
+}
+
+.compact-mode .bili-header__bar {
+  height: 48px;
+}
+
+.compact-mode .channel-chips {
+  padding: 8px 0;
+}
+
+.compact-mode .channel-link {
+  min-height: 26px;
+  font-size: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 14px;
+  overflow-x: visible;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--bg3);
+  color: var(--text1);
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: visible;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: var(--font-family);
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D1D1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #AAA;
+}
+
+::selection {
+  background: var(--brand_pink);
+  color: white;
+}
+
+ul, li {
+  list-style: none;
+}
+
+img.twemoji {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  display: inline;
+  margin: 0 1px;
+}
+
+/* 全局动画定义 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 加载动画类 */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* 骨架屏加载动画 */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--graph_bg_thin) 25%,
+    var(--graph_bg_regular) 50%,
+    var(--graph_bg_thin) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+/* 淡入动画类 */
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.scale-in {
+  animation: scaleIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 减少动画偏好支持 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .loading-spinner,
+  .skeleton {
+    animation: none;
+  }
+}
