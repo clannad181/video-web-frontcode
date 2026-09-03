@@ -82,7 +82,7 @@
                     <img :src="video.videoCover" :alt="video.videoTitle" loading="lazy" />
                     <div class="cover-stats">
                       <span class="stat">
-                        <IconVideo :size="12" />
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                         {{ formatCount(video.playCount || 0) }}
                       </span>
                       <span class="stat">
@@ -113,7 +113,7 @@
                     <img :src="video.videoCover" :alt="video.videoTitle" loading="lazy" />
                     <div class="cover-stats">
                       <span class="stat">
-                        <IconVideo :size="12" />
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                         {{ formatCount(video.playCount || 0) }}
                       </span>
                       <span class="stat">
@@ -140,7 +140,7 @@
             <div class="info-card">
               <div class="card-header">
                 <h3 class="card-title">基本信息</h3>
-                <div class="card-edit" @click="openEditProfile">
+                <div class="card-edit">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -158,56 +158,44 @@
 
         <!-- 投稿页 - 时间线 -->
         <div v-else-if="activeTab === 'submit'" key="submit" class="profile-content-full">
-          <div class="submit-tab">
+          <div class="tab-content">
             <div v-if="loadingSubmit && monthlyVideos.length === 0" class="loading-state"><div class="loading-spinner"></div></div>
-            <div v-else-if="monthlyVideos.length > 0" class="submit-timeline">
-              <div v-for="(monthGroup, index) in monthlyVideos" :key="monthGroup.month" class="timeline-row">
-                <div class="timeline-info">
-                  <div class="node-date">{{ monthGroup.month }}</div>
-                  <div class="node-count">{{ monthGroup.count }} 个视频</div>
-                </div>
-                <div class="timeline-track">
-                  <div class="node-dot"></div>
-                  <div class="node-line" v-if="index < monthlyVideos.length - 1"></div>
-                </div>
-                <div class="timeline-body">
-                  <div class="date-header">
-                    <span class="date-text">{{ monthGroup.month }}</span>
-                    <span class="date-count">{{ monthGroup.count }} 个视频</span>
+            <div v-else-if="monthlyVideos.length > 0" class="timeline-container">
+              <div v-for="(monthGroup, index) in monthlyVideos" :key="monthGroup.month" class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-line" v-if="index < monthlyVideos.length - 1"></div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <span class="timeline-month">{{ monthGroup.month }}</span>
+                    <span class="timeline-count">{{ monthGroup.count }}个视频</span>
                   </div>
                   <div class="video-grid">
                     <div v-for="video in monthGroup.videos" :key="video.id" class="video-card" @click="handleVideoClick(video)">
-                       <a class="video-card__wrap">
-                        <div class="video-card__image">
-                          <img :src="video.coverUrl" :alt="video.title" loading="lazy" class="video-card__cover" />
-                          <div class="video-card__mask">
-                            <div class="video-card__stats">
-                              <div class="video-card__stats--left">
-                                <span class="video-card__stats--item">
-                                  <IconVideo :size="14" color="#fff" />
-                                  <span>{{ formatCount(video.playCount) }}</span>
-                                </span>
-                                <span class="video-card__stats--item">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
-                                  <span>{{ formatCount(video.favoriteCount) }}</span>
-                                </span>
-                              </div>
-                              <span class="video-card__status" :class="'status-' + video.videoStatus">{{ getStatusText(video.videoStatus) }}</span>
-                            </div>
-                          </div>
+                      <div class="video-cover">
+                        <img :src="video.coverUrl" :alt="video.title" />
+                        <div class="cover-stats">
+                          <span class="stat">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            {{ formatCount(video.playCount) }}
+                          </span>
+                          <span class="stat">
+                            <IconFavorite :size="12" />
+                            {{ formatCount(video.favoriteCount) }}
+                          </span>
                         </div>
-                        <div class="video-card__info">
-                          <a class="video-card__info--tit">{{ video.title }}</a>
-                          <div class="video-card__info--meta">
-                            <span class="video-card__info--episode">{{ video.episodeCount }} 集</span>
-                            <span class="video-card__info--date">{{ formatDate(video.createTime) }}</span>
-                          </div>
+                        <span class="video-status" :class="'status-' + video.videoStatus">{{ getStatusText(video.videoStatus) }}</span>
+                      </div>
+                      <div class="video-info">
+                        <div class="video-title">{{ video.title }}</div>
+                        <div class="video-meta">
+                          <span class="episode-count">{{ video.episodeCount }}集</span>
                         </div>
-                      </a>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+              <!-- 加载更多指示器 -->
               <div v-if="loadingSubmit" class="timeline-loading">
                 <div class="loading-spinner"></div>
                 <span>加载更多...</span>
@@ -219,7 +207,6 @@
                 <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>
               </svg>
               <p>还没有投稿视频</p>
-              <span class="empty-hint">快去投稿你的第一个视频吧</span>
             </div>
           </div>
         </div>
@@ -319,7 +306,7 @@
                       <img :src="video.videoCover" :alt="video.videoTitle" />
                       <div class="cover-stats">
                         <span class="stat">
-                          <IconVideo :size="12" />
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                           {{ formatCount(video.playCount) }}
                         </span>
                         <span class="stat">
@@ -391,8 +378,8 @@
               </div>
             </div>
             <div v-if="loadingFollowList" class="loading-state"><div class="loading-spinner"></div></div>
-<TransitionGroup name="follow-card" tag="div" class="follow-grid" v-else-if="followList.length > 0">
-  <div v-for="(item, index) in followList" :key="item.uid" class="follow-card" :style="{ '--index': index }">
+            <TransitionGroup name="follow-card" tag="div" class="follow-grid" v-else-if="followList.length > 0">
+              <div v-for="item in followList" :key="item.uid" class="follow-card">
                 <div class="follow-card-header">
                   <div class="follow-avatar" @click="goToUserProfile(item.uid)">
                     <img v-if="item.avatar" :src="item.avatar" :alt="item.nikeName" />
@@ -495,8 +482,8 @@
               </div>
             </div>
             <div v-if="loadingFansList" class="loading-state"><div class="loading-spinner"></div></div>
-<TransitionGroup name="follow-card" tag="div" class="follow-grid" v-else-if="fansList.length > 0">
-  <div v-for="(item, index) in fansList" :key="item.uid" class="follow-card" :style="{ '--index': index }">
+            <TransitionGroup name="follow-card" tag="div" class="follow-grid" v-else-if="fansList.length > 0">
+              <div v-for="item in fansList" :key="item.uid" class="follow-card">
                 <div class="follow-card-header">
                   <div class="follow-avatar" @click="goToUserProfile(item.uid)">
                     <img v-if="item.avatar" :src="item.avatar" :alt="item.nikeName" />
@@ -576,12 +563,12 @@
       </transition>
     </div>
 
-<!-- 编辑个人资料弹框 -->
-<Teleport to="body">
-  <Transition name="fav-overlay" mode="out-in">
-    <div v-if="showEditProfile" class="fav-overlay" @click.self="closeEditProfile">
-      <Transition name="fav-dialog" appear>
-        <div v-if="showEditProfile" class="fav-dialog profile-dialog">
+    <!-- 编辑个人资料弹框 -->
+    <Teleport to="body">
+      <Transition name="fav-overlay">
+        <div v-if="showEditProfile" class="fav-overlay" @click.self="closeEditProfile">
+          <Transition name="fav-dialog" appear>
+            <div v-if="showEditProfile" class="fav-dialog profile-dialog">
               <div class="fav-dialog-header">
                 <h3><IconUser :size="18" /> 修改个人资料</h3>
                 <button class="fav-close-btn" @click="closeEditProfile">
@@ -606,11 +593,7 @@
                 </div>
 
                 <!-- 表单区域 -->
-                <div class="profile-form-grid profile-form-grid-uid">
-                  <div class="profile-form-item">
-                    <label class="profile-form-label"><IconUser :size="15" /> UID</label>
-                    <input :value="user?.uid || '--'" class="profile-form-input profile-form-readonly" readonly />
-                  </div>
+                <div class="profile-form-grid">
                   <div class="profile-form-item">
                     <label class="profile-form-label"><IconUser :size="15" /> 昵称</label>
                     <input v-model="editProfileForm.nikeName" class="profile-form-input" placeholder="请输入昵称" maxlength="20" />
@@ -638,16 +621,19 @@
                   <div class="profile-radio-group">
                     <label class="profile-radio" :class="{ active: editProfileForm.sex === 0 }">
                       <input type="radio" :value="0" v-model="editProfileForm.sex" />
+                      <span class="radio-dot"></span>
                       <IconSecret :size="16" class="gender-icon gender-secret" />
                       保密
                     </label>
                     <label class="profile-radio" :class="{ active: editProfileForm.sex === 1 }">
                       <input type="radio" :value="1" v-model="editProfileForm.sex" />
+                      <span class="radio-dot"></span>
                       <svg class="gender-icon gender-male" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="14" r="7"/><line x1="15" y1="9" x2="21" y2="3"/><polyline points="15 3 21 3 21 9"/></svg>
                       男
                     </label>
                     <label class="profile-radio" :class="{ active: editProfileForm.sex === 2 }">
                       <input type="radio" :value="2" v-model="editProfileForm.sex" />
+                      <span class="radio-dot"></span>
                       <svg class="gender-icon gender-female" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="7"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="9" y1="19" x2="15" y2="19"/></svg>
                       女
                     </label>
@@ -673,12 +659,12 @@
       </Transition>
     </Teleport>
 
-<!-- 编辑收藏夹弹框 -->
-<Teleport to="body">
-  <Transition name="fav-overlay" mode="out-in">
-    <div v-if="showEditDialog" class="fav-overlay" @click.self="closeEditDialog">
-      <Transition name="fav-dialog" appear>
-        <div v-if="showEditDialog" class="fav-dialog">
+    <!-- 编辑收藏夹弹框 -->
+    <Teleport to="body">
+      <Transition name="fav-overlay">
+        <div v-if="showEditDialog" class="fav-overlay" @click.self="closeEditDialog">
+          <Transition name="fav-dialog" appear>
+            <div v-if="showEditDialog" class="fav-dialog">
               <div class="fav-dialog-header">
                 <h3>编辑收藏夹</h3>
                 <button class="fav-close-btn" @click="closeEditDialog">
@@ -781,12 +767,12 @@
       </Transition>
     </Teleport>
 
-<!-- 删除确认弹框 -->
-<Teleport to="body">
-  <Transition name="fav-overlay" mode="out-in">
-    <div v-if="showDeleteConfirm" class="fav-overlay" @click.self="closeDeleteConfirm">
-      <Transition name="fav-dialog" appear>
-        <div v-if="showDeleteConfirm" class="fav-dialog fav-dialog-small">
+    <!-- 删除确认弹框 -->
+    <Teleport to="body">
+      <Transition name="fav-overlay">
+        <div v-if="showDeleteConfirm" class="fav-overlay" @click.self="closeDeleteConfirm">
+          <Transition name="fav-dialog" appear>
+            <div v-if="showDeleteConfirm" class="fav-dialog fav-dialog-small">
               <div class="fav-dialog-header">
                 <h3>删除收藏夹</h3>
                 <button class="fav-close-btn" @click="closeDeleteConfirm">
@@ -821,12 +807,12 @@
       </Transition>
     </Teleport>
 
-<!-- 创建收藏夹弹框 -->
-<Teleport to="body">
-  <Transition name="fav-overlay" mode="out-in">
-    <div v-if="showCreateDialog" class="fav-overlay" @click.self="closeCreateDialog">
-      <Transition name="fav-dialog" appear>
-        <div v-if="showCreateDialog" class="fav-dialog">
+    <!-- 创建收藏夹弹框 -->
+    <Teleport to="body">
+      <Transition name="fav-overlay">
+        <div v-if="showCreateDialog" class="fav-overlay" @click.self="closeCreateDialog">
+          <Transition name="fav-dialog" appear>
+            <div v-if="showCreateDialog" class="fav-dialog">
               <div class="fav-dialog-header">
                 <h3>新建收藏夹</h3>
                 <button class="fav-close-btn" @click="closeCreateDialog">
@@ -959,7 +945,7 @@ import { useAuthStore } from '../stores/auth'
 import { getClientUserInfo } from '../api/auth'
 import { getFavoriteFolderList, getFavoriteFolderDetail, getUserCoinVideos, getUserLikeVideos, getRecentLikeEpisodes, getRecentCoinEpisodes, getMyContributions, getFollowList, searchFollow, searchFans, searchFavorite, updateFavoriteFolder, deleteFavoriteFolder, createFavoriteFolder, unfollowUser, followUser, updateUserProfile } from '../api/video'
 import { uploadFile } from '../utils/fileUpload'
-import { IconFavorite, IconCoin, IconLike, IconVip, IconSecret, IconVideo } from '../icons'
+import { IconFavorite, IconCoin, IconLike, IconVip, IconSecret } from '../icons'
 
 const router = useRouter()
 const route = useRoute()
@@ -1042,7 +1028,7 @@ const currentDateRange = ref({ startDate: null, endDate: null })
 const MONTHS_PER_PAGE = 5
 
 const isOwnProfile = computed(() => {
-  return true
+  return !route.params.uid || route.params.uid === authStore.user?.uid
 })
 
 const tabs = [
@@ -1085,10 +1071,10 @@ const handleEditProfileAvatarUpload = async (e) => {
   if (!file) return
   editProfileUploading.value = true
   try {
-    const res = await uploadFile(file, (p) => {})
-    editProfileAvatar.value = res.url || res
+    const url = await uploadFile(file, (p) => {})
+    editProfileAvatar.value = url
   } catch (err) {
-    ElMessage.error(err.message || '头像上传失败')
+    ElMessage.error('头像上传失败')
   } finally {
     editProfileUploading.value = false
   }
@@ -1104,7 +1090,7 @@ const saveEditProfile = async () => {
     await updateUserProfile({
       avatar: editProfileAvatar.value,
       nikeName: editProfileForm.value.nikeName,
-      descript: editProfileForm.value.descript,
+      signature: editProfileForm.value.descript,
       gender: editProfileForm.value.sex === 1 ? true : editProfileForm.value.sex === 2 ? false : null,
       birthday: editProfileForm.value.birthday
     })
@@ -1113,7 +1099,7 @@ const saveEditProfile = async () => {
     closeEditProfile()
   } catch (e) {
     console.error('修改资料失败:', e)
-    ElMessage.error(e.message || '修改失败')
+    ElMessage.error('修改失败')
   } finally {
     editProfileSaving.value = false
   }
@@ -1556,7 +1542,7 @@ const handleUnfollow = async (user) => {
     }
   } catch (e) {
     console.error('取消关注失败:', e)
-    ElMessage.error(e.message || '取消关注失败')
+    ElMessage.error('取消关注失败')
   }
 }
 
@@ -1573,7 +1559,7 @@ const handleFollow = async (user) => {
     }
   } catch (e) {
     console.error('关注失败:', e)
-    ElMessage.error(e.message || '关注失败')
+    ElMessage.error('关注失败')
   }
 }
 
@@ -1646,39 +1632,19 @@ const loadLikeVideos = async () => {
 }
 
 const handleVideoClick = (video) => {
-  let path = ''
   if (video.playLink) {
-    path = video.playLink
-    try {
-      const url = new URL(path)
-      path = url.pathname
-    } catch {}
-    if (path.startsWith('/api')) {
-      path = path.slice(4)
-    }
-  } else if (video.videoUid && video.episodeUid) {
-    path = `/client/video/${video.videoUid}/episode/${video.episodeUid}`
-  } else if (video.videoAvid && video.episodeAvid) {
-    path = `/client/video/${video.videoAvid}/episode/${video.episodeAvid}`
-  } else if (video.uid) {
-    path = `/client/video/${video.uid}/episode/${video.uid}`
-  } else if (video.id) {
-    path = `/client/video/${video.id}/episode/${video.id}`
-  }
-  if (path) {
-    window.open(path, '_blank')
+    router.push(video.playLink)
   }
 }
 
 const getStatusText = (status) => {
-  const s = Number(status)
   const statusMap = {
     0: '草稿',
     1: '待发布',
     2: '已发布',
     3: '已下架'
   }
-  return statusMap[s] || '未知'
+  return statusMap[status] || '未知'
 }
 
 const formatDuration = (seconds) => {
@@ -1694,14 +1660,6 @@ const formatCount = (count) => {
     return (count / 10000).toFixed(1) + '万'
   }
   return count.toString()
-}
-
-const formatDate = (date) => {
-  if (!date) return ''
-  const d = new Date(date)
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${month}-${day}`
 }
 
 const formatTime = (timestamp) => {
@@ -1780,7 +1738,7 @@ onUnmounted(() => {
 
 /* 编辑个人资料弹框 */
 .profile-dialog {
-  width: 480px;
+  width: 460px;
 }
 
 .profile-dialog-body {
@@ -1859,14 +1817,14 @@ onUnmounted(() => {
   gap: 16px;
 }
 
-.profile-form-grid-uid {
-  grid-template-columns: auto 1fr;
-}
-
 .profile-form-item {
   display: flex;
   flex-direction: column;
   gap: 0;
+  position: relative;
+}
+
+.profile-form-item:has(.profile-date-input) {
   position: relative;
 }
 
@@ -1906,17 +1864,8 @@ onUnmounted(() => {
 
 .profile-form-input:focus {
   border-color: var(--brand_blue);
+  background: var(--bg1);
   box-shadow: 0 0 0 3px rgba(0, 174, 236, 0.08);
-}
-
-.profile-form-readonly {
-  color: var(--text3) !important;
-  cursor: default;
-}
-
-.profile-form-readonly:focus {
-  border-color: var(--line_regular) !important;
-  box-shadow: none !important;
 }
 
 .profile-form-textarea {
@@ -1942,6 +1891,7 @@ onUnmounted(() => {
 
 .profile-form-textarea:focus {
   border-color: var(--brand_blue);
+  background: var(--bg1);
   box-shadow: 0 0 0 3px rgba(0, 174, 236, 0.08);
 }
 
@@ -1955,31 +1905,64 @@ onUnmounted(() => {
 
 .profile-radio-group {
   display: flex;
-  gap: 16px;
+  gap: 10px;
 }
 
 .profile-radio {
+  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  height: 40px;
+  border: 1px solid var(--line_regular);
+  border-radius: 8px;
   font-size: 14px;
   color: var(--text2);
   cursor: pointer;
   transition: all 0.2s;
-  padding: 0;
+  background: transparent;
 }
 
 .profile-radio:hover {
+  border-color: var(--brand_blue);
   color: var(--brand_blue);
 }
 
 .profile-radio.active {
+  border-color: var(--brand_blue);
+  background: rgba(0, 174, 236, 0.06);
   color: var(--brand_blue);
   font-weight: 500;
 }
 
 .profile-radio input {
   display: none;
+}
+
+.radio-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--line_regular);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.profile-radio.active .radio-dot {
+  border-color: var(--brand_blue);
+}
+
+.profile-radio.active .radio-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand_blue);
 }
 
 .profile-radio svg {
@@ -2025,11 +2008,39 @@ onUnmounted(() => {
   height: 100%;
 }
 
+:deep(.profile-date-picker) {
+  height: 100%;
+  width: 100%;
+}
+
+:deep(.profile-date-picker .el-input),
+:deep(.profile-date-picker .el-input__wrapper),
+:deep(.profile-date-picker .el-input__inner) {
+  height: 100% !important;
+}
+
+:deep(.profile-date-picker .el-input__prefix),
+:deep(.profile-date-picker .el-input__suffix) {
+  display: flex;
+  align-items: center;
+}
+
+:deep(.profile-date-picker .el-input__wrapper) {
+  padding-top: 0;
+  padding-bottom: 0;
+  border-radius: 8px !important;
+}
+
+:deep(.profile-date-picker .el-input__inner) {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .profile-date-picker .el-input__wrapper {
   height: 40px !important;
-  border-radius: 8px !important;
+  border-radius: 12px !important;
   background: transparent !important;
-  border: 1px solid var(--line_regular) !important;
+  border: 5px solid var(--line_regular) !important;
   box-shadow: none !important;
   padding: 0 12px !important;
   transition: all 0.2s !important;
@@ -2732,10 +2743,6 @@ onUnmounted(() => {
   transition: all 0.3s ease;
 }
 
-.follow-card-enter-active {
-  transition-delay: calc(var(--index, 0) * 50ms);
-}
-
 .follow-card-enter-from {
   opacity: 0;
   transform: translateY(20px);
@@ -2872,7 +2879,13 @@ onUnmounted(() => {
   color: var(--text4);
 }
 
-/* 视频卡片通用样式 */
+/* 视频网格 */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+
 .video-card {
   cursor: pointer;
   border-radius: 8px;
@@ -2881,7 +2894,7 @@ onUnmounted(() => {
 }
 
 .video-card:hover {
-  transform: scale(1.02);
+  transform: translateY(-4px);
 }
 
 .video-cover {
@@ -2969,207 +2982,80 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-/* 投稿时间线样式 */
-.submit-tab {
-  padding: 0;
-}
-
-.submit-timeline {
+/* 时间线样式 */
+.timeline-container {
   position: relative;
+  padding-left: 40px;
 }
 
-.timeline-row {
-  display: flex;
-  gap: 20px;
+.timeline-item {
   position: relative;
+  margin-bottom: 40px;
 }
 
-.timeline-info {
-  width: 100px;
-  flex-shrink: 0;
-  text-align: right;
-  padding-top: 16px;
+.timeline-item:last-child {
+  margin-bottom: 0;
 }
 
-.node-date {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text1);
-  margin-bottom: 4px;
-}
-
-.node-count {
-  font-size: 12px;
-  color: var(--text4);
-}
-
-.timeline-track {
-  position: relative;
-  width: 20px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.node-dot {
-  width: 12px;
-  height: 12px;
+.timeline-dot {
+  position: absolute;
+  left: -40px;
+  top: 8px;
+  width: 16px;
+  height: 16px;
   background: var(--brand_pink);
   border-radius: 50%;
-  margin-top: 20px;
+  border: 3px solid var(--bg1);
+  box-shadow: 0 0 0 2px var(--brand_pink);
   z-index: 1;
-  box-shadow: 0 0 0 4px rgba(255, 92, 122, 0.2);
 }
 
-.node-line {
+.timeline-line {
+  position: absolute;
+  left: -33px;
+  top: 24px;
+  bottom: -40px;
   width: 2px;
-  flex: 1;
   background: linear-gradient(to bottom, var(--brand_pink), var(--line_light));
-  margin-top: 4px;
 }
 
-.timeline-body {
-  flex: 1;
-  min-width: 0;
-  padding-bottom: 32px;
+.timeline-content {
+  background: var(--bg2);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.date-header {
-  display: none;
+.timeline-content:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.video-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-}
-
-.submit-timeline .video-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.submit-timeline .video-card__wrap {
-  display: block;
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  text-decoration: none;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.submit-timeline .video-card__wrap:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-.submit-timeline .video-card__image {
-  position: relative;
-  padding-top: 56.25%;
-  background: var(--graph_bg_regular);
-}
-
-.submit-timeline .video-card__cover {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.submit-timeline .video-card__wrap:hover .video-card__cover {
-  transform: scale(1.06);
-}
-
-.submit-timeline .video-card__mask {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  z-index: 2;
-  width: 100%;
-  height: 42px;
-  padding: 18px 10px 8px;
-  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85));
-}
-
-.submit-timeline .video-card__stats {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.submit-timeline .video-card__stats--left {
-  display: flex;
-  gap: 14px;
-}
-
-.submit-timeline .video-card__stats--item {
+.timeline-header {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.9);
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line_light);
 }
 
-.video-card__status {
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
-.video-card__status.status-0 {
-  background: rgba(0, 181, 120, 0.9);
-  color: #fff;
-}
-
-.video-card__status.status-1 {
-  background: rgba(255, 165, 0, 0.9);
-  color: #fff;
-}
-
-.video-card__status.status-2 {
-  background: rgba(255, 92, 122, 0.9);
-  color: #fff;
-}
-
-.submit-timeline .video-card__info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.submit-timeline .video-card__info--tit {
-  font-size: 14px;
-  font-weight: 500;
+.timeline-month {
+  font-size: 18px;
+  font-weight: 600;
   color: var(--text1);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-decoration: none;
-  transition: color 0.2s;
+  background: linear-gradient(135deg, var(--brand_pink), #ff6b9d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.submit-timeline .video-card__info--tit:hover {
-  color: var(--brand_pink);
-}
-
-.video-card__info--meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--text4);
-}
-
-.video-card__info--episode {
-  font-weight: 500;
+.timeline-count {
+  font-size: 13px;
+  color: var(--text3);
+  background: var(--bg3);
+  padding: 2px 10px;
+  border-radius: 12px;
 }
 
 .timeline-loading {
@@ -3249,6 +3135,10 @@ onUnmounted(() => {
   border-top-color: var(--brand_pink);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* 空状态 */

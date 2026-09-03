@@ -173,12 +173,12 @@
       </div>
     </div>
 
-<!-- 添加剧集弹窗 -->
-<Teleport to="body">
-  <Transition name="fav-overlay" mode="out-in">
-    <div v-if="showAddDialog" class="fav-overlay" @click.self="showAddDialog = false">
-      <Transition name="fav-dialog" appear>
-        <div v-if="showAddDialog" class="fav-dialog fav-dialog-small">
+    <!-- 添加剧集弹窗 -->
+    <Teleport to="body">
+      <Transition name="fav-overlay">
+        <div v-if="showAddDialog" class="fav-overlay" @click.self="showAddDialog = false">
+          <Transition name="fav-dialog" appear>
+            <div v-if="showAddDialog" class="fav-dialog fav-dialog-small">
               <div class="fav-dialog-header">
                 <h3>添加剧集</h3>
                 <button class="fav-close-btn" @click="showAddDialog = false">
@@ -222,12 +222,12 @@
       </Transition>
     </Teleport>
 
-<!-- 编辑剧集弹窗 -->
-<Teleport to="body">
-  <Transition name="fav-overlay" mode="out-in">
-    <div v-if="showEditDialog" class="fav-overlay" @click.self="showEditDialog = false">
-      <Transition name="fav-dialog" appear>
-        <div v-if="showEditDialog" class="fav-dialog fav-dialog-small">
+    <!-- 编辑剧集弹窗 -->
+    <Teleport to="body">
+      <Transition name="fav-overlay">
+        <div v-if="showEditDialog" class="fav-overlay" @click.self="showEditDialog = false">
+          <Transition name="fav-dialog" appear>
+            <div v-if="showEditDialog" class="fav-dialog fav-dialog-small">
               <div class="fav-dialog-header">
                 <h3>编辑剧集</h3>
                 <button class="fav-close-btn" @click="showEditDialog = false">
@@ -724,6 +724,10 @@ const formatTime = (time) => {
   border-top-color: var(--brand_pink);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .episode-table {
