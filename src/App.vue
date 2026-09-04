@@ -25,6 +25,7 @@ const hideLayout = computed(() => route.meta?.hideLayout === true || route.name 
 const darkMode = ref(false)
 const compactMode = ref(false)
 const primaryColor = ref('')
+const sidebarStyle = ref('dark')
 
 const loadConfig = async () => {
   try {
@@ -45,9 +46,36 @@ const loadConfig = async () => {
     darkMode.value = configMap.darkMode === 'true'
     compactMode.value = configMap.compactMode === 'true'
     primaryColor.value = configMap.primaryColor || ''
-    
+    sidebarStyle.value = configMap.sidebarStyle || 'dark'
+
     if (primaryColor.value) {
-      document.documentElement.style.setProperty('--brand_pink', primaryColor.value)
+      const root = document.documentElement
+      root.style.setProperty('--brand_pink', primaryColor.value)
+
+      const r = parseInt(primaryColor.value.slice(1, 3), 16)
+      const g = parseInt(primaryColor.value.slice(3, 5), 16)
+      const b = parseInt(primaryColor.value.slice(5, 7), 16)
+
+      const lighten = (amt) => {
+        const nr = Math.min(255, r + Math.round((255 - r) * amt))
+        const ng = Math.min(255, g + Math.round((255 - g) * amt))
+        const nb = Math.min(255, b + Math.round((255 - b) * amt))
+        return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`
+      }
+
+      const darken = (amt) => {
+        const nr = Math.max(0, Math.round(r * (1 - amt)))
+        const ng = Math.max(0, Math.round(g * (1 - amt)))
+        const nb = Math.max(0, Math.round(b * (1 - amt)))
+        return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`
+      }
+
+      root.style.setProperty('--brand_pink_thin', `rgba(${r}, ${g}, ${b}, 0.1)`)
+      root.style.setProperty('--brand_pink_hover', lighten(0.2))
+      root.style.setProperty('--brand_pink_active', darken(0.15))
+      root.style.setProperty('--color-primary', primaryColor.value)
+      root.style.setProperty('--color-primary-hover', lighten(0.2))
+      root.style.setProperty('--color-primary-light', `rgba(${r}, ${g}, ${b}, 0.1)`)
     }
   } catch (e) {
     console.error('获取网站配置失败:', e)

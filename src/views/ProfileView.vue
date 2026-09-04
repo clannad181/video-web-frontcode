@@ -82,11 +82,11 @@
                     <img :src="video.videoCover" :alt="video.videoTitle" loading="lazy" />
                     <div class="cover-stats">
                       <span class="stat">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                        <IconVideo :size="14" color="#fff" />
                         {{ formatCount(video.playCount || 0) }}
                       </span>
                       <span class="stat">
-                        <IconFavorite :size="12" />
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
                         {{ formatCount(video.favoriteCount || 0) }}
                       </span>
                     </div>
@@ -113,11 +113,11 @@
                     <img :src="video.videoCover" :alt="video.videoTitle" loading="lazy" />
                     <div class="cover-stats">
                       <span class="stat">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                        <IconVideo :size="14" color="#fff" />
                         {{ formatCount(video.playCount || 0) }}
                       </span>
                       <span class="stat">
-                        <IconFavorite :size="12" />
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
                         {{ formatCount(video.favoriteCount || 0) }}
                       </span>
                     </div>
@@ -175,11 +175,11 @@
                         <img :src="video.coverUrl" :alt="video.title" />
                         <div class="cover-stats">
                           <span class="stat">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            <IconVideo :size="14" color="#fff" />
                             {{ formatCount(video.playCount) }}
                           </span>
                           <span class="stat">
-                            <IconFavorite :size="12" />
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
                             {{ formatCount(video.favoriteCount) }}
                           </span>
                         </div>
@@ -306,11 +306,11 @@
                       <img :src="video.videoCover" :alt="video.videoTitle" />
                       <div class="cover-stats">
                         <span class="stat">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                          <IconVideo :size="14" color="#fff" />
                           {{ formatCount(video.playCount) }}
                         </span>
                         <span class="stat">
-                          <IconFavorite :size="12" />
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
                           {{ formatCount(video.favoriteCount || 0) }}
                         </span>
                       </div>
@@ -945,7 +945,7 @@ import { useAuthStore } from '../stores/auth'
 import { getClientUserInfo } from '../api/auth'
 import { getFavoriteFolderList, getFavoriteFolderDetail, getUserCoinVideos, getUserLikeVideos, getRecentLikeEpisodes, getRecentCoinEpisodes, getMyContributions, getFollowList, searchFollow, searchFans, searchFavorite, updateFavoriteFolder, deleteFavoriteFolder, createFavoriteFolder, unfollowUser, followUser, updateUserProfile } from '../api/video'
 import { uploadFile } from '../utils/fileUpload'
-import { IconFavorite, IconCoin, IconLike, IconVip, IconSecret } from '../icons'
+import { IconFavorite, IconCoin, IconLike, IconVip, IconSecret, IconVideo } from '../icons'
 import { formatCount, formatDuration, formatDate } from '../utils/format'
 import { handleVideoClick, handleUserClick } from '../utils/video'
 import { throttle } from '../utils/format'

@@ -22,19 +22,23 @@
           <div class="bili-carousel-cell">
             <div class="carousel" @mouseenter="pauseAutoplay" @mouseleave="resumeAutoplay">
               <div class="carousel-slides" :style="{ transform: `translateX(-${currentIndex * 100}%)` }">
-                <div v-for="(slide, idx) in slides" :key="idx" class="carousel-slide">
-                  <a :href="slide.link" class="carousel-item"><img :src="slide.image" :alt="slide.title" loading="lazy" /></a>
+                <div v-for="(slide, idx) in bannerSlides" :key="idx" class="carousel-slide">
+                  <a @click.prevent="handleVideoClick(slide)" class="carousel-item">
+                    <div class="carousel-item__image">
+                      <img :src="slide.coverUrl" :alt="slide.title" loading="lazy" />
+                    </div>
+                  </a>
                 </div>
               </div>
               <div class="carousel-dots">
-                <span v-for="(_, idx) in slides" :key="idx" class="carousel-dots__dot" :class="{ 'is-active': currentIndex === idx }" @click="currentIndex = idx"></span>
+                <span v-for="(_, idx) in bannerSlides" :key="idx" class="carousel-dots__dot" :class="{ 'is-active': currentIndex === idx }" @click="currentIndex = idx"></span>
               </div>
               <div class="carousel-arrows">
                 <button class="carousel-arrows__btn" @click="prev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
                 <button class="carousel-arrows__btn" @click="next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
               </div>
               <div class="carousel-bottom">
-                <a :href="slides[currentIndex]?.link" class="carousel-bottom-title">{{ slides[currentIndex]?.title }}</a>
+                <a @click.prevent="handleVideoClick(bannerSlides[currentIndex])" class="carousel-bottom-title">{{ bannerSlides[currentIndex]?.title }}</a>
               </div>
             </div>
           </div>
@@ -128,6 +132,7 @@ const router = useRouter()
 const PAGE_SIZE = 20
 
 const categories = ref([])
+const bannerSlides = ref([])
 const topVideos = ref([])
 const videoList = ref([])
 const currentIndex = ref(0)
@@ -140,16 +145,8 @@ let currentPage = 1
 let autoplayTimer = null
 let observer = null
 
-const slides = ref([
-  { image: 'https://picsum.photos/seed/bili1/976/550', title: '探索精彩视频世界，发现更多优质内容', link: '/category/1' },
-  { image: 'https://picsum.photos/seed/bili2/976/550', title: '音乐频道全新上线，聆听最动人的旋律', link: '/category/2' },
-  { image: 'https://picsum.photos/seed/bili3/976/550', title: '游戏攻略专区，助你成为游戏高手', link: '/category/6' },
-  { image: 'https://picsum.photos/seed/bili4/976/550', title: '学习提升计划，优质教育内容', link: '/category/7' },
-  { image: 'https://picsum.photos/seed/bili5/976/550', title: '美食频道，发现味蕾的奥秘', link: '/category/4' },
-])
-
-const next = () => { currentIndex.value = (currentIndex.value + 1) % slides.value.length }
-const prev = () => { currentIndex.value = (currentIndex.value - 1 + slides.value.length) % slides.value.length }
+const next = () => { if (bannerSlides.value.length > 0) currentIndex.value = (currentIndex.value + 1) % bannerSlides.value.length }
+const prev = () => { if (bannerSlides.value.length > 0) currentIndex.value = (currentIndex.value - 1 + bannerSlides.value.length) % bannerSlides.value.length }
 const startAutoplay = () => { autoplayTimer = setInterval(next, 4000) }
 const pauseAutoplay = () => { if (autoplayTimer) { clearInterval(autoplayTimer); autoplayTimer = null } }
 const resumeAutoplay = () => { if (!autoplayTimer) startAutoplay() }
@@ -210,7 +207,8 @@ onMounted(async () => {
   }
   try {
     const res = await getRecommendVideos()
-    topVideos.value = res || []
+    bannerSlides.value = res.banner || []
+    topVideos.value = res.cards || []
   } catch (e) {
     console.error('获取推荐视频失败:', e)
   }
@@ -392,13 +390,20 @@ onUnmounted(() => {
 .feed-card {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  grid-auto-rows: auto;
+  grid-auto-rows: minmax(0, auto);
   gap: 20px;
 }
 
 .bili-carousel-cell {
   grid-column: span 2;
   grid-row: span 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.bili-carousel-cell .carousel {
+  width: 100%;
+  height: calc(100% - 72px);
 }
 
 /* ===== 轮播图 ===== */
@@ -406,45 +411,52 @@ onUnmounted(() => {
   position: relative;
   border-radius: 10px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   height: 100%;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
 }
 
 .carousel-slides {
-  flex: 1;
   display: flex;
+  height: 100%;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .carousel-slide {
-  min-width: 100%;
+  flex: 0 0 100%;
   height: 100%;
 }
 
 .carousel-item {
   display: block;
   width: 100%;
-  height: 100%;
   position: relative;
 }
 
-.carousel-item img {
+.carousel-item__image {
+  position: relative;
+  padding-top: 56.25%;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
-.carousel-item::after {
+.carousel-item__image::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: 80px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+  background: linear-gradient(transparent, #0d0d0d);
   pointer-events: none;
+}
+
+.carousel-item__image img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .carousel-bottom {
@@ -454,6 +466,7 @@ onUnmounted(() => {
   right: 0;
   z-index: 2;
   padding: 12px 16px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
 }
 
 .carousel-bottom-title {
