@@ -580,7 +580,7 @@
                 <div class="profile-avatar-section">
                   <input type="file" accept="image/*" id="edit-profile-avatar" class="cover-upload-input" @change="handleEditProfileAvatarUpload" />
                   <label for="edit-profile-avatar" class="profile-avatar-upload">
-                    <img v-if="editProfileAvatar" :src="editProfileAvatar" class="profile-avatar-preview" />
+                    <img v-if="editProfileAvatar" :src="editProfileAvatar" class="profile-avatar-preview" alt="头像预览" />
                     <div v-else class="profile-avatar-placeholder">
                       <IconUser :size="32" />
                     </div>
@@ -705,7 +705,7 @@
                       @change="handleEditCoverUpload"
                     />
                     <label :for="'edit-cover-upload'" class="cover-upload-btn">
-                      <img v-if="editFolderCoverUrl" :src="editFolderCoverUrl" class="cover-preview" />
+                      <img v-if="editFolderCoverUrl" :src="editFolderCoverUrl" class="cover-preview" alt="封面预览" />
                       <template v-else>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -854,7 +854,7 @@
                       @change="handleCreateCoverUpload"
                     />
                     <label :for="'create-cover-upload'" class="cover-upload-btn">
-                      <img v-if="newFolderCoverUrl" :src="newFolderCoverUrl" class="cover-preview" />
+                      <img v-if="newFolderCoverUrl" :src="newFolderCoverUrl" class="cover-preview" alt="封面预览" />
                       <template v-else>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -946,6 +946,9 @@ import { getClientUserInfo } from '../api/auth'
 import { getFavoriteFolderList, getFavoriteFolderDetail, getUserCoinVideos, getUserLikeVideos, getRecentLikeEpisodes, getRecentCoinEpisodes, getMyContributions, getFollowList, searchFollow, searchFans, searchFavorite, updateFavoriteFolder, deleteFavoriteFolder, createFavoriteFolder, unfollowUser, followUser, updateUserProfile } from '../api/video'
 import { uploadFile } from '../utils/fileUpload'
 import { IconFavorite, IconCoin, IconLike, IconVip, IconSecret } from '../icons'
+import { formatCount, formatDuration, formatDate } from '../utils/format'
+import { handleVideoClick, handleUserClick } from '../utils/video'
+import { throttle } from '../utils/format'
 
 const router = useRouter()
 const route = useRoute()
@@ -1186,7 +1189,7 @@ const loadMoreSubmitVideos = async () => {
 }
 
 // 滚动加载处理
-const handleScroll = () => {
+const handleScroll = throttle(() => {
   if (activeTab.value !== 'submit') return
   
   const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
@@ -1197,7 +1200,7 @@ const handleScroll = () => {
   if (scrollTop + clientHeight >= scrollHeight - 200) {
     loadMoreSubmitVideos()
   }
-}
+}, 300)
 
 const favoriteTotalPages = computed(() => Math.ceil(favoriteTotal.value / FAVORITES_PER_PAGE))
 
@@ -1631,12 +1634,6 @@ const loadLikeVideos = async () => {
   }
 }
 
-const handleVideoClick = (video) => {
-  if (video.playLink) {
-    router.push(video.playLink)
-  }
-}
-
 const getStatusText = (status) => {
   const statusMap = {
     0: '草稿',
@@ -1645,21 +1642,6 @@ const getStatusText = (status) => {
     3: '已下架'
   }
   return statusMap[status] || '未知'
-}
-
-const formatDuration = (seconds) => {
-  if (!seconds) return '00:00'
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-}
-
-const formatCount = (count) => {
-  if (!count) return '0'
-  if (count >= 10000) {
-    return (count / 10000).toFixed(1) + '万'
-  }
-  return count.toString()
 }
 
 const formatTime = (timestamp) => {

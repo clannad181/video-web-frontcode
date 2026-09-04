@@ -56,7 +56,7 @@
                   v-for="item in group.items"
                   :key="item.id"
                   class="video-card"
-                  @click="handleVideoClick(item)"
+                  @click="navigateToVideo(item)"
                 >
                   <a class="video-card__wrap">
                     <div class="video-card__image">
@@ -128,8 +128,20 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { searchWatchHistory, deleteWatchHistory } from '../api/video'
 import IconUp from '../icons/IconUp.vue'
+import { throttle } from '../utils/format'
 
 const router = useRouter()
+
+const navigateToVideo = (item) => {
+  const avid = item.videoAvid || item.videoUid || item.avid
+  const eavid = item.episodeAvid || item.episodeUid || item.id
+  if (avid && eavid) {
+    router.push(`/client/video/${avid}/episode/${eavid}`)
+  } else if (item.playLink) {
+    const path = item.playLink.replace(/^\/admin\//, '/client/')
+    router.push(path)
+  }
+}
 
 const formatDate = (date) => {
   const y = date.getFullYear()
@@ -360,7 +372,7 @@ const updateTimeline = () => {
   }
 }
 
-const handleScroll = () => {
+const handleScroll = throttle(() => {
   const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
   const scrollHeight = document.documentElement.scrollHeight
   const clientHeight = document.documentElement.clientHeight
@@ -371,7 +383,7 @@ const handleScroll = () => {
     }
   }
   updateTimeline()
-}
+}, 300)
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -382,12 +394,6 @@ const scrollToDate = (date) => {
   if (el) {
     const y = el.getBoundingClientRect().top + window.scrollY - 80
     window.scrollTo({ top: y, behavior: 'smooth' })
-  }
-}
-
-const handleVideoClick = (item) => {
-  if (item.videoAvid && item.episodeAvid) {
-    window.open(`/client/video/${item.videoAvid}/episode/${item.episodeAvid}`, '_blank')
   }
 }
 

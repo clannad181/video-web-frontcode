@@ -41,7 +41,7 @@
             v-for="video in folderVideos"
             :key="video.episodeAvid"
             class="fav-video-item"
-            @click="handleVideoClick(video)"
+            @click="handleVideoClick(video, router)"
           >
             <div class="video-cover">
               <img :src="video.videoCover" :alt="video.videoTitle" />
@@ -70,6 +70,8 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getFavoriteFolderList, getFavoriteFolderDetail } from '../api/video'
+import { handleVideoClick } from '../utils/video'
+import { formatDuration } from '../utils/format'
 
 const props = defineProps({
   visible: { type: Boolean, default: false }
@@ -131,17 +133,6 @@ const loadFolderContent = async (folderUid) => {
   } finally {
     loadingContent.value = false
   }
-}
-
-const handleVideoClick = (video) => {
-  router.push(video.playLink)
-}
-
-const formatDuration = (seconds) => {
-  if (!seconds) return '00:00'
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
 loadFolders()

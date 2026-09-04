@@ -28,12 +28,23 @@ const primaryColor = ref('')
 
 const loadConfig = async () => {
   try {
-    const config = await getDisplayConfig()
-    console.log('网站配置:', config)
-    
-    darkMode.value = config.darkMode || false
-    compactMode.value = config.compactMode || false
-    primaryColor.value = config.primaryColor || ''
+    const cached = sessionStorage.getItem('displayConfig')
+    let configMap = {}
+
+    if (cached) {
+      configMap = JSON.parse(cached)
+    } else {
+      const result = await getDisplayConfig()
+      const configList = Array.isArray(result) ? result : (result?.data || [])
+      configList.forEach(item => {
+        configMap[item.key] = item.value
+      })
+      sessionStorage.setItem('displayConfig', JSON.stringify(configMap))
+    }
+
+    darkMode.value = configMap.darkMode === 'true'
+    compactMode.value = configMap.compactMode === 'true'
+    primaryColor.value = configMap.primaryColor || ''
     
     if (primaryColor.value) {
       document.documentElement.style.setProperty('--brand_pink', primaryColor.value)

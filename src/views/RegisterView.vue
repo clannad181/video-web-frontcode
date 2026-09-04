@@ -102,7 +102,6 @@ const isFormValid = computed(() => {
 
 const handleRegister = () => {
   if (!isFormValid.value) return
-  console.log('注册:', form.value)
   router.push('/login')
 }
 </script>

@@ -58,6 +58,8 @@ export const removeFavorite = (data) => request.post('/client/favorite/remove', 
 
 export const getWatchHistoryList = (params) => request.get('/client/watch-history/list', { params })
 
+export const recordWatchHistory = (data) => request.post('/client/watch-history/record', data)
+
 export const searchWatchHistory = (data) => request.post('/client/watch-history/search', data)
 
 export const deleteWatchHistory = (params) => request.get('/client/watch-history/delete', { params })

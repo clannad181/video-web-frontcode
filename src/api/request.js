@@ -67,7 +67,6 @@ request.interceptors.response.use(
     if (res.code === 401) {
       const refreshToken = localStorage.getItem('frontRefreshToken')
       const originalRequest = response.config
-      console.log('401 Unauthorized, attempting to refresh token...')
       if (refreshToken && !originalRequest._retry) {
         originalRequest._retry = true
         if (isRefreshing) {
@@ -80,7 +79,6 @@ request.interceptors.response.use(
         }
         
         isRefreshing = true
-        console.log('Refreshing token...'+refreshToken)
         return axios.get('/api/client/user/refresh', {
           headers: { 'refresh-token': refreshToken }
         }).then(res => {

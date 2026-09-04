@@ -13,7 +13,7 @@
         </div>
         <div class="author-card">
           <div class="author-avatar">
-            <img v-if="video.avatarUrl" :src="video.avatarUrl" />
+            <img v-if="video.avatarUrl" :src="video.avatarUrl" :alt="video.nickName || 'UP主头像'" />
             <span v-else>{{ video.nickName?.charAt(0) }}</span>
           </div>
           <div class="author-content">
@@ -47,6 +47,8 @@
                 width="100%"
                 height="100%"
                 :key="currentPlayUrl"
+                :currentTime="savedTime"
+                @timeupdate="handleTimeUpdate"
               />
               <div v-else class="player-placeholder">
                 <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
@@ -418,13 +420,13 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { mockVideos, mockComments } from '../api/mock'
-import { formatCount } from '../utils/fileUpload'
+import { formatCount, formatDuration } from '../utils/format'
 import { ElMessage } from 'element-plus'
+import { throttle } from '../utils/format'
 import request from '../api/request'
 import { videoPlay } from 'vue3-video-play'
 import 'vue3-video-play/dist/style.css'
-import { followUser, unfollowUser, checkIsFollowed, getRelatedVideos, likeEpisode, coinEpisode, getEpisodeStatus, getFavoriteStatus, removeFavorite } from '../api/video'
+import { followUser, unfollowUser, checkIsFollowed, getRelatedVideos, likeEpisode, coinEpisode, getEpisodeStatus, getFavoriteStatus, removeFavorite, recordWatchHistory, getWatchHistoryList } from '../api/video'
 import { getCommentTree, postComment, likeClientComment } from '../api/comment'
 import { createReport } from '../api/report'
 import FavoriteFolderDialog from '../components/FavoriteFolderDialog.vue'
@@ -461,6 +463,30 @@ const submitting = ref(false)
 const expandedComments = ref({})
 const replyPages = ref({})
 const REPLIES_PER_PAGE = 5
+
+const savedTime = ref(0)
+const currentTimeRef = ref(0)
+
+const seekToSavedTime = (t) => {
+  if (t <= 0) return
+  let attempts = 0
+  const trySeek = () => {
+    const v = document.querySelector('video')
+    if (v && v.readyState >= 1) {
+      v.currentTime = t
+    } else if (attempts < 20) {
+      attempts++
+      setTimeout(trySeek, 200)
+    }
+  }
+  trySeek()
+}
+
+watch(savedTime, (t) => {
+  if (t > 0) {
+    nextTick(() => seekToSavedTime(t))
+  }
+})
 
 const showReportDialog = ref(false)
 const reportSubmitting = ref(false)
@@ -572,13 +598,11 @@ const getPaginatedReplies = (comment) => {
   const startIndex = (currentPage - 1) * REPLIES_PER_PAGE
   const endIndex = startIndex + REPLIES_PER_PAGE
   const result = allReplies.slice(startIndex, endIndex)
-  console.log('getPaginatedReplies:', { commentId: comment.id, currentPage, total: allReplies.length, resultIds: result.map(r => r.id) })
   return result
 }
 
 const getDisplayReplies = (comment) => {
   const expanded = expandedComments.value[comment.id]
-  console.log('getDisplayReplies:', { commentId: comment.id, expanded })
   if (expanded) {
     return getPaginatedReplies(comment)
   }
@@ -646,17 +670,6 @@ const updateDocumentTitle = () => {
   const ep = currentEpisode.value
   const epTitle = ep?.title || (ep?.episodeNumber ? `第${ep.episodeNumber}集` : '')
   document.title = epTitle ? `${epTitle} - ${video.value?.title || ''}` : `${video.value?.title || '视频播放'} - VideoHub`
-}
-
-const formatDuration = (seconds) => {
-  if (!seconds) return '00:00'
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = seconds % 60
-  if (h > 0) {
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-  }
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
 }
 
 const applyVideoData = async (data) => {
@@ -731,6 +744,25 @@ const loadEpisodeStatus = async () => {
   }
 }
 
+const reportWatchProgress = (seconds) => {
+  if (!isLoggedIn.value) return
+  const videoUid = video.value?.avid || video.value?.id
+  const episodeUid = currentEpisode.value?.avid || currentEpisode.value?.id
+  if (videoUid && episodeUid) {
+    recordWatchHistory({ videoId: videoUid, episodeId: episodeUid, watchedSeconds: Math.floor(seconds) })
+  }
+}
+
+const reportProgress = throttle((e) => {
+  currentTimeRef.value = e.target.currentTime
+  reportWatchProgress(e.target.currentTime)
+}, 30000)
+
+const handleTimeUpdate = (e) => {
+  currentTimeRef.value = e.target.currentTime
+  reportProgress(e)
+}
+
 const loadVideo = async () => {
   const videoUid = route.params.videoUid
   const episodeUid = route.params.episodeUid
@@ -740,22 +772,29 @@ const loadVideo = async () => {
       const res = await request.get(`/client/video/${videoUid}/episode/${episodeUid}`)
       const data = res.data || res
       await applyVideoData(data)
+      
+      if (isLoggedIn.value) {
+        try {
+          const historyRes = await getWatchHistoryList({ page: 1, size: 100 })
+          const historyList = historyRes?.records || []
+          const currentHistory = historyList.find(
+            item => String(item.videoAvid || item.videoId) === String(videoUid) && String(item.episodeAvid || item.episodeId) === String(episodeUid)
+          )
+          if (currentHistory) {
+            if (currentHistory.watchedSeconds) {
+              savedTime.value = currentHistory.watchedSeconds
+            } else if (currentHistory.watchProgress && currentHistory.duration) {
+              savedTime.value = Math.floor(currentHistory.watchProgress * currentHistory.duration)
+            }
+          }
+        } catch (e) {
+          console.error('获取观看进度失败:', e)
+        }
+      }
       return
     } catch (e) {
       console.error('获取播放信息失败:', e)
     }
-  }
-  
-  // fallback 到 mock 数据
-  const id = Number(videoUid)
-  video.value = mockVideos.find(v => v.id === id) || mockVideos[0]
-  relatedVideos.value = mockVideos.filter(v => v.id !== id).slice(0, 10)
-  if (video.value.isOngoing) {
-    episodes.value = Array.from({ length: video.value.episodeCount || 5 }, (_, i) => ({
-      title: `第${i + 1}集`
-    }))
-  } else {
-    episodes.value = []
   }
 }
 
@@ -1068,7 +1107,7 @@ const checkCommentInputVisibility = () => {
   showFloatingComment.value = isHidden
 }
 
-const handleScroll = () => {
+const handleScroll = throttle(() => {
   checkCommentInputVisibility()
   
   const scrollHeight = document.documentElement.scrollHeight
@@ -1078,7 +1117,7 @@ const handleScroll = () => {
   if (scrollTop + clientHeight >= scrollHeight - 200) {
     loadMoreComments()
   }
-}
+}, 300)
 
 let twemojiObserver = null
 
@@ -1116,10 +1155,15 @@ onMounted(async () => {
       }
     }
   })
-  twemojiObserver.observe(document.body, { childList: true, subtree: true })
+  // 只监听评论区容器，而不是整个document.body
+  const commentContainer = commentSectionRef.value || document.body
+  twemojiObserver.observe(commentContainer, { childList: true, subtree: true })
 })
 
 onUnmounted(() => {
+  if (currentTimeRef.value > 0) {
+    reportWatchProgress(currentTimeRef.value)
+  }
   window.removeEventListener('scroll', handleScroll)
   twemojiObserver?.disconnect()
   document.title = 'VideoHub'

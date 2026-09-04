@@ -136,6 +136,7 @@ import { useRoute } from 'vue-router'
 import { getUserInfoByUid } from '../api/auth'
 import { getUserVideos } from '../api/video'
 import { IconVideo } from '../icons'
+import { formatCount, formatDuration, formatDate, throttle } from '../utils/format'
 
 const route = useRoute()
 
@@ -148,36 +149,6 @@ const page = ref(1)
 const pageSize = 10
 const hasMore = ref(true)
 const loadingMore = ref(false)
-
-const formatCount = (count) => {
-  if (count >= 10000) {
-    return (count / 10000).toFixed(1) + '万'
-  }
-  return count
-}
-
-const formatDuration = (seconds) => {
-  if (!seconds) return '00:00'
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-}
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  const diff = Math.floor((today - target) / (1000 * 60 * 60 * 24))
-  
-  if (diff === 0) return '今天'
-  if (diff === 1) return '昨天'
-  if (diff < 7) return `${diff}天前`
-  if (diff < 30) return `${Math.floor(diff / 7)}周前`
-  if (diff < 365) return `${Math.floor(diff / 30)}个月前`
-  return `${Math.floor(diff / 365)}年前`
-}
 
 const loadUpInfo = async () => {
   loading.value = true
@@ -250,7 +221,7 @@ const goToVideo = (video) => {
   }
 }
 
-const handleScroll = () => {
+const handleScroll = throttle(() => {
   const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
   const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight
   const clientHeight = document.documentElement.clientHeight || window.innerHeight
@@ -258,7 +229,7 @@ const handleScroll = () => {
   if (scrollTop + clientHeight >= scrollHeight - 200) {
     loadVideos()
   }
-}
+}, 300)
 
 const handleFollowChanged = (e) => {
   const { uid, isFollowed, fansCount } = e.detail

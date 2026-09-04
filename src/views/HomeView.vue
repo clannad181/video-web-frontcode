@@ -38,7 +38,7 @@
               </div>
             </div>
           </div>
-          <div v-for="v in topVideos" :key="'t'+v.id" class="bili-video-card">
+          <div v-for="(v, index) in topVideos" :key="'t'+v.id" class="bili-video-card" :style="{ animationDelay: `${index * 0.05}s` }">
             <a @click.prevent="handleVideoClick(v)" class="bili-video-card__wrap">
               <div class="bili-video-card__image">
                 <img :src="v.coverUrl" :alt="v.title" loading="lazy" class="bili-video-card__cover" />
@@ -71,7 +71,7 @@
       <!-- 最新视频 -->
       <div class="feed-section">
         <div class="feed-card">
-          <div v-for="v in videoList" :key="'r'+v.id" class="bili-video-card">
+          <div v-for="(v, index) in videoList" :key="'r'+v.id" class="bili-video-card" :style="{ animationDelay: `${(index % 10) * 0.05}s` }">
             <a @click.prevent="handleVideoClick(v)" class="bili-video-card__wrap">
               <div class="bili-video-card__image">
                 <img :src="v.coverUrl" :alt="v.title" loading="lazy" class="bili-video-card__cover" />
@@ -114,7 +114,6 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { mockVideos, mockCategories } from '../api/mock'
 import { formatDuration, formatCount, formatDate } from '../utils/fileUpload'
 import { getCategoryList } from '../api/category'
 import { getClientVideoList, getRecommendVideos } from '../api/video'
@@ -122,6 +121,7 @@ import { useRouter } from 'vue-router'
 import request from '../api/request'
 import IconUp from '../icons/IconUp.vue'
 import { IconVideo } from '../icons'
+import { handleVideoClick } from '../utils/video'
 
 const router = useRouter()
 
@@ -175,31 +175,9 @@ const fetchVideos = async () => {
     }
     currentPage++
   } catch (e) {
-    if (currentPage === 1) {
-      videoList.value = [...mockVideos]
-      noMore.value = true
-    }
+    console.error('获取视频列表失败:', e)
   } finally {
     loading.value = false
-  }
-}
-
-const handleVideoClick = async (video) => {
-  let path = ''
-  if (video.playLink) {
-    path = video.playLink
-    try {
-      const url = new URL(path)
-      path = url.pathname
-    } catch {}
-    if (path.startsWith('/api')) {
-      path = path.slice(4)
-    }
-  } else {
-    path = `/client/video/${video.id}/episode/${video.currentEpisode?.id || video.id}`
-  }
-  if (path) {
-    window.open(path, '_blank')
   }
 }
 
@@ -227,14 +205,14 @@ onMounted(async () => {
       categories.value = (data || []).filter(c => c.id !== 1)
       sessionStorage.setItem('categories', JSON.stringify(categories.value))
     } catch (e) {
-      categories.value = mockCategories
+      console.error('获取分类失败:', e)
     }
   }
   try {
     const res = await getRecommendVideos()
     topVideos.value = res || []
   } catch (e) {
-    topVideos.value = mockVideos.slice(0, 6)
+    console.error('获取推荐视频失败:', e)
   }
   await fetchVideos()
   await nextTick()
@@ -563,6 +541,18 @@ onUnmounted(() => {
 .bili-video-card {
   display: flex;
   flex-direction: column;
+  animation: cardFadeIn 0.4s ease-out both;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .bili-video-card__wrap {

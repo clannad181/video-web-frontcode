@@ -2,7 +2,7 @@
   <div class="floating-comment-bar" v-if="isLoggedIn && show">
     <div class="comment-bar-inner">
       <div class="input-avatar">
-        <img v-if="currentUser?.avatar || currentUser?.avatarUrl" :src="currentUser.avatar || currentUser.avatarUrl" />
+        <img v-if="currentUser?.avatar || currentUser?.avatarUrl" :src="currentUser.avatar || currentUser.avatarUrl" :alt="currentUser?.nickname || '我的头像'" />
         <span v-else>{{ currentUser?.nickname?.charAt(0) || '?' }}</span>
       </div>
       <div class="input-wrapper">
@@ -121,7 +121,9 @@ onMounted(() => {
       }
     }
   })
-  observer.observe(document.body, { childList: true, subtree: true })
+  // 只监听组件自身的元素，而不是整个document.body
+  const container = document.querySelector('.floating-comment-bar') || document.body
+  observer.observe(container, { childList: true, subtree: true })
 })
 
 onUnmounted(() => {

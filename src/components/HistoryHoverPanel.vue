@@ -17,20 +17,16 @@
           v-for="video in videos"
           :key="video.episodeAvid"
           class="history-video-item"
-          @click="handleVideoClick(video)"
+          @click="handleVideoClick(video, router)"
         >
           <div class="video-cover">
             <img :src="video.videoCover" :alt="video.videoTitle" />
-            <span class="video-duration">{{ formatDuration(video.duration) }}</span>
-            <div class="watch-progress" v-if="video.watchProgress">
-              <div class="progress-bar" :style="{ width: (video.watchProgress * 100) + '%' }"></div>
-            </div>
+            <span class="video-duration">{{ video.watchedTime || formatDuration(video.duration) }}</span>
           </div>
           <div class="video-info">
             <div class="video-title">{{ video.videoTitle }}</div>
             <div class="video-meta">
               <span class="video-author">{{ video.nickName }}</span>
-              <span class="video-time">{{ formatTime(video.watchTime) }}</span>
             </div>
           </div>
         </div>
@@ -55,9 +51,11 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getWatchHistoryList } from '../api/video'
+import { handleVideoClick } from '../utils/video'
+import { formatDuration } from '../utils/format'
 
 const props = defineProps({
   visible: { type: Boolean, default: false }
@@ -68,6 +66,11 @@ defineEmits(['panel-enter', 'panel-leave'])
 const router = useRouter()
 const loading = ref(false)
 const videos = ref([])
+const isMounted = ref(true)
+
+onUnmounted(() => {
+  isMounted.value = false
+})
 
 watch(() => props.visible, (val) => {
   if (val) {
@@ -79,50 +82,17 @@ const loadHistory = async () => {
   loading.value = true
   try {
     const res = await getWatchHistoryList({ page: 1, size: 15 })
+    if (!isMounted.value) return
     videos.value = res?.records || []
   } catch (e) {
     console.error('获取观看历史失败:', e)
-    videos.value = []
+    if (isMounted.value) videos.value = []
   } finally {
-    loading.value = false
+    if (isMounted.value) loading.value = false
   }
 }
 
-const handleVideoClick = (video) => {
-  if (video.videoAvid && video.episodeAvid) {
-    router.push(`/client/video/${video.videoAvid}/episode/${video.episodeAvid}`)
-  }
-}
 
-const formatDuration = (seconds) => {
-  if (!seconds) return '00:00'
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-}
-
-const formatTime = (timestamp) => {
-  if (!timestamp) return ''
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diff = now - date
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  
-  if (days === 0) {
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    if (hours === 0) {
-      const mins = Math.floor(diff / (1000 * 60))
-      return mins <= 0 ? '刚刚' : `${mins}分钟前`
-    }
-    return `${hours}小时前`
-  } else if (days === 1) {
-    return '昨天'
-  } else if (days < 7) {
-    return `${days}天前`
-  } else {
-    return `${date.getMonth() + 1}月${date.getDate()}日`
-  }
-}
 </script>
 
 <style scoped>
@@ -229,21 +199,6 @@ const formatTime = (timestamp) => {
   color: #fff;
   font-size: 11px;
   border-radius: 2px;
-}
-
-.watch-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.progress-bar {
-  height: 100%;
-  background: var(--brand_pink);
-  transition: width 0.2s;
 }
 
 .video-info {

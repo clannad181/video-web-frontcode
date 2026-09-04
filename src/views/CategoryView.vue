@@ -41,59 +41,64 @@
       </div>
 
       <div class="video-content">
-        <div class="video-grid" v-if="videos.length > 0">
-          <div 
-            v-for="video in videos" 
-            :key="video.id" 
-            class="video-card"
-            @click="handleVideoClick(video)"
-          >
-            <a class="video-card__wrap">
-              <div class="video-card__image">
-                <img :src="video.coverUrl" :alt="video.title" loading="lazy" class="video-card__cover" />
-                <div class="video-card__mask">
-                  <div class="video-card__stats">
-                    <div class="video-card__stats--left">
-                      <span class="video-card__stats--item">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                        <span>{{ formatCount(video.playCount) }}</span>
-                      </span>
-                      <span class="video-card__stats--item">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
-                        <span>{{ formatCount(video.danmakuCount || 0) }}</span>
-                      </span>
+        <Transition name="fade-slide" mode="out-in">
+          <div :key="currentCategoryId" class="video-grid" v-if="videos.length > 0">
+            <div 
+              v-for="(video, index) in videos" 
+              :key="video.id" 
+              class="video-card"
+              :style="{ animationDelay: `${index * 0.05}s` }"
+              @click="handleVideoClick(video)"
+            >
+              <a class="video-card__wrap">
+                <div class="video-card__image">
+                  <img :src="video.coverUrl" :alt="video.title" loading="lazy" class="video-card__cover" />
+                  <div class="video-card__mask">
+                    <div class="video-card__stats">
+                      <div class="video-card__stats--left">
+                        <span class="video-card__stats--item">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                          <span>{{ formatCount(video.playCount) }}</span>
+                        </span>
+                        <span class="video-card__stats--item">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+                          <span>{{ formatCount(video.danmakuCount || 0) }}</span>
+                        </span>
+                      </div>
+                      <span class="video-card__stats__duration">{{ formatDuration(video.totalDuration) }}</span>
                     </div>
-                    <span class="video-card__stats__duration">{{ formatDuration(video.totalDuration) }}</span>
                   </div>
                 </div>
-              </div>
-              <div class="video-card__info">
-                <a class="video-card__info--tit">{{ video.title }}</a>
-                <div class="video-card__info--bottom">
-                  <a class="video-card__info--owner">
-                    <IconUp :size="14" color="var(--text4)" />
-                    <span class="video-card__info--author">{{ video.nickName }}</span>
-                  </a>
-                  <span class="video-card__info--date">{{ formatDate(video.createTime) }}</span>
+                <div class="video-card__info">
+                  <a class="video-card__info--tit">{{ video.title }}</a>
+                  <div class="video-card__info--bottom">
+                    <a class="video-card__info--owner">
+                      <IconUp :size="14" color="var(--text4)" />
+                      <span class="video-card__info--author">{{ video.nickName }}</span>
+                    </a>
+                    <span class="video-card__info--date">{{ formatDate(video.createTime) }}</span>
+                  </div>
                 </div>
-              </div>
-            </a>
+              </a>
+            </div>
           </div>
-        </div>
-        <div v-else class="empty-state">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.2">
-            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
-            <line x1="7" y1="2" x2="7" y2="22"/>
-            <line x1="17" y1="2" x2="17" y2="22"/>
-            <line x1="2" y1="12" x2="22" y2="12"/>
-            <line x1="2" y1="7" x2="7" y2="7"/>
-            <line x1="2" y1="17" x2="7" y2="17"/>
-            <line x1="17" y1="7" x2="22" y2="7"/>
-            <line x1="17" y1="17" x2="22" y2="17"/>
-          </svg>
-          <p>该分类暂无视频</p>
-          <span class="empty-hint">去看看其他分类吧</span>
-        </div>
+        </Transition>
+        <Transition name="fade" mode="out-in">
+          <div v-if="videos.length === 0 && !loading" :key="'empty'" class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.2">
+              <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+              <line x1="7" y1="2" x2="7" y2="22"/>
+              <line x1="17" y1="2" x2="17" y2="22"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <line x1="2" y1="7" x2="7" y2="7"/>
+              <line x1="2" y1="17" x2="7" y2="17"/>
+              <line x1="17" y1="7" x2="22" y2="7"/>
+              <line x1="17" y1="17" x2="22" y2="17"/>
+            </svg>
+            <p>该分类暂无视频</p>
+            <span class="empty-hint">去看看其他分类吧</span>
+          </div>
+        </Transition>
       </div>
     </div>
   </div>
@@ -106,6 +111,7 @@ import { getCategoryList } from '../api/category'
 import { getClientVideoList } from '../api/video'
 import { formatDuration, formatCount } from '../utils/fileUpload'
 import IconUp from '../icons/IconUp.vue'
+import { handleVideoClick } from '../utils/video'
 
 const route = useRoute()
 const router = useRouter()
@@ -155,27 +161,6 @@ const loadVideos = async () => {
   } catch (e) {
     console.error('获取视频失败:', e)
     videos.value = []
-  }
-}
-
-const handleVideoClick = (video) => {
-  let path = ''
-  if (video.playLink) {
-    path = video.playLink
-    try {
-      const url = new URL(path)
-      path = url.pathname
-    } catch {}
-    if (path.startsWith('/api')) {
-      path = path.slice(4)
-    }
-  } else if (video.episodeAvid) {
-    path = `/client/video/${video.videoAvid}/episode/${video.episodeAvid}`
-  } else {
-    path = `/client/video/${video.id}/episode/${video.currentEpisode?.id || video.id}`
-  }
-  if (path) {
-    window.open(path, '_blank')
   }
 }
 
@@ -381,6 +366,45 @@ watch(() => route.params.id, () => {
 .video-card {
   display: flex;
   flex-direction: column;
+  animation: cardFadeIn 0.4s ease-out both;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 分类切换过渡动画 */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+/* 空状态过渡 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 .video-card__wrap {

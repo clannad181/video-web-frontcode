@@ -1,4 +1,4 @@
-import axios from 'axios'
+import request from './request'
 
 const dbToFrontendMap = {
   'site_name': 'siteName',
@@ -41,9 +41,8 @@ function castValue(key, value) {
 
 export async function getSettings() {
   try {
-    const res = await axios.get('/api/admin/config/list')
-    if (res.data && res.data.code === 200 && res.data.data) {
-      const list = res.data.data
+    const list = await request.get('/admin/config/list')
+    if (list && Array.isArray(list)) {
       const result = {}
       for (const item of list) {
         const frontendKey = dbToFrontendMap[item.key] || item.key
