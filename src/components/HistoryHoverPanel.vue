@@ -17,16 +17,27 @@
           v-for="video in videos"
           :key="video.episodeAvid"
           class="history-video-item"
-          @click="handleVideoClick(video, router)"
+          :class="{ 'is-offline': !video.videoAvid }"
+          @click="video.videoAvid && handleVideoClick(video, router)"
         >
           <div class="video-cover">
-            <img :src="video.videoCover" :alt="video.videoTitle" />
+            <img v-if="video.videoCover" :src="video.videoCover" :alt="video.videoTitle" />
+            <div v-else class="video-cover-offline">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
             <span class="video-duration">{{ video.watchedTime || formatDuration(video.duration) }}</span>
           </div>
           <div class="video-info">
-            <div class="video-title">{{ video.videoTitle }}</div>
+            <div class="video-title">
+              <template v-if="video.videoAvid">{{ video.videoTitle }}</template>
+              <span v-else class="offline-text">该稿件已下架</span>
+            </div>
             <div class="video-meta">
-              <span class="video-author">{{ video.nickName }}</span>
+              <span class="video-author">{{ video.videoAvid ? video.nickName : '-' }}</span>
             </div>
           </div>
         </div>
@@ -175,6 +186,15 @@ const loadHistory = async () => {
   background: var(--bg2);
 }
 
+.history-video-item.is-offline {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.history-video-item.is-offline:hover {
+  background: transparent;
+}
+
 .video-cover {
   width: 96px;
   height: 54px;
@@ -188,6 +208,16 @@ const loadHistory = async () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.video-cover-offline {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg2);
+  color: var(--text4);
 }
 
 .video-duration {
@@ -220,6 +250,11 @@ const loadHistory = async () => {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.offline-text {
+  color: var(--text4);
+  font-style: italic;
 }
 
 .video-meta {

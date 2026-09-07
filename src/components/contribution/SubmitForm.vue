@@ -228,9 +228,29 @@
               v-for="(episode, index) in reversedEpisodes" 
               :key="episode.id" 
               class="episode-card"
+              :class="{ 
+                'dragging': dragState.dragging && dragState.draggedIndex === getOriginalIndex(index),
+                'drag-over': dragState.draggedOverIndex === getOriginalIndex(index)
+              }"
               :style="{ '--index': index }"
+              draggable="true"
+              @dragstart="handleDragStart(getOriginalIndex(index), $event)"
+              @dragover="handleDragOver(getOriginalIndex(index), $event)"
+              @dragleave="handleDragLeave"
+              @drop="handleDrop(getOriginalIndex(index), $event)"
+              @dragend="handleDragEnd"
             >
               <div class="episode-card-header">
+                <div class="drag-handle" title="拖拽排序">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="6" r="1"/>
+                    <circle cx="15" cy="6" r="1"/>
+                    <circle cx="9" cy="12" r="1"/>
+                    <circle cx="15" cy="12" r="1"/>
+                    <circle cx="9" cy="18" r="1"/>
+                    <circle cx="15" cy="18" r="1"/>
+                  </svg>
+                </div>
                 <div class="episode-badge">
                   <span class="episode-index">P{{ episodes.length - index }}</span>
                 </div>
@@ -243,7 +263,7 @@
                 <button 
                   v-if="episodes.length > 1"
                   class="episode-delete-btn" 
-                  @click="removeEpisode(index)"
+                  @click="removeEpisode(getOriginalIndex(index))"
                   title="删除剧集"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -259,14 +279,32 @@
                     <span class="video-name">{{ episode.file?.name || '已上传视频' }}</span>
                     <span class="video-duration" v-if="episode.duration">{{ formatDuration(episode.duration) }}</span>
                   </div>
+                  <div class="video-actions">
+                    <button class="video-action-btn" @click="triggerVideoUpload(getOriginalIndex(index))" title="重新上传">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 2v6h-6"/>
+                        <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+                        <path d="M3 22v-6h6"/>
+                        <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+                      </svg>
+                      重新上传
+                    </button>
+                    <button class="video-action-btn danger" @click="clearVideo(getOriginalIndex(index))" title="移除视频">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                      移除
+                    </button>
+                  </div>
                 </div>
-                <div v-else class="video-upload-zone" @click="triggerVideoUpload(index)">
+                <div v-else class="video-upload-zone" @click="triggerVideoUpload(getOriginalIndex(index))">
                   <input 
-                    :ref="el => { if (el) videoInputs[index] = el }"
+                    :ref="el => setVideoInputRef(el, getOriginalIndex(index))"
                     type="file" 
                     accept="video/*" 
                     style="display: none" 
-                    @change="e => handleVideoChange(e, index)"
+                    @change="e => handleVideoChange(e, getOriginalIndex(index))"
                   />
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -338,52 +376,127 @@
     </div>
 
     <div class="form-actions">
-      <button v-if="editingVideoUid" class="action-btn action-btn--outline" @click="$emit('cancel-edit')">
-        取消编辑
-      </button>
-      <button 
-        v-if="currentStep > 0" 
-        class="action-btn action-btn--outline" 
-        @click="prevStep"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-        上一步
-      </button>
-      <button 
-        v-if="currentStep < 2" 
-        class="action-btn action-btn--primary" 
-        :disabled="!canNextStep"
-        @click="nextStep"
-      >
-        下一步
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-      </button>
-      <button 
-        v-else 
-        class="action-btn action-btn--submit" 
-        :disabled="!canSubmit || submitting" 
-        @click="handleSubmit"
-      >
-        <svg v-if="!submitting" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 2L11 13"/>
-          <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
-        </svg>
-        <span v-else class="spinner"></span>
-        {{ submitting ? '投稿中...' : '提交投稿' }}
-      </button>
+      <div class="actions-left">
+        <button v-if="editingVideoUid" class="action-btn action-btn--outline" @click="$emit('cancel-edit')">
+          取消编辑
+        </button>
+      </div>
+      <div class="actions-right">
+        <button 
+          v-if="currentStep > 0" 
+          class="action-btn action-btn--outline" 
+          @click="prevStep"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          上一步
+        </button>
+        <button 
+          v-if="!editingVideoUid"
+          class="action-btn action-btn--save" 
+          :disabled="submitting || saving"
+          @click="saveDraft"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          {{ saving ? '保存中...' : '暂存草稿' }}
+        </button>
+        <button 
+          v-if="currentStep < 2" 
+          class="action-btn action-btn--primary" 
+          :disabled="!canNextStep"
+          @click="nextStep"
+        >
+          下一步
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+        <button 
+          v-else 
+          class="action-btn action-btn--submit" 
+          :disabled="!canSubmit || submitting" 
+          @click="handleSubmit"
+        >
+          <svg v-if="!submitting" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 2L11 13"/>
+            <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+          </svg>
+          <span v-else class="spinner"></span>
+          {{ submitting ? '投稿中...' : '提交投稿' }}
+        </button>
+      </div>
     </div>
   </div>
+
+  <!-- 视频截取封面弹窗 -->
+  <Teleport to="body">
+    <Transition name="modal">
+      <div v-if="showCaptureDialog" class="capture-overlay" @click.self="cancelCapture">
+        <Transition name="modal-content" appear>
+          <div v-if="showCaptureDialog" class="capture-dialog">
+            <div class="capture-header">
+              <h3 class="capture-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                截取封面帧
+              </h3>
+              <button class="capture-close" @click="cancelCapture">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div class="capture-body">
+              <div class="capture-video-container">
+                <video 
+                  ref="captureVideoRef"
+                  :src="captureVideoUrl" 
+                  class="capture-video" 
+                  controls
+                  @loadedmetadata="onCaptureVideoLoaded"
+                ></video>
+                <canvas ref="captureCanvasRef" class="capture-canvas"></canvas>
+              </div>
+              <div class="capture-hint">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                拖动视频进度条选择满意的画面，然后点击下方按钮截取当前帧作为封面
+              </div>
+            </div>
+            <div class="capture-footer">
+              <button class="capture-btn capture-btn--ghost" @click="cancelCapture">取消</button>
+              <button class="capture-btn capture-btn--primary" @click="confirmCapture">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                截取当前帧
+              </button>
+            </div>
+          </div>
+        </Transition>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { getCategoryList } from '../../api/category'
 import { uploadFile } from '../../utils/fileUpload'
-import { submitVideo, updateVideo, getVideoDetailByUid } from '../../api/video'
+import { submitVideo, updateVideo, getVideoDetailByUid, saveDraft as saveDraftApi, getDraft, deleteDraft } from '../../api/video'
 import { ElMessage } from 'element-plus'
 import { formatDuration } from '../../utils/format'
 
@@ -427,6 +540,7 @@ function createEpisode() {
 
 const episodes = ref([createEpisode()])
 const submitting = ref(false)
+const saving = ref(false)
 const editingVideoUid = ref(props.editVideoUid)
 
 const reversedEpisodes = computed(() => [...episodes.value].reverse())
@@ -467,6 +581,8 @@ onMounted(async () => {
   }
   if (editingVideoUid.value) {
     loadEditData(editingVideoUid.value)
+  } else {
+    await loadDraftIfNeeded()
   }
 })
 
@@ -555,8 +671,28 @@ const handleCoverChange = (e) => {
   }
 }
 
+const setVideoInputRef = (el, index) => {
+  if (el) {
+    videoInputs.value[index] = el
+  }
+}
+
 const triggerVideoUpload = (index) => {
   videoInputs.value[index]?.click()
+}
+
+const clearVideo = (index) => {
+  const ep = episodes.value[index]
+  if (ep.videoPreviewUrl && ep.videoPreviewUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(ep.videoPreviewUrl)
+  }
+  ep.file = null
+  ep.videoPreviewUrl = ''
+  ep.duration = 0
+  ep.serverId = null
+  ep.title = ''
+  ep.progress = 0
+  ep.uploading = false
 }
 
 const handleVideoChange = (e, index) => {
@@ -576,6 +712,79 @@ const handleVideoChange = (e, index) => {
       episodes.value[index].duration = Math.floor(video.duration)
     }
     video.src = previewUrl
+  }
+}
+
+const getDraftData = () => {
+  return {
+    title: form.value.title,
+    categoryId: form.value.categoryId,
+    description: form.value.description,
+    isOngoing: !form.value.isFinished,
+    tags: form.value.tags,
+    coverUrl: coverPreview.value && !coverPreview.value.startsWith('blob:') ? coverPreview.value : '',
+    episodes: episodes.value
+      .filter(ep => ep.title || ep.videoPreviewUrl)
+      .map(ep => ({
+        title: ep.title,
+        playUrl: ep.videoPreviewUrl,
+        duration: ep.duration
+      })),
+    step: currentStep.value
+  }
+}
+
+const saveDraft = async () => {
+  if (saving.value) return
+  saving.value = true
+  
+  try {
+    const draftData = getDraftData()
+    await saveDraftApi(draftData)
+    ElMessage.success('草稿已保存')
+  } catch (e) {
+    console.error('保存草稿失败:', e)
+    ElMessage.error('保存草稿失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+const loadDraftIfNeeded = async () => {
+  try {
+    const res = await getDraft()
+    if (!res) return
+    
+    currentStep.value = res.step || 0
+    form.value = {
+      title: res.title || '',
+      categoryId: res.categoryId || '',
+      description: res.description || '',
+      isFinished: !res.isOngoing,
+      tags: res.tags || []
+    }
+    if (res.coverUrl) {
+      coverPreview.value = res.coverUrl
+    }
+    if (res.episodes && res.episodes.length > 0) {
+      episodes.value = res.episodes.map(ep => ({
+        ...createEpisode(),
+        title: ep.title,
+        videoPreviewUrl: ep.playUrl,
+        duration: ep.duration
+      }))
+      episodeIdCounter = episodes.value.length + 1
+    }
+  } catch (e) {
+    console.error('恢复草稿失败:', e)
+  }
+}
+
+const clearDraft = async () => {
+  try {
+    await deleteDraft()
+  } catch (e) {
+    console.error('删除草稿失败:', e)
   }
 }
 
@@ -600,7 +809,7 @@ const handleSubmit = async () => {
     if (coverFile.value) {
       coverUrl = await uploadFile(coverFile.value, (progress) => {
         console.log('封面上传进度:', progress)
-      })
+      }, 'image')
     } else if (coverPreview.value && !coverPreview.value.startsWith('blob:')) {
       coverUrl = coverPreview.value
     }
@@ -610,7 +819,7 @@ const handleSubmit = async () => {
       if (ep.file) {
         const playUrl = await uploadFile(ep.file, (progress) => {
           ep.progress = progress
-        })
+        }, 'video')
         episodeData.push({
           title: ep.title,
           playUrl,
@@ -643,6 +852,7 @@ const handleSubmit = async () => {
     } else {
       await submitVideo(videoData)
       ElMessage.success('投稿成功')
+      clearDraft()
     }
 
     resetForm()
@@ -655,6 +865,97 @@ const handleSubmit = async () => {
   }
 }
 
+const captureCoverFromVideo = () => {
+  const videoEp = episodes.value.find(ep => ep.videoPreviewUrl)
+  if (!videoEp) {
+    ElMessage.warning('请先上传视频')
+    return
+  }
+  showCaptureDialog.value = true
+  captureVideoUrl.value = videoEp.videoPreviewUrl
+}
+
+const captureVideoUrl = ref('')
+const showCaptureDialog = ref(false)
+const captureVideoRef = ref(null)
+
+const onCaptureVideoLoaded = () => {
+  // 视频加载完成
+}
+
+const confirmCapture = () => {
+  if (captureVideoRef.value) {
+    const video = captureVideoRef.value
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+    
+    canvas.toBlob((blob) => {
+      if (blob) {
+        if (coverFile.value && coverPreview.value.startsWith('blob:')) {
+          URL.revokeObjectURL(coverPreview.value)
+        }
+        const file = new File([blob], 'cover.jpg', { type: 'image/jpeg' })
+        coverFile.value = file
+        coverPreview.value = URL.createObjectURL(file)
+        ElMessage.success('封面截取成功')
+        showCaptureDialog.value = false
+      }
+    }, 'image/jpeg', 0.9)
+  }
+}
+
+const cancelCapture = () => {
+  showCaptureDialog.value = false
+}
+
+// 拖拽排序相关
+const dragState = ref({
+  dragging: false,
+  draggedIndex: null,
+  draggedOverIndex: null
+})
+
+const handleDragStart = (index, event) => {
+  dragState.value.dragging = true
+  dragState.value.draggedIndex = index
+  event.dataTransfer.effectAllowed = 'move'
+  event.target.classList.add('dragging')
+}
+
+const handleDragOver = (index, event) => {
+  event.preventDefault()
+  event.dataTransfer.dropEffect = 'move'
+  dragState.value.draggedOverIndex = index
+}
+
+const handleDragLeave = () => {
+  dragState.value.draggedOverIndex = null
+}
+
+const handleDrop = (index, event) => {
+  event.preventDefault()
+  const fromIndex = dragState.value.draggedIndex
+  const toIndex = index
+  
+  if (fromIndex !== null && fromIndex !== toIndex) {
+    const item = episodes.value.splice(fromIndex, 1)[0]
+    episodes.value.splice(toIndex, 0, item)
+  }
+  
+  dragState.value.dragging = false
+  dragState.value.draggedIndex = null
+  dragState.value.draggedOverIndex = null
+}
+
+const handleDragEnd = () => {
+  dragState.value.dragging = false
+  dragState.value.draggedIndex = null
+  dragState.value.draggedOverIndex = null
+}
+
 const resetForm = () => {
   editingVideoUid.value = ''
   form.value = { title: '', categoryId: '', description: '', isFinished: false, tags: [] }
@@ -664,7 +965,7 @@ const resetForm = () => {
   currentStep.value = 0
 }
 
-defineExpose({ resetForm })
+defineExpose({ resetForm, captureCoverFromVideo })
 </script>
 
 <style scoped>
@@ -1179,6 +1480,38 @@ defineExpose({ resetForm })
   animation: slideInUp 0.3s ease forwards;
   animation-delay: calc(var(--index) * 0.05s);
   opacity: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  cursor: default;
+}
+
+.episode-card.dragging {
+  opacity: 0.5;
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.episode-card.drag-over {
+  border-top: 3px solid var(--brand_pink);
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--text4);
+  cursor: grab;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.drag-handle:hover {
+  color: var(--text2);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 .episode-card-header {
@@ -1270,6 +1603,36 @@ defineExpose({ resetForm })
 .video-duration {
   font-size: 12px;
   color: var(--text3);
+}
+
+.video-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.video-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--line_regular);
+  border-radius: 6px;
+  background: var(--bg1);
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.video-action-btn:hover {
+  border-color: var(--brand_pink);
+  color: var(--brand_pink);
+}
+
+.video-action-btn.danger:hover {
+  border-color: #f56c6c;
+  color: #f56c6c;
 }
 
 .video-upload-zone {
@@ -1386,10 +1749,18 @@ defineExpose({ resetForm })
 
 .form-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   margin-top: 24px;
   padding: 20px 0;
+}
+
+.actions-left,
+.actions-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .action-btn {
@@ -1438,6 +1809,27 @@ defineExpose({ resetForm })
   box-shadow: 0 4px 12px rgba(0, 181, 120, 0.4);
 }
 
+.action-btn--save {
+  background: var(--bg1);
+  border: 1.5px solid var(--brand_blue);
+  color: var(--brand_blue);
+}
+
+.action-btn--save:hover:not(:disabled) {
+  background: rgba(0, 174, 236, 0.08);
+  transform: translateY(-1px);
+}
+
+.action-btn--draft {
+  background: rgba(0, 174, 236, 0.08);
+  border: 1.5px solid var(--brand_blue);
+  color: var(--brand_blue);
+}
+
+.action-btn--draft:hover {
+  background: rgba(0, 174, 236, 0.15);
+}
+
 .action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -1451,6 +1843,178 @@ defineExpose({ resetForm })
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+/* 视频截取封面弹窗样式 */
+.capture-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.capture-dialog {
+  width: 700px;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: var(--bg1);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.capture-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line_light);
+}
+
+.capture-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text1);
+  margin: 0;
+}
+
+.capture-title svg {
+  color: var(--brand_pink);
+}
+
+.capture-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text4);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.capture-close:hover {
+  background: var(--bg2);
+  color: var(--text1);
+}
+
+.capture-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.capture-video-container {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.capture-video {
+  width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  background: #000;
+}
+
+.capture-canvas {
+  display: none;
+}
+
+.capture-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  background: rgba(0, 174, 236, 0.08);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--brand_blue);
+}
+
+.capture-hint svg {
+  flex-shrink: 0;
+}
+
+.capture-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--line_light);
+}
+
+.capture-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.capture-btn--ghost {
+  background: var(--bg2);
+  color: var(--text2);
+}
+
+.capture-btn--ghost:hover {
+  background: var(--bg3);
+}
+
+.capture-btn--primary {
+  background: var(--brand_pink);
+  color: #fff;
+}
+
+.capture-btn--primary:hover {
+  background: var(--brand_pink_hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 102, 153, 0.3);
+}
+
+/* Modal动画 */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-content-enter-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-content-leave-active {
+  transition: all 0.2s ease;
+}
+
+.modal-content-enter-from {
+  opacity: 0;
+  transform: scale(0.9) translateY(20px);
+}
+
+.modal-content-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
 }
 
 @keyframes fadeIn {

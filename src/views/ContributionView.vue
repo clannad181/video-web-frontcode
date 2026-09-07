@@ -107,9 +107,11 @@
 
           <SubmitForm 
             v-if="activeMenu === 'submit'"
+            ref="submitFormRef"
             :edit-video-uid="editingVideoUid"
             @cancel-edit="cancelEdit"
             @submitted="onSubmitted"
+            @capture-cover="handleCaptureCover"
           />
 
           <StatsOverview v-if="activeMenu === 'stats'" />
@@ -122,11 +124,12 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import CreatorHeader from '../components/layout/CreatorHeader.vue'
 import ContributionList from '../components/contribution/ContributionList.vue'
 import SubmitForm from '../components/contribution/SubmitForm.vue'
 import StatsOverview from '../components/contribution/StatsOverview.vue'
+import { deleteMyContribution } from '../api/video'
 
 const router = useRouter()
 const route = useRoute()
@@ -134,6 +137,7 @@ const route = useRoute()
 const activeMenu = ref('contributions')
 const editingVideoUid = ref('')
 const listRef = ref(null)
+const submitFormRef = ref(null)
 
 const switchMenu = (menu) => {
   activeMenu.value = menu
@@ -150,8 +154,23 @@ const handleEdit = async (item) => {
   activeMenu.value = 'submit'
 }
 
-const handleDelete = (item) => {
-  ElMessage.info('删除功能开发中')
+const handleDelete = async (item) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这个投稿吗？删除后无法恢复', '删除确认', {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await deleteMyContribution(item.videoUid || item.avid)
+    ElMessage.success('删除成功')
+    listRef.value?.loadList()
+  } catch (e) {
+    if (e !== 'cancel') {
+      console.error('删除投稿失败:', e)
+      ElMessage.error('删除投稿失败')
+    }
+  }
 }
 
 const handleManageEpisodes = (item) => {
@@ -161,6 +180,10 @@ const handleManageEpisodes = (item) => {
     search: route.query.search || ''
   }
   router.push({ path: `/contribution/episodes/${item.videoUid || item.avid}`, query })
+}
+
+const handleCaptureCover = () => {
+  submitFormRef.value?.captureCoverFromVideo()
 }
 
 const cancelEdit = () => {

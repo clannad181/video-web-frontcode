@@ -20,6 +20,8 @@ export const getClientCaptcha = (params) => request.get('/client/user/captcha', 
 
 export const clientLogin = (data) => request.post('/client/user/login', data)
 
+export const clientRegister = (data) => request.post('/client/user/register', data)
+
 export const getClientUserInfo = () => request.get('/client/user/userInfo')
 
 export const getUserInfoByUid = (uid) => request.get('/client/user/up-info', { params: { userUid: uid } })

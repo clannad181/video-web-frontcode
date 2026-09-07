@@ -100,6 +100,14 @@ export const deleteVideoEpisode = (episodeUid) => request.get('/client/video/con
 
 export const getVideoDetailByUid = (videoUid) => request.get('/client/video/contribute/detail', { params: { videoUid } })
 
+export const deleteMyContribution = (videoUid) => request.get('/client/video/contribute/delete', { params: { videoUid } })
+
+export const saveDraft = (data) => request.post('/client/video/saveDraft', data)
+
+export const getDraft = () => request.get('/client/video/getDraft')
+
+export const deleteDraft = () => request.delete('/client/video/deleteDraft')
+
 export const getStatsDataCenter = () => request.get('/client/stats/data-center')
 
 export const searchContent = (params) => request.get('/client/search', { params })

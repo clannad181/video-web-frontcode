@@ -22,10 +22,13 @@ export const handleVideoClick = (video, router = null) => {
     path = `/client/video/${video.id}/episode/${video.currentEpisode?.id || video.id}`
   }
   if (path) {
+    const query = video.watchedSeconds ? { t: video.watchedSeconds } : {}
     if (router) {
-      router.push(path)
+      router.push({ path, query })
     } else {
-      window.open(path, '_blank')
+      const queryString = new URLSearchParams(query).toString()
+      const fullPath = queryString ? `${path}?${queryString}` : path
+      window.open(fullPath, '_blank')
     }
   }
 }

@@ -40,12 +40,12 @@
             </div>
           </transition>
         </div>
-        <a class="default-entry" href="#">直播</a>
-        <a class="default-entry" href="#">游戏中心</a>
-        <a class="default-entry" href="#">会员购</a>
-        <a class="default-entry" href="#">漫画</a>
-        <a class="default-entry" href="#">赛事</a>
-        <a class="download-entry" href="#">
+        <a class="default-entry" href="javascript:void(0)" @click="handleFeatureClick('直播')">直播</a>
+        <a class="default-entry" href="javascript:void(0)" @click="handleFeatureClick('游戏中心')">游戏中心</a>
+        <a class="default-entry" href="javascript:void(0)" @click="handleFeatureClick('会员购')">会员购</a>
+        <a class="default-entry" href="javascript:void(0)" @click="handleFeatureClick('漫画')">漫画</a>
+        <a class="default-entry" href="javascript:void(0)" @click="handleFeatureClick('赛事')">赛事</a>
+        <a class="download-entry" href="javascript:void(0)" @click="handleFeatureClick('下载客户端')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="7 10 12 15 17 10"/>
@@ -152,12 +152,26 @@
           <IconVip :size="22" class="header-action-icon" />
           <span class="header-action-text">大会员</span>
         </div>
-        <div class="header-action" title="消息">
-          <svg class="header-action-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          <span class="header-action-text">消息</span>
+        <div
+          class="message-wrapper"
+          @mouseenter="handleMessageMouseEnter"
+          @mouseleave="handleMessageMouseLeave"
+        >
+          <div class="header-action" title="消息" @click="router.push('/messages')">
+            <svg class="header-action-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span v-if="messageUnreadCount > 0" class="message-unread-badge">{{ messageUnreadCount > 99 ? '99+' : messageUnreadCount }}</span>
+            <span class="header-action-text">消息</span>
+          </div>
+          <MessagePanel
+            v-if="isLoggedIn"
+            :visible="showMessagePanel"
+            @panel-enter="cancelHideMessagePanel"
+            @panel-leave="startHideMessagePanel"
+            @update:unread-count="handleUnreadCountUpdate"
+          />
         </div>
         <div
           class="favorite-wrapper"
@@ -208,8 +222,8 @@
     </div>
 
   </header>
-  <!-- 顶部 banner 装饰条 - 播放页/搜索页隐藏 -->
-  <div class="header-banner-bg" v-if="!isVideoPage && !isHistoryPage && !isSearchPage">
+  <!-- 顶部 banner 装饰条 - 播放页/搜索页/消息页隐藏 -->
+  <div class="header-banner-bg" v-if="!isVideoPage && !isHistoryPage && !isSearchPage && !isMessagePage">
     <div class="banner-bg-img"></div>
     <div class="taper-line"></div>
     <!-- 个人中心页用户信息 -->
@@ -290,10 +304,14 @@ import { followUser, unfollowUser } from '../../api/video'
 import { useAuthStore } from '../../stores/auth'
 import FavoriteHoverPanel from '../FavoriteHoverPanel.vue'
 import HistoryHoverPanel from '../HistoryHoverPanel.vue'
+import MessagePanel from '../MessagePanel.vue'
 import { IconVip } from '../../icons'
 import { getCategoryList } from '../../api/category'
 import { updateUserProfile } from '../../api/video'
 import { ElMessage } from 'element-plus'
+import { getUnreadCount } from '../../api/message'
+import { useMessageWebSocket } from '../../composables/useMessageWebSocket'
+import config from '../../config'
 
 const router = useRouter()
 const route = useRoute()
@@ -307,6 +325,7 @@ const isProfilePage = computed(() => route.name === 'Profile')
 const isUpProfilePage = computed(() => route.name === 'UpProfile')
 const isHistoryPage = computed(() => route.name === 'History')
 const isSearchPage = computed(() => route.name === 'Search')
+const isMessagePage = computed(() => route.name === 'Messages')
 const showUserMenu = ref(false)
 const showFavoritePanel = ref(false)
 const showHistoryPanel = ref(false)
@@ -316,11 +335,18 @@ const categories = ref([])
 const isHovering = ref(false)
 const isFavoriteHovering = ref(false)
 const isHistoryHovering = ref(false)
+const isMessageHovering = ref(false)
 let userShowTimer = null
 let userHideTimer = null
 let favHideTimer = null
 let historyHideTimer = null
 let categoryHideTimer = null
+let messageHideTimer = null
+
+const showMessagePanel = ref(false)
+const messageUnreadCount = ref(0)
+
+const { isConnected, connect, disconnect, onMessage } = useMessageWebSocket()
 
 const isLoggedIn = computed(() => authStore.isLoggedIn)
 const user = computed(() => authStore.user)
@@ -454,6 +480,10 @@ const handleSearch = () => {
   }
 }
 
+const handleFeatureClick = (feature) => {
+  ElMessage.info(`${feature}功能开发中，敬请期待`)
+}
+
 const handleFavoriteMouseEnter = () => {
   if (!isLoggedIn.value) return
   isFavoriteHovering.value = true
@@ -508,6 +538,48 @@ const startHideHistoryPanel = () => {
   historyHideTimer = setTimeout(() => {
     showHistoryPanel.value = false
   }, 300)
+}
+
+const handleMessageMouseEnter = () => {
+  if (!isLoggedIn.value) return
+  isMessageHovering.value = true
+  if (messageHideTimer) {
+    clearTimeout(messageHideTimer)
+    messageHideTimer = null
+  }
+  showMessagePanel.value = true
+}
+
+const handleMessageMouseLeave = () => {
+  isMessageHovering.value = false
+  startHideMessagePanel()
+}
+
+const cancelHideMessagePanel = () => {
+  if (messageHideTimer) {
+    clearTimeout(messageHideTimer)
+    messageHideTimer = null
+  }
+}
+
+const startHideMessagePanel = () => {
+  messageHideTimer = setTimeout(() => {
+    showMessagePanel.value = false
+  }, 300)
+}
+
+const handleUnreadCountUpdate = (count) => {
+  messageUnreadCount.value = count
+}
+
+const fetchMessageUnreadCount = async () => {
+  if (!isLoggedIn.value) return
+  try {
+    const res = await getUnreadCount()
+    messageUnreadCount.value = res || 0
+  } catch (e) {
+    console.error('获取未读消息数失败:', e)
+  }
 }
 
 const handleCategoryMouseEnter = () => {
@@ -586,14 +658,22 @@ const handleLogout = async () => {
     clearTimeout(categoryHideTimer)
     categoryHideTimer = null
   }
+  if (messageHideTimer) {
+    clearTimeout(messageHideTimer)
+    messageHideTimer = null
+  }
+  disconnect()
   authStore.logout()
   showUserMenu.value = false
   showFavoritePanel.value = false
   showHistoryPanel.value = false
+  showMessagePanel.value = false
   showCategoryDropdown.value = false
   isHovering.value = false
   isFavoriteHovering.value = false
   isHistoryHovering.value = false
+  isMessageHovering.value = false
+  messageUnreadCount.value = 0
   router.push('/')
 }
 
@@ -605,10 +685,28 @@ const handleScroll = () => {
   headerOpaque.value = window.scrollY > 50
 }
 
+let messagePollingTimer = null
+
+const handleNewMessage = (msg) => {
+  if (msg && msg.avid) {
+    messageUnreadCount.value++
+    ElMessage.info({
+      message: `新消息: ${msg.title || '您有一条新消息'}`,
+      duration: 3000
+    })
+  }
+}
+
 onMounted(() => {
   loadUser()
   window.addEventListener('scroll', handleScroll)
   handleScroll()
+  fetchMessageUnreadCount()
+  
+  if (config.websocket.enabled && isLoggedIn.value) {
+    connect()
+    onMessage(handleNewMessage)
+  }
 })
 
 onUnmounted(() => {
@@ -617,7 +715,12 @@ onUnmounted(() => {
   if (favHideTimer) clearTimeout(favHideTimer)
   if (historyHideTimer) clearTimeout(historyHideTimer)
   if (categoryHideTimer) clearTimeout(categoryHideTimer)
+  if (messageHideTimer) clearTimeout(messageHideTimer)
+  if (messagePollingTimer) clearInterval(messagePollingTimer)
   window.removeEventListener('scroll', handleScroll)
+  if (config.websocket.enabled) {
+    disconnect()
+  }
 })
 </script>
 
@@ -907,6 +1010,33 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   min-width: 50px;
+}
+
+.message-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+}
+
+.message-unread-badge {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--brand_pink);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* 收藏悬浮面板过渡动画 */

@@ -56,18 +56,27 @@
                   v-for="item in group.items"
                   :key="item.id"
                   class="video-card"
-                  @click="navigateToVideo(item)"
+                  :class="{ 'is-offline': !item.videoAvid }"
+                  @click="item.videoAvid && navigateToVideo(item)"
                 >
                   <a class="video-card__wrap">
                     <div class="video-card__image">
-                      <img :src="item.videoCover" :alt="item.videoTitle" loading="lazy" class="video-card__cover" />
-                      <div class="video-card__delete" @click="handleDelete($event, item)">
+                      <img v-if="item.videoCover" :src="item.videoCover" :alt="item.videoTitle" loading="lazy" class="video-card__cover" />
+                      <div v-else class="video-card__cover-offline">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                          <circle cx="12" cy="12" r="10"/>
+                          <line x1="12" y1="8" x2="12" y2="12"/>
+                          <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span>已下架</span>
+                      </div>
+                      <div v-if="item.videoAvid" class="video-card__delete" @click="handleDelete($event, item)">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <polyline points="3 6 5 6 21 6"/>
                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                         </svg>
                       </div>
-                      <div class="video-card__mask">
+                      <div v-if="item.videoAvid" class="video-card__mask">
                         <div class="video-card__stats">
                           <div class="video-card__stats--left">
                             <span class="video-card__stats--item">
@@ -79,10 +88,13 @@
                       </div>
                     </div>
                     <div class="video-card__info">
-                      <a class="video-card__info--tit">{{ item.videoTitle }}</a>
+                      <a class="video-card__info--tit">
+                        <template v-if="item.videoAvid">{{ item.videoTitle }}</template>
+                        <span v-else class="offline-text">该稿件已下架</span>
+                      </a>
                       <div v-if="item.episodeNumber > 1" class="video-card__info--episode">第{{ item.episodeNumber }}集</div>
                       <div class="video-card__info--meta">
-                        <span v-if="item.nickName" class="video-card__info--author">
+                        <span v-if="item.videoAvid && item.nickName" class="video-card__info--author">
                           <IconUp :size="16" color="var(--text4)" />
                           {{ item.nickName }}
                         </span>
@@ -136,7 +148,8 @@ const navigateToVideo = (item) => {
   const avid = item.videoAvid || item.videoUid || item.avid
   const eavid = item.episodeAvid || item.episodeUid || item.id
   if (avid && eavid) {
-    router.push(`/client/video/${avid}/episode/${eavid}`)
+    const query = item.watchedSeconds ? { t: item.watchedSeconds } : {}
+    router.push({ path: `/client/video/${avid}/episode/${eavid}`, query })
   } else if (item.playLink) {
     const path = item.playLink.replace(/^\/admin\//, '/client/')
     router.push(path)
@@ -721,6 +734,36 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.video-card__cover-offline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg2);
+  color: var(--text4);
+  font-size: 13px;
+}
+
+.video-card.is-offline {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.video-card.is-offline:hover .video-card__wrap {
+  transform: none;
+}
+
+.offline-text {
+  color: var(--text4);
+  font-style: italic;
 }
 
 .video-card__wrap:hover .video-card__cover {

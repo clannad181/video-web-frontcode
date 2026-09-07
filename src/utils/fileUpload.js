@@ -44,9 +44,9 @@ export const formatDate = (date) => {
 }
 
 /**
- * 计算文件MD5（使用SparkMD5）
+ * 计算文件MD5
  * @param {File} file
- * @param {Function} onProgress
+ * @param {Function} onProgress - 进度回调 0-100
  * @returns {Promise<string>}
  */
 export const calculateFileMD5 = (file, onProgress) => {
@@ -54,7 +54,6 @@ export const calculateFileMD5 = (file, onProgress) => {
     const chunks = Math.ceil(file.size / CHUNK_SIZE)
     let currentChunk = 0
     const fileReader = new FileReader()
-    const spark = { append: function() {}, end: function() { return '' } }
     const results = []
 
     fileReader.onload = (e) => {
@@ -66,6 +65,7 @@ export const calculateFileMD5 = (file, onProgress) => {
       if (currentChunk < chunks) {
         loadNext()
       } else {
+        // 合并所有分片并计算MD5
         const allData = new Uint8Array(results.reduce((acc, buf) => acc + buf.byteLength, 0))
         let offset = 0
         for (const buf of results) {
@@ -90,7 +90,7 @@ export const calculateFileMD5 = (file, onProgress) => {
 }
 
 /**
- * 文件预检查（秒传）
+ * 文件预检查（秒传检测）
  * @param {Object} params
  * @returns {Promise<Object>}
  */
@@ -124,34 +124,67 @@ export const mergeChunks = (params) => {
 }
 
 /**
- * 小文件直传
+ * 小文件直传（小于5MB）
  * @param {File} file
- * @param {String} category
- * @returns {Promise<Object>}
+ * @param {String} category - 文件类别 image/video
+ * @param {Function} onProgress - 进度回调 0-100
+ * @returns {Promise<string>} 返回文件URL
  */
-export const uploadSmallFile = (file, category = 'image') => {
+export const uploadSmallFile = async (file, category = 'image', onProgress) => {
+  // 1. 计算文件MD5（占进度 0-40%）
+  const fileMd5 = await calculateFileMD5(file, (md5Progress) => {
+    if (onProgress) onProgress(Math.round(md5Progress * 0.4))
+  })
+
+  // 2. 调用check接口检测文件是否存在（占进度 40-50%）
+  if (onProgress) onProgress(40)
+  const checkResult = await checkFile({
+    fileMd5,
+    fileName: file.name,
+    fileSize: file.size,
+    totalChunks: 1,
+    chunkSize: file.size
+  })
+
+  // 3. 秒传成功，直接返回
+  if (checkResult && checkResult.exist) {
+    if (onProgress) onProgress(100)
+    return extractFileUrl(checkResult)
+  }
+
+  // 4. 上传文件（占进度 50-90%）
+  if (onProgress) onProgress(50)
   const formData = new FormData()
   formData.append('file', file)
   formData.append('category', category)
-  return request.post('/file/upload', formData, {
+  formData.append('fileMd5', fileMd5)
+  
+  const result = await request.post('/file/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
+  
+  // 5. 上传完成（进度 100%）
+  if (onProgress) onProgress(100)
+  return extractFileUrl(result)
 }
 
 /**
- * 大文件分片上传
+ * 大文件分片上传（大于5MB）
  * @param {File} file
- * @param {Function} onProgress - 进度回调 (percent: number) => void
- * @returns {Promise<Object>}
+ * @param {String} category - 文件类别 image/video
+ * @param {Function} onProgress - 进度回调 0-100
+ * @returns {Promise<string>} 返回文件URL
  */
-export const uploadLargeFile = async (file, onProgress) => {
+export const uploadLargeFile = async (file, category = 'video', onProgress) => {
+  // 1. 计算文件MD5（占进度 0-30%）
   const fileMd5 = await calculateFileMD5(file, (md5Progress) => {
-    if (onProgress) onProgress(md5Progress * 0.3) // MD5计算占30%
+    if (onProgress) onProgress(Math.round(md5Progress * 0.3))
   })
 
   const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
 
-  // 预检查
+  // 2. 预检查（占进度 30-35%）
+  if (onProgress) onProgress(30)
   const checkResult = await checkFile({
     fileMd5,
     fileName: file.name,
@@ -160,17 +193,18 @@ export const uploadLargeFile = async (file, onProgress) => {
     chunkSize: CHUNK_SIZE
   })
 
-  // 秒传成功
-  if (checkResult.exist) {
+  // 3. 秒传成功，直接返回
+  if (checkResult && checkResult.exist) {
     if (onProgress) onProgress(100)
-    return checkResult.file
+    return extractFileUrl(checkResult)
   }
 
-  // 获取已上传的分片，跳过已上传的
-  const uploadedChunks = checkResult.uploadedChunks || []
-  const serverChunkSize = checkResult.chunkSize || CHUNK_SIZE
+  // 4. 获取已上传的分片，跳过已上传的
+  const uploadedChunks = checkResult?.uploadedChunks || []
+  const serverChunkSize = checkResult?.chunkSize || CHUNK_SIZE
 
-  // 上传剩余分片
+  // 5. 上传剩余分片（占进度 35-90%）
+  const chunkProgressWeight = 55
   for (let i = 0; i < totalChunks; i++) {
     if (uploadedChunks.includes(i)) continue
 
@@ -184,35 +218,61 @@ export const uploadLargeFile = async (file, onProgress) => {
       file: chunk
     })
 
-    // 进度回调（70%用于分片上传）
+    // 进度回调
     if (onProgress) {
-      const uploadProgress = Math.round(((i + 1) / totalChunks) * 70)
-      onProgress(30 + uploadProgress)
+      const uploadedCount = uploadedChunks.filter(idx => idx < i).length + i + 1 - uploadedChunks.filter(idx => idx < i).length
+      const uploadProgress = Math.round(((i + 1) / totalChunks) * chunkProgressWeight)
+      onProgress(35 + uploadProgress)
     }
   }
 
-  // 合并分片
-  const result = await mergeChunks({ fileMd5 })
+  // 6. 合并分片（占进度 90-100%）
+  if (onProgress) onProgress(90)
+  const result = await mergeChunks({ fileMd5, category })
 
   if (onProgress) onProgress(100)
-  return result
+  return extractFileUrl(result)
+}
+
+/**
+ * 从API响应中提取文件URL
+ * @param {any} result - API响应
+ * @returns {string} 文件URL
+ */
+const extractFileUrl = (result) => {
+  if (typeof result === 'string') {
+    return result
+  }
+  if (result && typeof result === 'object') {
+    // 尝试多种可能的返回格式
+    return result.url || result.data?.url || result.data?.fileUrl || result.fileUrl || result.file || ''
+  }
+  return ''
 }
 
 /**
  * 统一上传入口：根据文件大小自动选择直传或分片上传
  * @param {File} file
- * @param {Function} onProgress
- * @returns {Promise<Object>}
+ * @param {Function} onProgress - 进度回调 0-100
+ * @param {String} category - 文件类别 image/video，默认根据文件类型判断
+ * @returns {Promise<string>} 返回文件URL字符串
  */
-export const uploadFile = async (file, onProgress) => {
-  // 小于5MB直接上传
-  if (file.size <= CHUNK_SIZE) {
-    if (onProgress) onProgress(50)
-    const result = await uploadSmallFile(file, 'image')
-    if (onProgress) onProgress(100)
-    return result
+export const uploadFile = async (file, onProgress, category) => {
+  // 自动判断类别
+  if (!category) {
+    category = file.type?.startsWith('video/') ? 'video' : 'image'
   }
-
-  // 大于5MB分片上传
-  return await uploadLargeFile(file, onProgress)
+  
+  let result
+  
+  // 根据文件大小选择上传方式
+  if (file.size <= CHUNK_SIZE) {
+    // 小于5MB直接上传
+    result = await uploadSmallFile(file, category, onProgress)
+  } else {
+    // 大于5MB分片上传
+    result = await uploadLargeFile(file, category, onProgress)
+  }
+  
+  return result
 }

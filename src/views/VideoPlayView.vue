@@ -12,7 +12,7 @@
           </div>
         </div>
         <div class="author-card">
-          <div class="author-avatar">
+          <div class="author-avatar" @click="goToUpProfile" style="cursor: pointer;">
             <img v-if="video.avatarUrl" :src="video.avatarUrl" :alt="video.nickName || 'UP主头像'" />
             <span v-else>{{ video.nickName?.charAt(0) }}</span>
           </div>
@@ -773,13 +773,30 @@ const loadVideo = async () => {
       const data = res.data || res
       await applyVideoData(data)
       
+      // 优先使用 query 参数中的 t（从历史记录点击时传递的播放进度）
+      const queryTime = route.query.t ? Number(route.query.t) : 0
+      if (queryTime > 0) {
+        savedTime.value = queryTime
+        return
+      }
+      
       if (isLoggedIn.value) {
         try {
           const historyRes = await getWatchHistoryList({ page: 1, size: 100 })
           const historyList = historyRes?.records || []
-          const currentHistory = historyList.find(
-            item => String(item.videoAvid || item.videoId) === String(videoUid) && String(item.episodeAvid || item.episodeId) === String(episodeUid)
-          )
+          const currentHistory = historyList.find(item => {
+            let itemVideoUid = item.videoAvid || item.videoId
+            let itemEpisodeUid = item.episodeAvid || item.episodeId
+            // 如果 videoAvid 为 null，从 playLink 中提取
+            if (!itemVideoUid && item.playLink) {
+              const match = item.playLink.match(/\/client\/video\/([^/]+)\/episode\/([^/]+)/)
+              if (match) {
+                itemVideoUid = match[1]
+                itemEpisodeUid = match[2]
+              }
+            }
+            return String(itemVideoUid) === String(videoUid) && String(itemEpisodeUid) === String(episodeUid)
+          })
           if (currentHistory) {
             if (currentHistory.watchedSeconds) {
               savedTime.value = currentHistory.watchedSeconds
@@ -983,6 +1000,12 @@ const handleRelatedClick = (item) => {
   }
   if (path) {
     window.open(path, '_blank')
+  }
+}
+
+const goToUpProfile = () => {
+  if (video.value?.uid) {
+    router.push(`/up/${video.value.uid}`)
   }
 }
 

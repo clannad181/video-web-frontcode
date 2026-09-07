@@ -230,7 +230,7 @@ import { useRouter, useRoute } from 'vue-router'
 import CreatorHeader from '../components/layout/CreatorHeader.vue'
 import { getVideoDetailByUid, getVideoEpisodeList, addVideoEpisode, updateVideoEpisode, deleteVideoEpisode } from '../api/video'
 import { uploadFile } from '../utils/fileUpload'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { formatCount, formatDuration } from '../utils/format'
 
 const router = useRouter()
@@ -386,7 +386,7 @@ const submitEditEpisode = async () => {
 }
 
 const handleDelete = (episode) => {
-  ElMessage.confirm('确定要删除这个剧集吗？', '提示', {
+  ElMessageBox.confirm('确定要删除这个剧集吗？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
