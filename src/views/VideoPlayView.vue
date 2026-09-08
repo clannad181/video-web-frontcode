@@ -250,12 +250,25 @@
         </div>
 
         <div class="right-container">
-          <div class="episode-section" v-if="episodes.length > 1">
+          <div class="episode-section" :class="{ 'has-titles': hasEpisodeTitles }" v-if="episodes.length > 1">
             <div class="section-title">
               <span>选集</span>
               <span class="episode-total">{{ episodes.length }}集</span>
             </div>
-            <div class="episode-grid">
+            <div v-if="hasEpisodeTitles" class="episode-list">
+              <button
+                v-for="(ep, idx) in episodes"
+                :key="ep.id"
+                class="episode-list-item"
+                :class="{ active: currentEpisodeIndex === idx }"
+                @click="currentEpisodeIndex = idx"
+              >
+                <span v-if="currentEpisodeIndex === idx" class="playing-icon"></span>
+                <span class="episode-title">{{ ep.title }}</span>
+                <span class="episode-duration" v-if="ep.duration">{{ formatDuration(ep.duration) }}</span>
+              </button>
+            </div>
+            <div v-else class="episode-grid">
               <button
                 v-for="(ep, idx) in episodes"
                 :key="ep.id"
@@ -656,6 +669,10 @@ const getVisiblePages = (commentId, totalReplies) => {
 }
 
 const isLoggedIn = computed(() => authStore.isLoggedIn)
+
+const hasEpisodeTitles = computed(() => {
+  return episodes.value.some(ep => ep.title && ep.title.trim())
+})
 
 const isOwnVideo = computed(() => {
   if (!isLoggedIn.value || !video.value || !authStore.user) return false
@@ -1918,6 +1935,17 @@ watch(currentEpisodeIndex, async (newIdx) => {
   margin-bottom: 16px;
 }
 
+.episode-section.has-titles {
+  background: var(--bg3);
+  padding: 0;
+}
+
+.episode-section.has-titles .section-title {
+  padding: 12px 16px;
+  margin-bottom: 0;
+  /* background: var(--bg1); */
+}
+
 .section-title {
   display: flex;
   align-items: center;
@@ -1962,6 +1990,72 @@ watch(currentEpisodeIndex, async (newIdx) => {
 .episode-btn.active {
   background: var(--brand_pink);
   color: white;
+}
+
+.episode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 0 4px 4px;
+}
+
+.episode-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  /* background: var(--bg1); */
+  border: none;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.episode-list-item:hover {
+  background: var(--graph_bg_thick);
+}
+
+.episode-list-item.active {
+  background: var(--bg1);
+  color: var(--text1);
+}
+
+.episode-title {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.episode-list-item.active .episode-title {
+  color: var(--text1);
+}
+
+.episode-duration {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text4);
+}
+
+.episode-list-item.active .episode-duration {
+  color: var(--text3);
+}
+
+.playing-icon {
+  flex-shrink: 0;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background-image: url(/playing.gif);
+  background-repeat: no-repeat;
+  background-size: 12px 12px;
+  background-position: center;
 }
 
 .related-section {
@@ -2143,6 +2237,10 @@ watch(currentEpisodeIndex, async (newIdx) => {
   
   .episode-grid {
     grid-template-columns: repeat(8, 1fr);
+  }
+  
+  .episode-list {
+    max-height: 280px;
   }
 }
 

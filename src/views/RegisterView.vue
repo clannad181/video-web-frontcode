@@ -85,6 +85,20 @@
               </div>
             </div>
 
+            <div class="input-group captcha-group">
+              <div class="input-box" :class="{ focus: focusField === 'captcha' }">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <input v-model="form.captcha" type="text" placeholder="请输入验证码" required
+                  @focus="focusField = 'captcha'" @blur="focusField = ''"/>
+                <button type="button" class="captcha-btn" :disabled="captchaCountdown > 0" @click="handleSendCaptcha">
+                  {{ captchaCountdown > 0 ? `${captchaCountdown}s后重试` : '获取验证码' }}
+                </button>
+              </div>
+            </div>
+
             <div class="input-group">
               <div class="input-box" :class="{ focus: focusField === 'password' }">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -130,9 +144,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { clientRegister, getClientUserInfo } from '../api/auth'
+import { clientRegister, getClientUserInfo, sendRegisterCaptcha } from '../api/auth'
 import { useAuthStore } from '../stores/auth'
 import { ElMessage } from 'element-plus'
 import md5 from 'md5'
@@ -155,8 +169,13 @@ const form = ref({
   nickname: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  captcha: ''
 })
+
+const captchaKey = ref('')
+const captchaCountdown = ref(0)
+const captchaTimer = ref(null)
 
 const isFormValid = computed(() => {
   return form.value.username &&
@@ -164,6 +183,8 @@ const isFormValid = computed(() => {
     form.value.email &&
     form.value.password &&
     form.value.confirmPassword &&
+    form.value.captcha &&
+    captchaKey.value &&
     form.value.password === form.value.confirmPassword
 })
 
@@ -186,16 +207,21 @@ const handleRegister = async () => {
   try {
     isLoading.value = true
     const registerData = {
-      username: form.value.username,
-      nickname: form.value.nickname,
+      userName: form.value.username,
+      nikeName: form.value.nickname,
       email: form.value.email,
-      password: md5(form.value.password)
+      password: md5(form.value.password),
+      key: captchaKey.value,
+      captcha: form.value.captcha
     }
     
     const res = await clientRegister(registerData)
-    if (res) {
-      ElMessage.success('注册成功，请登录')
-      router.push('/login')
+    if (res && res.accessToken) {
+      let userInfo = null
+      try { userInfo = await getClientUserInfo() } catch {}
+      authStore.login(res.accessToken, res.refreshToken, userInfo)
+      ElMessage.success('注册成功')
+      router.push('/')
     }
   } catch (e) {
     ElMessage.error(e.message || '注册失败')
@@ -204,8 +230,43 @@ const handleRegister = async () => {
   }
 }
 
+const handleSendCaptcha = async () => {
+  if (!form.value.email) {
+    return ElMessage.warning('请输入邮箱')
+  }
+  
+  if (captchaCountdown.value > 0) {
+    return
+  }
+  
+  try {
+    const res = await sendRegisterCaptcha(form.value.email)
+    if (res) {
+      captchaKey.value = res.key || res
+      captchaCountdown.value = 60
+      ElMessage.success('验证码已发送到您的邮箱')
+      
+      captchaTimer.value = setInterval(() => {
+        captchaCountdown.value--
+        if (captchaCountdown.value <= 0) {
+          clearInterval(captchaTimer.value)
+          captchaTimer.value = null
+        }
+      }, 1000)
+    }
+  } catch (e) {
+    ElMessage.error(e.message || '发送验证码失败')
+  }
+}
+
 onMounted(() => {
   setTimeout(() => { isLoaded.value = true }, 100)
+})
+
+onUnmounted(() => {
+  if (captchaTimer.value) {
+    clearInterval(captchaTimer.value)
+  }
 })
 </script>
 
@@ -470,6 +531,33 @@ onMounted(() => {
 
 .input-box input::placeholder {
   color: #ccc;
+}
+
+.captcha-btn {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #FF6699 0%, #FF8CB0 100%);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.captcha-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.captcha-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.captcha-group .input-box {
+  padding-right: 8px;
 }
 
 .error-hint {

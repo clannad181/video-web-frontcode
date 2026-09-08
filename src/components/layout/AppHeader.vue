@@ -148,7 +148,7 @@
       </div>
 
       <div class="mini-header-right">
-        <div class="header-action" title="大会员">
+        <div class="header-action" title="大会员" @click="handleVipClick">
           <IconVip :size="22" class="header-action-icon" />
           <span class="header-action-text">大会员</span>
         </div>
@@ -294,12 +294,54 @@
       </div>
     </div>
   </div>
+
+  <Teleport to="body">
+    <Transition name="vip-dialog-fade" mode="out-in">
+      <div v-if="showVipDialog" class="vip-dialog-overlay" @click.self="showVipDialog = false">
+        <Transition name="vip-dialog-scale" appear>
+          <div v-if="showVipDialog" class="vip-dialog">
+            <div class="vip-dialog-header">
+              <h3>激活大会员</h3>
+              <button class="vip-dialog-close" @click="showVipDialog = false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div class="vip-dialog-body">
+              <p class="vip-dialog-tip">请输入您的激活码来开通大会员特权</p>
+              <input
+                v-model="vipCode"
+                type="text"
+                class="vip-dialog-input"
+                placeholder="请输入激活码"
+                maxlength="50"
+                @keydown.enter="handleActivateVip"
+              />
+            </div>
+            <div class="vip-dialog-footer">
+              <button class="vip-dialog-btn vip-dialog-btn-cancel" @click="showVipDialog = false">取消</button>
+              <button
+                class="vip-dialog-btn vip-dialog-btn-confirm"
+                :class="{ loading: activating }"
+                :disabled="activating"
+                @click="handleActivateVip"
+              >
+                {{ activating ? '激活中...' : '立即激活' }}
+              </button>
+            </div>
+          </div>
+        </Transition>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { clientLogout, getUserInfoByUid } from '../../api/auth'
+import { clientLogout, getUserInfoByUid, activateVip } from '../../api/auth'
 import { followUser, unfollowUser } from '../../api/video'
 import { useAuthStore } from '../../stores/auth'
 import FavoriteHoverPanel from '../FavoriteHoverPanel.vue'
@@ -345,6 +387,10 @@ let messageHideTimer = null
 
 const showMessagePanel = ref(false)
 const messageUnreadCount = ref(0)
+
+const showVipDialog = ref(false)
+const vipCode = ref('')
+const activating = ref(false)
 
 const { isConnected, connect, disconnect, onMessage } = useMessageWebSocket()
 
@@ -482,6 +528,33 @@ const handleSearch = () => {
 
 const handleFeatureClick = (feature) => {
   ElMessage.info(`${feature}功能开发中，敬请期待`)
+}
+
+const handleVipClick = () => {
+  if (!isLoggedIn.value) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+  showVipDialog.value = true
+  vipCode.value = ''
+}
+
+const handleActivateVip = async () => {
+  if (!vipCode.value.trim()) {
+    ElMessage.warning('请输入激活码')
+    return
+  }
+  activating.value = true
+  try {
+    await activateVip({ code: vipCode.value.trim() })
+    ElMessage.success('激活成功')
+    showVipDialog.value = false
+    await authStore.init()
+  } catch (e) {
+    ElMessage.error(e.message || '激活失败')
+  } finally {
+    activating.value = false
+  }
 }
 
 const handleFavoriteMouseEnter = () => {
@@ -1509,5 +1582,163 @@ onUnmounted(() => {
   .register-btn {
     display: none;
   }
+}
+
+/* 大会员激活弹窗 */
+.vip-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.vip-dialog {
+  width: 400px;
+  max-width: calc(100vw - 40px);
+  background: var(--bg1);
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.vip-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line_light);
+}
+
+.vip-dialog-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.vip-dialog-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vip-dialog-close:hover {
+  background: var(--bg2);
+  color: var(--text1);
+}
+
+.vip-dialog-body {
+  padding: 20px;
+}
+
+.vip-dialog-tip {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--text3);
+}
+
+.vip-dialog-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line_regular);
+  border-radius: 8px;
+  background: var(--bg2);
+  font-size: 14px;
+  color: var(--text1);
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.vip-dialog-input:focus {
+  border-color: var(--brand_pink);
+  box-shadow: 0 0 0 2px rgba(255, 102, 153, 0.15);
+}
+
+.vip-dialog-input::placeholder {
+  color: var(--text4);
+}
+
+.vip-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px 16px;
+}
+
+.vip-dialog-btn {
+  height: 36px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vip-dialog-btn-cancel {
+  background: var(--bg2);
+  color: var(--text2);
+}
+
+.vip-dialog-btn-cancel:hover {
+  background: var(--bg3);
+}
+
+.vip-dialog-btn-confirm {
+  background: linear-gradient(135deg, #FF6699 0%, #FF8CB0 100%);
+  color: white;
+}
+
+.vip-dialog-btn-confirm:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.vip-dialog-btn-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 弹窗动画 */
+.vip-dialog-fade-enter-active,
+.vip-dialog-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.vip-dialog-fade-enter-from,
+.vip-dialog-fade-leave-to {
+  opacity: 0;
+}
+
+.vip-dialog-scale-enter-active {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.vip-dialog-scale-leave-active {
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.vip-dialog-scale-enter-from {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+.vip-dialog-scale-leave-to {
+  transform: scale(0.95);
+  opacity: 0;
 }
 </style>
