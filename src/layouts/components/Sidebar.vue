@@ -52,10 +52,12 @@
                   v-for="child in item.children"
                   :key="child.id || child.path"
                   class="menu-item sub-item"
-                  :class="{ active: activeMenu === child.path }"
+                  :class="{ active: isPathMatch(child.path, activeMenu) }"
                   @click="navigateTo(child.path)"
                 >
-                  <span class="sub-dot" :class="{ active: activeMenu === child.path }"></span>
+                  <span class="sub-icon" :class="{ active: isPathMatch(child.path, activeMenu) }">
+                    <el-icon :size="14"><component :is="resolveIcon(child.icon)" /></el-icon>
+                  </span>
                   <span class="menu-text">{{ child.menuName || child.name }}</span>
                 </div>
               </div>
@@ -64,7 +66,7 @@
             <div
               v-else
               class="menu-item"
-              :class="{ active: activeMenu === item.path }"
+              :class="{ active: isPathMatch(item.path, activeMenu) }"
               @click="navigateTo(item.path)"
             >
               <span class="menu-icon">
@@ -98,10 +100,12 @@
                   v-for="child in item.children"
                   :key="child.id || child.path"
                   class="menu-item sub-item"
-                  :class="{ active: activeMenu === child.path }"
+                  :class="{ active: isPathMatch(child.path, activeMenu) }"
                   @click="navigateTo(child.path)"
                 >
-                  <span class="sub-dot" :class="{ active: activeMenu === child.path }"></span>
+                  <span class="sub-icon" :class="{ active: isPathMatch(child.path, activeMenu) }">
+                    <el-icon :size="14"><component :is="resolveIcon(child.icon)" /></el-icon>
+                  </span>
                   <span class="menu-text">{{ child.menuName || child.name }}</span>
                 </div>
               </div>
@@ -109,7 +113,7 @@
             <div
               v-else
               class="menu-item"
-              :class="{ active: activeMenu === item.path }"
+              :class="{ active: isPathMatch(item.path, activeMenu) }"
               @click="navigateTo(item.path)"
             >
               <span class="menu-icon">
@@ -170,7 +174,8 @@ import { ref, computed, watch, onMounted, nextTick, markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
-import { SwitchButton, Fold, Expand, ArrowDown, Document, Monitor, Edit, ChatDotRound, ChatLineSquare, VideoCamera, Comment, User, DataAnalysis, Bell, Setting, Menu, Tickets, Key, List, Reading, Star, Wallet, Connection, Picture, Film, Histogram, Grid, Stamp, Finished, Cpu, Flag } from '@element-plus/icons-vue'
+import { constantRoutes } from '@/router'
+import { SwitchButton, Fold, Expand, ArrowDown, Document, Monitor, Edit, ChatDotRound, ChatLineSquare, VideoCamera, Comment, User, DataAnalysis, Bell, Setting, Menu, Tickets, Key, List, Reading, Star, Wallet, Connection, Picture, Film, Histogram, Grid, Stamp, Finished, Cpu, Flag, HomeFilled, Odometer, TrendCharts, UserFilled, Avatar, Lock, Search, Delete, Plus, Refresh, Download, Upload, Folder, FolderOpened, Aim, Location, Message, Trophy, Notebook, Calendar, Clock, Mic, VideoPlay, Headset } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -186,11 +191,69 @@ const primaryColor = computed(() => {
 
 const activeMenu = computed(() => route.path)
 
-// 从 userInfo.menuList 构建菜单树
+function flattenRoutes(routes, parentPath = '') {
+  const result = []
+  for (const r of routes) {
+    const fullPath = (parentPath + '/' + r.path).replace(/\/+/g, '/')
+    if (r.children) {
+      result.push(...flattenRoutes(r.children, fullPath))
+    } else {
+      result.push({ path: fullPath === '//' ? '/' : fullPath, name: r.name, title: r.meta?.title || '', icon: r.meta?.icon || '' })
+    }
+  }
+  return result
+}
+
+const flatRoutes = flattenRoutes(constantRoutes)
+
+function resolveMenuPath(menuName, menuIdentification, menuIcon) {
+  if (menuIdentification) {
+    const s = String(menuIdentification)
+    if (s.startsWith('/')) return s
+  }
+  if (menuName) {
+    const found = flatRoutes.find(r => r.title === menuName)
+    if (found) return found.path
+  }
+  if (menuIcon) {
+    const found = flatRoutes.find(r => r.icon === menuIcon)
+    if (found) return found.path
+  }
+  if (menuIdentification) {
+    const s = String(menuIdentification)
+    const found = flatRoutes.find(r => r.name === s)
+    if (found) return found.path
+  }
+  return ''
+}
+
+function normalizePath(p) {
+  if (p == null || p === '') return ''
+  const s = String(p)
+  return s.startsWith('/') ? s : '/' + s
+}
+
+function isPathMatch(menuPath, routePath) {
+  if (!menuPath) return false
+  return normalizePath(menuPath).toLowerCase() === (routePath || '').toLowerCase()
+}
+
 const menuList = computed(() => {
   const raw = userStore.userInfo?.menuList || userStore.user?.menuList || []
-  return buildMenuTree(raw)
+  const tree = Array.isArray(raw) ? raw : []
+  return tree.map(item => processMenuItem(item)).sort((a, b) => (a.descSort || 0) - (b.descSort || 0))
 })
+
+function processMenuItem(item) {
+  const resolvedPath = resolveMenuPath(item.menuName, item.menuIdentification, item.icon)
+  return {
+    ...item,
+    path: resolvedPath,
+    children: item.children
+      ? item.children.map(child => processMenuItem(child)).sort((a, b) => (a.descSort || 0) - (b.descSort || 0))
+      : []
+  }
+}
 
 const mainMenus = computed(() => {
   return menuList.value.filter(m => m.category === 'MAIN')
@@ -200,22 +263,6 @@ const otherMenus = computed(() => {
   return menuList.value.filter(m => m.category !== 'MAIN')
 })
 
-function buildMenuTree(list) {
-  const map = {}
-  const roots = []
-  list.forEach(item => {
-    map[item.id] = { ...item, children: [] }
-  })
-  list.forEach(item => {
-    if (item.parentId && map[item.parentId]) {
-      map[item.parentId].children.push(map[item.id])
-    } else {
-      roots.push(map[item.id])
-    }
-  })
-  return roots.sort((a, b) => (a.order || 0) - (b.order || 0))
-}
-
 const iconCache = {}
 function resolveIcon(name) {
   if (!name) return markRaw(Document)
@@ -224,27 +271,46 @@ function resolveIcon(name) {
     Monitor, Edit, ChatDotRound, ChatLineSquare, VideoCamera, Comment,
     User, DataAnalysis, Bell, Setting, Document, Menu, Tickets, Key,
     List, Reading, Star, Wallet, Connection, Picture, Film, Histogram,
-    Grid, Stamp, Finished, Cpu, Flag, ArrowDown
+    Grid, Stamp, Finished, Cpu, Flag, ArrowDown, HomeFilled, Odometer,
+    TrendCharts, UserFilled, Avatar, Lock, Search, Delete, Plus, Refresh,
+    Download, Upload, Folder, FolderOpened, Aim, Location, Message,
+    Trophy, Notebook, Calendar, Clock, Mic, VideoPlay, Headset,
+    Fold, Expand, SwitchButton
   }
   iconCache[name] = markRaw(icons[name] || Document)
   return iconCache[name]
 }
 
 function isMenuActive(item) {
-  if (item.path === activeMenu.value) return true
-  return item.children?.some(c => c.path === activeMenu.value)
+  if (isPathMatch(item.path, activeMenu.value)) return true
+  return item.children?.some(c => isPathMatch(c.path, activeMenu.value))
 }
 
 // 展开的子菜单
 const expandedMenuIds = ref(new Set())
 const STORAGE_KEY = 'expandedMenus'
 
+function expandActiveParent() {
+  const allMenus = [...mainMenus.value, ...otherMenus.value]
+  for (const m of allMenus) {
+    if (m.children?.some(c => isPathMatch(c.path, activeMenu.value))) {
+      expandedMenuIds.value.add(m.id)
+    }
+  }
+}
+
 onMounted(() => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
     expandedMenuIds.value = new Set(saved)
   } catch { /* ignore */ }
+  expandActiveParent()
 })
+
+watch(activeMenu, () => {
+  expandActiveParent()
+  updateIndicator()
+}, { immediate: true })
 
 function toggleSubMenu(id) {
   if (expandedMenuIds.value.has(id)) {
@@ -277,7 +343,6 @@ function updateIndicator() {
   })
 }
 
-watch(activeMenu, () => updateIndicator(), { immediate: true })
 watch(() => appStore.sidebar.collapsed, () => setTimeout(updateIndicator, 350))
 
 const indicatorStyle = computed(() => ({
@@ -342,7 +407,7 @@ async function handleLogout() {
     }
 
     .submenu-arrow { color: #909399; }
-    .sub-dot { background: #c0c4cc; &.active { background: var(--color-primary); box-shadow: none; } }
+    .sub-icon { color: #c0c4cc; &.active { color: var(--color-primary); } }
     .user-card { border-top: 1px solid rgba(0, 0, 0, 0.06); }
     .user-name { color: #303133; }
     .user-role { color: #909399; }
@@ -546,17 +611,19 @@ async function handleLogout() {
 
 .sub-item { padding-left: 42px !important; }
 
-.sub-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+.sub-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.45);
   margin-right: 8px;
   flex-shrink: 0;
   transition: all 0.25s ease;
 
-  &.active { background: var(--color-primary); box-shadow: 0 0 8px var(--color-primary); }
+  &.active { color: var(--color-primary); }
 }
 
 // ========== 滑动指示条 ==========

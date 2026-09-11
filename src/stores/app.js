@@ -27,6 +27,21 @@ export const useAppStore = defineStore('app', {
     toggleDarkMode() {
       this.darkMode = !this.darkMode
       localStorage.setItem('darkMode', String(this.darkMode))
+      this.applyDarkModeClass()
+    },
+
+    setDarkMode(dark) {
+      this.darkMode = dark
+      localStorage.setItem('darkMode', String(dark))
+      this.applyDarkModeClass()
+    },
+
+    applyDarkModeClass() {
+      if (this.darkMode) {
+        document.documentElement.classList.add('dark-mode')
+      } else {
+        document.documentElement.classList.remove('dark-mode')
+      }
     },
 
     setDevice(device) {

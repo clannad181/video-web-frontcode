@@ -1,6 +1,9 @@
 export default {
   common: {
+    home: 'Home',
+    dashboard: 'Dashboard',
     search: 'Search',
+    searchPlaceholder: 'Search videos, users, comments...',
     add: 'Add',
     edit: 'Edit',
     delete: 'Delete',

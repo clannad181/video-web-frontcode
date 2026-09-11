@@ -15,11 +15,6 @@ export const useUserStore = defineStore('user', () => {
       if (settings.primaryColor) {
         document.documentElement.style.setProperty('--primary-color', settings.primaryColor)
       }
-      if (settings.darkMode) {
-        document.documentElement.classList.add('dark-mode')
-      } else {
-        document.documentElement.classList.remove('dark-mode')
-      }
       if (settings.compactMode) {
         document.documentElement.classList.add('compact-mode')
       } else {
@@ -41,7 +36,7 @@ export const useUserStore = defineStore('user', () => {
         setUserInfo(userRes.data)
         user.value = {
           id: userRes.data.id,
-          name: userRes.data.nickname || userRes.data.username,
+          name: userRes.data.nikeName || userRes.data.nickname || userRes.data.username,
           userName: userRes.data.username,
           email: userRes.data.email,
           avatar: userRes.data.avatar || userRes.data.avater,
@@ -84,7 +79,7 @@ export const useUserStore = defineStore('user', () => {
         setUserInfo(res.data)
         user.value = {
           id: res.data.id,
-          name: res.data.nickname || res.data.username,
+          name: res.data.nikeName || res.data.nickname || res.data.username,
           userName: res.data.username,
           email: res.data.email,
           avatar: res.data.avatar || res.data.avater,

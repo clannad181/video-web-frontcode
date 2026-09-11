@@ -1,6 +1,9 @@
 export default {
   common: {
+    home: '首页',
+    dashboard: '仪表盘',
     search: '搜索',
+    searchPlaceholder: '搜索视频、用户、评论...',
     add: '新增',
     edit: '编辑',
     delete: '删除',

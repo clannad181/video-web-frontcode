@@ -54,14 +54,55 @@ service.interceptors.response.use(
       return res
     }
     if (res.code === 401) {
-      return Promise.reject(new Error('Token expired'))
+      const originalRequest = response.config
+      if (originalRequest._retry) {
+        forceLogout()
+        return Promise.reject(new Error('Token refresh failed'))
+      }
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        }).then(token => {
+          originalRequest.headers['Authorization'] = `Bearer ${token}`
+          return service(originalRequest)
+        })
+      }
+      originalRequest._retry = true
+      isRefreshing = true
+      const refreshTokenValue = getRefreshToken()
+      if (refreshTokenValue) {
+        return axios.get(
+          `${import.meta.env.VITE_API_BASE_URL || '/api'}/admin/user/refresh`,
+          { headers: { 'refresh-token': refreshTokenValue } }
+        ).then(refreshRes => {
+          if (refreshRes.data.code === 200) {
+            const { accessToken, refreshToken: newRefreshToken } = refreshRes.data.data
+            setAuth(accessToken, newRefreshToken)
+            processQueue(null, accessToken)
+            originalRequest.headers['Authorization'] = `Bearer ${accessToken}`
+            return service(originalRequest)
+          } else {
+            processQueue(new Error('Refresh failed'), null)
+            forceLogout()
+            return Promise.reject(new Error('Refresh failed'))
+          }
+        }).catch(e => {
+          processQueue(e, null)
+          forceLogout()
+          return Promise.reject(e)
+        }).finally(() => {
+          isRefreshing = false
+        })
+      } else {
+        forceLogout()
+        return Promise.reject(new Error('No refresh token'))
+      }
     }
     if (res.code === 403) {
       ElMessage.error('未登录或无权限')
       forceLogout()
       return Promise.reject(new Error(res.message || '未登录'))
     }
-    // ElMessage.error(res.message || '请求失败')
     return Promise.reject(new Error(res.message || '请求失败'))
   },
   async error => {

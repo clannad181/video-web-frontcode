@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :class="{ 'dark-mode': appStore.darkMode }">
+  <div id="app">
     <router-view />
     <SessionWarning
       :show="sessionWarning.showWarning.value"
@@ -11,21 +11,23 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useSessionTimeout } from '@/composables/useSessionTimeout'
 import SessionWarning from '@/components/SessionWarning.vue'
 
 const appStore = useAppStore()
 const sessionWarning = useSessionTimeout()
+
+onMounted(() => {
+  appStore.applyDarkModeClass()
+})
 </script>
 
 <style lang="scss">
 #app {
   min-height: 100vh;
-}
-
-.dark-mode {
-  --el-bg-color: #1d1e1f;
-  --el-text-color-primary: #e5eaf3;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
 }
 </style>

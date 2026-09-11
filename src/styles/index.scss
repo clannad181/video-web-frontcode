@@ -38,27 +38,17 @@
   --z-index-modal: 2000;
 }
 
-// Dark Mode
-.dark-mode {
+// Dark Mode - applied via .dark-mode class on <html>
+html.dark-mode {
   --bg-color: #0d1117;
   --card-bg: #161b22;
   --text-primary: #e6edf3;
   --text-regular: #8b949e;
+  --text-secondary: #6e7681;
   --border-color: #30363d;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not(.light-mode) {
-    --bg-color: #0d1117;
-    --card-bg: #161b22;
-    --text-primary: #e6edf3;
-    --text-regular: #8b949e;
-    --border-color: #30363d;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
-  }
+  color-scheme: dark;
 }
 
 // ============================================
@@ -150,7 +140,7 @@ button {
   }
 }
 
-.dark-mode {
+html.dark-mode {
   ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.15);
 
@@ -158,6 +148,28 @@ button {
       background: rgba(255, 255, 255, 0.25);
     }
   }
+}
+
+// Dashboard components dark mode overrides
+html.dark-mode .stat-card,
+html.dark-mode .chart-card,
+html.dark-mode .activity-feed,
+html.dark-mode .video-table-card,
+html.dark-mode .action-capsule {
+  background: #161b22;
+}
+
+html.dark-mode .card-glow {
+  opacity: 0.06;
+  filter: blur(40px);
+}
+
+html.dark-mode .feed-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+html.dark-mode .table-row:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 // ============================================
@@ -528,7 +540,7 @@ button {
   border-radius: var(--radius-sm);
 }
 
-.dark-mode .skeleton {
+html.dark-mode .skeleton {
   background: linear-gradient(90deg, #1e2430 25%, #262c3a 50%, #1e2430 75%);
   background-size: 200% 100%;
 }
@@ -561,6 +573,18 @@ button {
     background-color: rgba(245, 108, 108, 0.15);
     color: var(--danger-color);
   }
+}
+
+// ============================================
+// NProgress Dark Mode
+// ============================================
+
+#nprogress .bar {
+  background: var(--color-primary, #fb7299) !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px var(--color-primary, #fb7299), 0 0 5px var(--color-primary, #fb7299) !important;
 }
 
 // ============================================
@@ -782,7 +806,7 @@ button {
   transition: opacity var(--transition-duration) !important;
 }
 
-.dark-mode .el-loading-mask {
+html.dark-mode .el-loading-mask {
   background-color: rgba(13, 17, 23, 0.9) !important;
 }
 
