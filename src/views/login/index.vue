@@ -115,12 +115,16 @@
                 type="text"
                 placeholder="验证码"
                 class="form-input"
-                maxlength="4"
+                maxlength="6"
                 @keyup.enter="handleLogin"
               />
             </div>
             <div class="captcha-box" @click="refreshCaptcha" title="点击刷新验证码">
-              <canvas ref="captchaCanvas" width="120" height="40"></canvas>
+              <div v-if="captchaLoading" class="captcha-loading">
+                <div class="spinner"></div>
+              </div>
+              <img v-else-if="captchaImage" :src="captchaImage" class="captcha-img" />
+              <canvas v-else ref="captchaCanvas" width="120" height="40"></canvas>
             </div>
           </div>
           <div v-if="errors.captcha" class="error-text">{{ errors.captcha }}</div>
@@ -169,20 +173,27 @@
             />
             <button
               class="send-code-btn"
-              :disabled="countdown > 0"
+              :disabled="countdown > 0 || sendingCode"
               @click="sendCode"
             >
-              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+              <span v-if="sendingCode" class="btn-loader-small"></span>
+              <span v-else>{{ countdown > 0 ? `${countdown}s` : '获取验证码' }}</span>
             </button>
           </div>
           <div v-if="errors.code" class="error-text">{{ errors.code }}</div>
         </div>
 
         <!-- 登录按钮 -->
-        <button class="login-btn" :class="{ loading: isLoading }" @click="handleLogin">
+        <button class="login-btn" :class="{ loading: isLoading }" @click="handleLogin" :disabled="isLoading">
           <span v-if="isLoading" class="btn-loader"></span>
           <span v-else>登 录</span>
         </button>
+
+        <!-- 错误提示 -->
+        <div v-if="loginError" class="login-error">
+          <span class="error-icon">!</span>
+          {{ loginError }}
+        </div>
       </div>
 
       <!-- 底部 -->
@@ -198,6 +209,8 @@ import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { getCaptcha, sendEmailCode } from '@/api/auth'
+import SparkMD5 from 'spark-md5'
 
 const router = useRouter()
 const route = useRoute()
@@ -208,9 +221,13 @@ const showPassword = ref(false)
 const rememberMe = ref(false)
 const showCard = ref(false)
 const isLoading = ref(false)
+const loginError = ref('')
 const countdown = ref(0)
+const sendingCode = ref(false)
 const captchaCanvas = ref(null)
-const captchaCode = ref('')
+const captchaImage = ref('')
+const captchaLoading = ref(false)
+const captchaKey = ref('')
 
 const accountForm = reactive({
   username: 'admin',
@@ -231,9 +248,34 @@ const errors = reactive({
   code: ''
 })
 
-const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+function md5(str) {
+  return SparkMD5.hash(str)
+}
 
-function generateCaptcha() {
+function generateCaptchaKey() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2)
+}
+
+async function fetchCaptcha(captchaType = 'img_captcha', email = '') {
+  captchaLoading.value = true
+  try {
+    const key = generateCaptchaKey()
+    const res = await getCaptcha(key, captchaType, email)
+    if (res.code === 200 && res.data) {
+      captchaKey.value = res.data.key || key
+      if (res.data.captcha) {
+        captchaImage.value = res.data.captcha
+      }
+    }
+  } catch (e) {
+    console.error('获取验证码失败', e)
+    generateCanvasCaptcha()
+  } finally {
+    captchaLoading.value = false
+  }
+}
+
+function generateCanvasCaptcha() {
   const canvas = captchaCanvas.value
   if (!canvas) return
 
@@ -241,11 +283,9 @@ function generateCaptcha() {
   const width = canvas.width
   const height = canvas.height
 
-  // 背景
   ctx.fillStyle = '#1e293b'
   ctx.fillRect(0, 0, width, height)
 
-  // 干扰线
   for (let i = 0; i < 6; i++) {
     ctx.strokeStyle = `hsla(${Math.random() * 360}, 70%, 60%, 0.3)`
     ctx.lineWidth = 1
@@ -255,47 +295,51 @@ function generateCaptcha() {
     ctx.stroke()
   }
 
-  // 生成验证码
+  const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   let code = ''
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     const char = CHARS[Math.floor(Math.random() * CHARS.length)]
     code += char
-
     ctx.save()
-    ctx.font = `bold ${18 + Math.random() * 4}px monospace`
+    ctx.font = `bold ${16 + Math.random() * 3}px monospace`
     ctx.fillStyle = `hsl(${Math.random() * 360}, 80%, 65%)`
     ctx.textBaseline = 'middle'
-    ctx.translate(20 + i * 25, height / 2)
+    ctx.translate(15 + i * 18, height / 2)
     ctx.rotate((Math.random() - 0.5) * 0.4)
     ctx.fillText(char, 0, 0)
     ctx.restore()
   }
 
-  // 干扰点
   for (let i = 0; i < 30; i++) {
     ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.3})`
     ctx.beginPath()
     ctx.arc(Math.random() * width, Math.random() * height, 1, 0, Math.PI * 2)
     ctx.fill()
   }
-
-  captchaCode.value = code
 }
 
 function refreshCaptcha() {
-  generateCaptcha()
+  captchaImage.value = ''
+  const captchaType = activeTab.value === 'account' ? 'img_captcha' : 'email_captcha'
+  const email = activeTab.value === 'email' ? emailForm.email : ''
+  fetchCaptcha(captchaType, email)
 }
 
 function getParticleStyle(n) {
+  return particleStyles.value[n - 1] || {}
+}
+
+const particleStyles = ref([])
+for (let i = 0; i < 20; i++) {
   const size = 2 + Math.random() * 3
-  return {
+  particleStyles.value.push({
     width: size + 'px',
     height: size + 'px',
     left: Math.random() * 100 + '%',
     top: Math.random() * 100 + '%',
     animationDuration: (15 + Math.random() * 25) + 's',
     animationDelay: Math.random() * 10 + 's'
-  }
+  })
 }
 
 function clearErrors() {
@@ -320,11 +364,6 @@ function validateAccount() {
   }
   if (!accountForm.captcha.trim()) {
     errors.captcha = '请输入验证码'
-    valid = false
-  } else if (accountForm.captcha.toUpperCase() !== captchaCode.value.toUpperCase()) {
-    errors.captcha = '验证码错误'
-    refreshCaptcha()
-    accountForm.captcha = ''
     valid = false
   }
 
@@ -352,20 +391,44 @@ function validateEmail() {
 
 async function handleLogin() {
   if (isLoading.value) return
+  loginError.value = ''
 
   const isValid = activeTab.value === 'account' ? validateAccount() : validateEmail()
   if (!isValid) return
 
   isLoading.value = true
   try {
-    const loginData = activeTab.value === 'account'
-      ? { username: accountForm.username, password: accountForm.password }
-      : { email: emailForm.email, code: emailForm.code }
+    let loginData
+    if (activeTab.value === 'account') {
+      loginData = {
+        key: captchaKey.value,
+        captcha: accountForm.captcha,
+        loginType: 'img_captcha',
+        loginSystem: 0,
+        username: accountForm.username,
+        password: md5(accountForm.password)
+      }
+    } else {
+      loginData = {
+        key: captchaKey.value,
+        captcha: emailForm.code,
+        loginType: 'email_captcha',
+        loginSystem: 0,
+        email: emailForm.email
+      }
+    }
 
     await userStore.login(loginData)
-    ElMessage.success('登录成功')
-    router.push(route.query.redirect || '/')
   } catch (e) {
+    let msg = '登录失败，请重试'
+    if (e?.response?.data?.message) {
+      msg = e.response.data.message
+    } else if (e?.response?.data?.msg) {
+      msg = e.response.data.msg
+    } else if (e?.message) {
+      msg = e.message
+    }
+    loginError.value = msg
     refreshCaptcha()
     accountForm.captcha = ''
   } finally {
@@ -374,8 +437,8 @@ async function handleLogin() {
 }
 
 let timer = null
-function sendCode() {
-  if (countdown.value > 0) return
+async function sendCode() {
+  if (countdown.value > 0 || sendingCode.value) return
 
   if (!emailForm.email.trim()) {
     errors.email = '请输入邮箱'
@@ -387,16 +450,26 @@ function sendCode() {
   }
 
   errors.email = ''
-  ElMessage.success('验证码已发送')
-  countdown.value = 60
-  timer = setInterval(() => {
-    countdown.value--
-    if (countdown.value <= 0) clearInterval(timer)
-  }, 1000)
+  sendingCode.value = true
+  try {
+    const key = generateCaptchaKey()
+    captchaKey.value = key
+    await sendEmailCode(emailForm.email)
+    ElMessage.success('验证码已发送')
+    countdown.value = 60
+    timer = setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0) clearInterval(timer)
+    }, 1000)
+  } catch (e) {
+    ElMessage.error('发送验证码失败')
+  } finally {
+    sendingCode.value = false
+  }
 }
 
 onMounted(() => {
-  generateCaptcha()
+  fetchCaptcha()
   nextTick(() => {
     requestAnimationFrame(() => {
       showCard.value = true
@@ -417,7 +490,6 @@ onMounted(() => {
   overflow: hidden;
 }
 
-/* 动态背景 */
 .login-bg {
   position: absolute;
   inset: 0;
@@ -474,7 +546,6 @@ onMounted(() => {
   background-size: 50px 50px;
 }
 
-/* 粒子 */
 .particles {
   position: absolute;
   inset: 0;
@@ -497,7 +568,6 @@ onMounted(() => {
   100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
 }
 
-/* 登录卡片 */
 .login-card {
   position: relative;
   width: 400px;
@@ -531,7 +601,6 @@ onMounted(() => {
   border-radius: 0 0 4px 4px;
 }
 
-/* Logo区域 */
 .login-header {
   text-align: center;
   margin-bottom: 32px;
@@ -562,7 +631,6 @@ onMounted(() => {
   letter-spacing: 2px;
 }
 
-/* Tab栏 */
 .tab-bar {
   display: flex;
   position: relative;
@@ -603,12 +671,10 @@ onMounted(() => {
   transform: translateX(100%);
 }
 
-/* 表单内容 */
 .form-content {
   min-height: 200px;
 }
 
-/* 输入框组 */
 .input-group {
   position: relative;
   display: flex;
@@ -673,7 +739,6 @@ onMounted(() => {
   height: 18px;
 }
 
-/* 错误提示 */
 .error-text {
   color: #f87171;
   font-size: 12px;
@@ -682,22 +747,22 @@ onMounted(() => {
   padding-left: 16px;
 }
 
-/* 验证码 */
 .captcha-group {
   display: flex;
+  align-items: center;
   margin-bottom: 20px;
   height: 52px;
 }
 
 .captcha-input {
-  flex: 1;
+  width: 180px;
   margin-bottom: 0;
-  margin-right: 12px;
 }
 
 .captcha-box {
   width: 132px;
   height: 52px;
+  margin-left: auto;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
@@ -705,6 +770,9 @@ onMounted(() => {
   transition: all 0.3s;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .captcha-box:hover {
@@ -712,13 +780,31 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.captcha-box canvas {
+.captcha-img {
   width: 100%;
   height: 100%;
-  display: block;
+  object-fit: cover;
 }
 
-/* 邮箱验证码按钮 */
+.captcha-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .code-group {
   margin-bottom: 20px;
 }
@@ -746,7 +832,16 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-/* 表单选项 */
+.btn-loader-small {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(165, 180, 252, 0.3);
+  border-top-color: #a5b4fc;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 .form-options {
   display: flex;
   justify-content: space-between;
@@ -807,7 +902,6 @@ onMounted(() => {
   color: #a5b4fc;
 }
 
-/* 登录按钮 */
 .login-btn {
   width: 100%;
   height: 50px;
@@ -824,17 +918,19 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.login-btn:hover:not(.loading) {
+.login-btn:hover:not(.loading):not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
 }
 
-.login-btn:active:not(.loading) {
+.login-btn:active:not(.loading):not(:disabled) {
   transform: translateY(0);
 }
 
-.login-btn.loading {
+.login-btn.loading,
+.login-btn:disabled {
   cursor: not-allowed;
+  opacity: 0.8;
 }
 
 .btn-loader {
@@ -847,11 +943,6 @@ onMounted(() => {
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* 底部 */
 .login-footer {
   text-align: center;
   margin-top: 28px;
@@ -859,7 +950,34 @@ onMounted(() => {
   font-size: 12px;
 }
 
-/* 响应式 */
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.login-error .error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 @media (max-width: 480px) {
   .login-card {
     width: calc(100vw - 32px);
@@ -871,7 +989,7 @@ onMounted(() => {
   }
 
   .captcha-box {
-    width: 100px;
+    width: 110px;
   }
 }
 </style>

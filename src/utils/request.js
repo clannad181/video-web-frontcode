@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-import { getToken, getRefreshToken, setToken, clearAuth } from './auth'
+import { getToken, getRefreshToken, setAuth, clearAuth } from './auth'
 import router from '@/router'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
@@ -26,6 +26,11 @@ function processQueue(error, token = null) {
   failedQueue = []
 }
 
+function forceLogout() {
+  clearAuth()
+  window.location.href = '/login'
+}
+
 service.interceptors.request.use(
   config => {
     NProgress.start()
@@ -45,21 +50,25 @@ service.interceptors.response.use(
   response => {
     NProgress.done()
     const res = response.data
-    if (res.code !== 200) {
-      ElMessage.error(res.message || '请求失败')
-      if (res.code === 401) {
-        clearAuth()
-        router.push('/login')
-      }
-      return Promise.reject(new Error(res.message || '请求失败'))
+    if (res.code === 200) {
+      return res
     }
-    return res
+    if (res.code === 401) {
+      return Promise.reject(new Error('Token expired'))
+    }
+    if (res.code === 403) {
+      ElMessage.error('未登录或无权限')
+      forceLogout()
+      return Promise.reject(new Error(res.message || '未登录'))
+    }
+    // ElMessage.error(res.message || '请求失败')
+    return Promise.reject(new Error(res.message || '请求失败'))
   },
   async error => {
     NProgress.done()
     const originalRequest = error.config
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -72,28 +81,34 @@ service.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      const refreshToken = getRefreshToken()
-      if (refreshToken) {
+      const refreshTokenValue = getRefreshToken()
+      if (refreshTokenValue) {
         try {
-          const res = await axios.post('/api/auth/refresh', { refreshToken })
+          const res = await axios.get(
+            `${import.meta.env.VITE_API_BASE_URL || '/api'}/admin/user/refresh`,
+            {
+              headers: { 'refresh-token': refreshTokenValue }
+            }
+          )
           if (res.data.code === 200) {
-            const newToken = res.data.data.accessToken
-            setToken(newToken)
-            processQueue(null, newToken)
-            originalRequest.headers['Authorization'] = `Bearer ${newToken}`
+            const { accessToken, refreshToken: newRefreshToken } = res.data.data
+            setAuth(accessToken, newRefreshToken)
+            processQueue(null, accessToken)
+            originalRequest.headers['Authorization'] = `Bearer ${accessToken}`
             return service(originalRequest)
+          } else {
+            processQueue(new Error('Refresh failed'), null)
+            forceLogout()
           }
         } catch (e) {
           processQueue(e, null)
-          clearAuth()
-          router.push('/login')
+          forceLogout()
           return Promise.reject(e)
         } finally {
           isRefreshing = false
         }
       } else {
-        clearAuth()
-        router.push('/login')
+        forceLogout()
       }
     }
 

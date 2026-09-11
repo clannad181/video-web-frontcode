@@ -50,9 +50,9 @@
         <el-dropdown trigger="click" @command="handleCommand">
           <div class="user-section">
             <el-avatar :size="30" class="user-avatar">
-              {{ userStore.userInfo.nickname?.[0] || 'A' }}
+              {{ userStore.userInfo?.nikeName?.[0] || 'A' }}
             </el-avatar>
-            <span class="username">{{ userStore.userInfo.nickname || '管理员' }}</span>
+            <span class="username">{{ userStore.userInfo?.nickname || '管理员' }}</span>
             <el-icon class="dropdown-arrow"><ArrowDown /></el-icon>
           </div>
           <template #dropdown>

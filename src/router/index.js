@@ -20,13 +20,13 @@ export const constantRoutes = [
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('@/views/dashboard/index.vue'),
-        meta: { title: '工作台', icon: 'Odometer' }
+        meta: { title: '工作台', icon: 'Odometer', requiresAuth: true }
       },
       {
         path: 'analytics',
         name: 'Analytics',
         component: () => import('@/views/analytics/index.vue'),
-        meta: { title: '数据分析', icon: 'TrendCharts' }
+        meta: { title: '数据分析', icon: 'TrendCharts', requiresAuth: true }
       }
     ]
   },
@@ -40,19 +40,19 @@ export const constantRoutes = [
         path: 'video-manage',
         name: 'VideoManage',
         component: () => import('@/views/video/video-manage.vue'),
-        meta: { title: '视频管理' }
+        meta: { title: '视频管理', requiresAuth: true }
       },
       {
         path: 'comment-manage',
         name: 'CommentManage',
         component: () => import('@/views/video/comment-manage.vue'),
-        meta: { title: '评论管理' }
+        meta: { title: '评论管理', requiresAuth: true }
       },
       {
         path: 'danmaku-manage',
         name: 'DanmakuManage',
         component: () => import('@/views/video/danmaku-manage.vue'),
-        meta: { title: '弹幕管理' }
+        meta: { title: '弹幕管理', requiresAuth: true }
       }
     ]
   },
@@ -66,13 +66,13 @@ export const constantRoutes = [
         path: 'video-audit',
         name: 'VideoAudit',
         component: () => import('@/views/audit/video-audit.vue'),
-        meta: { title: '视频审核' }
+        meta: { title: '视频审核', requiresAuth: true }
       },
       {
         path: 'comment-audit',
         name: 'CommentAudit',
         component: () => import('@/views/audit/comment-audit.vue'),
-        meta: { title: '评论审核' }
+        meta: { title: '评论审核', requiresAuth: true }
       }
     ]
   },
@@ -86,13 +86,13 @@ export const constantRoutes = [
         path: 'user-manage',
         name: 'UserManage',
         component: () => import('@/views/user/user-manage.vue'),
-        meta: { title: '用户管理' }
+        meta: { title: '用户管理', requiresAuth: true }
       },
       {
         path: 'category-manage',
         name: 'CategoryManage',
         component: () => import('@/views/user/category-manage.vue'),
-        meta: { title: '分类管理' }
+        meta: { title: '分类管理', requiresAuth: true }
       }
     ]
   },
@@ -104,7 +104,7 @@ export const constantRoutes = [
         path: '',
         name: 'Notice',
         component: () => import('@/views/notice/index.vue'),
-        meta: { title: '通知中心', icon: 'Bell' }
+        meta: { title: '通知中心', icon: 'Bell', requiresAuth: true }
       }
     ]
   },
@@ -118,43 +118,43 @@ export const constantRoutes = [
         path: 'website',
         name: 'Website',
         component: () => import('@/views/system/website.vue'),
-        meta: { title: '网站设置' }
+        meta: { title: '网站设置', requiresAuth: true }
       },
       {
         path: 'security',
         name: 'Security',
         component: () => import('@/views/system/security.vue'),
-        meta: { title: '安全设置' }
+        meta: { title: '安全设置', requiresAuth: true }
       },
       {
         path: 'token',
         name: 'Token',
         component: () => import('@/views/system/token.vue'),
-        meta: { title: '令牌安全' }
+        meta: { title: '令牌安全', requiresAuth: true }
       },
       {
         path: 'notification',
         name: 'Notification',
         component: () => import('@/views/system/notification.vue'),
-        meta: { title: '通知设置' }
+        meta: { title: '通知设置', requiresAuth: true }
       },
       {
         path: 'appearance',
         name: 'Appearance',
         component: () => import('@/views/system/appearance.vue'),
-        meta: { title: '外观设置' }
+        meta: { title: '外观设置', requiresAuth: true }
       },
       {
         path: 'audit-config',
         name: 'AuditConfig',
         component: () => import('@/views/system/audit-config.vue'),
-        meta: { title: '审核设置' }
+        meta: { title: '审核设置', requiresAuth: true }
       },
       {
         path: 'default',
         name: 'Default',
         component: () => import('@/views/system/default.vue'),
-        meta: { title: '默认设置' }
+        meta: { title: '默认设置', requiresAuth: true }
       }
     ]
   },
@@ -166,7 +166,7 @@ export const constantRoutes = [
         path: '',
         name: 'SystemInfo',
         component: () => import('@/views/system-info/index.vue'),
-        meta: { title: '系统信息', icon: 'Monitor' }
+        meta: { title: '系统信息', icon: 'Monitor', requiresAuth: true }
       }
     ]
   },
@@ -180,19 +180,19 @@ export const constantRoutes = [
         path: 'login-log',
         name: 'LoginLog',
         component: () => import('@/views/system-log/login-log.vue'),
-        meta: { title: '登录日志' }
+        meta: { title: '登录日志', requiresAuth: true }
       },
       {
         path: 'operation-log',
         name: 'OperationLog',
         component: () => import('@/views/system-log/operation-log.vue'),
-        meta: { title: '运行日志' }
+        meta: { title: '运行日志', requiresAuth: true }
       },
       {
         path: 'log-statistics',
         name: 'LogStatistics',
         component: () => import('@/views/system-log/log-statistics.vue'),
-        meta: { title: '日志统计' }
+        meta: { title: '日志统计', requiresAuth: true }
       }
     ]
   },
@@ -204,7 +204,7 @@ export const constantRoutes = [
         path: '',
         name: 'Role',
         component: () => import('@/views/role/index.vue'),
-        meta: { title: '角色管理', icon: 'UserFilled' }
+        meta: { title: '角色管理', icon: 'UserFilled', requiresAuth: true }
       }
     ]
   },
@@ -216,7 +216,7 @@ export const constantRoutes = [
         path: '',
         name: 'MenuManage',
         component: () => import('@/views/menu-manage/index.vue'),
-        meta: { title: '菜单管理', icon: 'Menu' }
+        meta: { title: '菜单管理', icon: 'Menu', requiresAuth: true }
       }
     ]
   },
@@ -228,9 +228,15 @@ export const constantRoutes = [
         path: '',
         name: 'Profile',
         component: () => import('@/views/profile/index.vue'),
-        meta: { title: '个人中心', icon: 'Avatar', hidden: true }
+        meta: { title: '个人中心', icon: 'Avatar', hidden: true, requiresAuth: true }
       }
     ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/login/index.vue'),
+    meta: { title: '404' }
   }
 ]
 
@@ -239,23 +245,16 @@ const router = createRouter({
   routes: constantRoutes
 })
 
-const whiteList = ['/login']
-
 router.beforeEach((to, from, next) => {
   NProgress.start()
   const token = getToken()
-  if (token) {
-    if (to.path === '/login') {
-      next('/')
-    } else {
-      next()
-    }
+
+  if (to.meta.requiresAuth && !token) {
+    next('/login')
+  } else if (to.path === '/login' && token) {
+    next('/')
   } else {
-    if (whiteList.includes(to.path)) {
-      next()
-    } else {
-      next(`/login?redirect=${to.path}`)
-    }
+    next()
   }
 })
 
