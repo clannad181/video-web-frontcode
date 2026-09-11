@@ -1,9 +1,9 @@
 <template>
-  <div class="layout" :class="{ 'sidebar-collapsed': appStore.sidebar.collapsed, 'dark-mode': appStore.darkMode }">
+  <div class="layout" :class="{ 'sidebar-collapsed': appStore.sidebar.collapsed }">
     <Sidebar />
     <div
       class="main-container"
-      :style="{ marginLeft: appStore.sidebar.collapsed ? '64px' : '220px' }"
+      :style="{ marginLeft: appStore.sidebar.collapsed ? '72px' : '240px' }"
     >
       <Navbar />
       <AppMain />
@@ -33,6 +33,7 @@ const appStore = useAppStore()
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  margin-left: 240px;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>

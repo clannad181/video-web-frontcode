@@ -50,9 +50,10 @@
         <el-dropdown trigger="click" @command="handleCommand">
           <div class="user-section">
             <el-avatar :size="30" class="user-avatar">
-              {{ userStore.userInfo?.nikeName?.[0] || 'A' }}
+              <img v-if="userStore.userInfo?.avater || userStore.userInfo?.avatar" :src="fileBaseUrl + (userStore.userInfo.avater || userStore.userInfo.avatar)" alt="avatar" />
+              <template v-else>{{ userStore.userInfo?.nikeName?.[0] || 'A' }}</template>
             </el-avatar>
-            <span class="username">{{ userStore.userInfo?.nickname || '管理员' }}</span>
+            <span class="username">{{ userStore.userInfo?.nikeName || '管理员' }}</span>
             <el-icon class="dropdown-arrow"><ArrowDown /></el-icon>
           </div>
           <template #dropdown>
@@ -81,10 +82,11 @@ import Breadcrumb from './Breadcrumb.vue'
 const router = useRouter()
 const appStore = useAppStore()
 const userStore = useUserStore()
+const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
 
 const searchQuery = ref('')
 const searchFocused = ref(false)
-
+console.log('userInfo', userStore.userInfo.nikeName)
 const toggleLanguage = () => {
   const newLang = appStore.language === 'zh-cn' ? 'en' : 'zh-cn'
   appStore.setLanguage(newLang)
@@ -102,7 +104,7 @@ const handleCommand = (command) => {
 
 <style lang="scss" scoped>
 .navbar {
-  height: 56px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;

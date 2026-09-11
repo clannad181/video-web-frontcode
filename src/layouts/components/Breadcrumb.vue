@@ -45,7 +45,7 @@ watch(() => route.path, getBreadcrumbs, { immediate: true })
 
 <style lang="scss" scoped>
 .app-breadcrumb {
-  line-height: 56px;
+  line-height: 64px;
   margin-left: 4px;
 }
 
