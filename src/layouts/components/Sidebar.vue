@@ -209,7 +209,16 @@ const flatRoutes = flattenRoutes(constantRoutes)
 function resolveMenuPath(menuName, menuIdentification, menuIcon) {
   if (menuIdentification) {
     const s = String(menuIdentification)
-    if (s.startsWith('/')) return s
+    if (s.startsWith('/')) {
+      const exists = flatRoutes.some(r => r.path === s)
+      if (exists) return s
+      const matched = flatRoutes.find(r => r.title === menuName || r.icon === menuIcon)
+      if (matched) return matched.path
+      if (s === '/') {
+        const root = constantRoutes.find(r => r.path === '/')
+        if (root?.redirect) return root.redirect
+      }
+    }
   }
   if (menuName) {
     const found = flatRoutes.find(r => r.title === menuName)
@@ -220,8 +229,8 @@ function resolveMenuPath(menuName, menuIdentification, menuIcon) {
     if (found) return found.path
   }
   if (menuIdentification) {
-    const s = String(menuIdentification)
-    const found = flatRoutes.find(r => r.name === s)
+    const s = String(menuIdentification).toLowerCase()
+    const found = flatRoutes.find(r => r.name?.toLowerCase() === s)
     if (found) return found.path
   }
   return ''
@@ -312,7 +321,21 @@ watch(activeMenu, () => {
   updateIndicator()
 }, { immediate: true })
 
+// 收缩侧边栏时自动收起所有展开的子菜单
+watch(() => appStore.sidebar.collapsed, (isCollapsed) => {
+  if (isCollapsed) {
+    expandedMenuIds.value = new Set()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...expandedMenuIds.value]))
+  }
+})
+
 function toggleSubMenu(id) {
+  // 收缩状态下点击含子菜单的菜单项，先展开侧边栏
+  if (appStore.sidebar.collapsed) {
+    appStore.toggleSidebar()
+    return
+  }
+  
   if (expandedMenuIds.value.has(id)) {
     expandedMenuIds.value.delete(id)
   } else {
@@ -354,9 +377,9 @@ const indicatorStyle = computed(() => ({
 // 登出
 async function handleLogout() {
   try {
-    await userStore.logout()
+    await userStore.logoutAction()
   } catch {
-    userStore.forceLogout()
+    userStore.forceLogoutAction()
   }
 }
 </script>
@@ -610,6 +633,7 @@ async function handleLogout() {
 }
 
 .sub-item { padding-left: 42px !important; }
+.collapsed .sub-item { display: none !important; }
 
 .sub-icon {
   display: inline-flex;

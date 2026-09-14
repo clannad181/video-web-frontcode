@@ -7,7 +7,7 @@
       <div class="breadcrumb">
         <span class="bc-home">🏠</span>
         <span class="bc-sep">/</span>
-        <span class="bc-current">{{ $t('common.dashboard') }}</span>
+        <span class="bc-current">{{ route.meta?.title || $t('common.dashboard') }}</span>
       </div>
     </div>
 
@@ -42,7 +42,7 @@
         <span class="notif-dot" />
       </div>
 
-      <div class="user-trigger" ref="userTriggerRef" @click="showDropdown = !showDropdown">
+      <div class="user-trigger" ref="userTriggerRef" @click="showDropdown = !showDropdown" @mouseenter="handleAvatarMouseEnter" @mouseleave="handleAvatarMouseLeave">
         <div class="avatar-ring">
           <div class="avatar-inner">
             <img
@@ -84,54 +84,57 @@
         <div v-if="profileVisible" class="profile-overlay" @click.self="profileVisible = false">
           <div class="profile-modal">
             <div class="modal-header">
-              <span>编辑资料</span>
+              <span>个人中心</span>
               <el-icon class="close-btn" @click="profileVisible = false"><Close /></el-icon>
             </div>
             <div class="modal-body">
-              <div class="avatar-section">
-                <div class="avatar-upload" @click="fileInputRef?.click()">
-                  <img v-if="profileForm.avatarPreview || avatarUrl" :src="profileForm.avatarPreview || avatarUrl" class="preview-img" />
-                  <div v-else class="preview-placeholder">{{ initials }}</div>
-                  <div class="upload-overlay">
-                    <el-icon :size="20"><Camera /></el-icon>
-                    <span>更换头像</span>
+              <div class="profile-layout">
+                <div class="profile-left">
+                  <div class="avatar-upload" @click="fileInputRef?.click()">
+                    <img v-if="profileForm.avatarPreview || avatarUrl" :src="profileForm.avatarPreview || avatarUrl" class="preview-img" />
+                    <div v-else class="preview-placeholder">{{ initials }}</div>
+                    <div class="upload-overlay">
+                      <el-icon :size="28"><Upload /></el-icon>
+                      <span class="overlay-text">点击上传</span>
+                    </div>
+                  </div>
+                  <input ref="fileInputRef" type="file" accept="image/*" style="display:none" @change="handleAvatarUpload" />
+                  <div class="profile-username">{{ userStore.userInfo?.userName || 'administer' }}</div>
+                  <div class="profile-email-text">{{ userStore.userInfo?.email || 'user@example.com' }}</div>
+                  <button class="view-avatar-btn" @click="showFullAvatar = true">查看头像</button>
+                </div>
+                <div class="profile-right">
+                  <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <el-input :model-value="userStore.userInfo?.userName" disabled size="large" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">昵称</label>
+                    <el-input v-model="profileForm.nikeName" placeholder="请输入昵称" size="large" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">邮箱</label>
+                    <el-input v-model="profileForm.email" :disabled="!profileForm.emailEditing" placeholder="请输入邮箱" size="large" />
+                    <span v-if="!profileForm.emailEditing" class="edit-email-link" @click="profileForm.emailEditing = true">修改邮箱</span>
+                  </div>
+                  <div v-if="profileForm.emailEditing" class="form-group">
+                    <div class="code-row">
+                      <el-input v-model="profileForm.emailCode" placeholder="请输入验证码" size="large" />
+                      <el-button class="code-btn" size="large" :disabled="codeCountdown > 0" @click="handleSendCode">
+                        {{ codeCountdown > 0 ? `${codeCountdown}s` : '获取验证码' }}
+                      </el-button>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">角色</label>
+                    <el-input :model-value="userStore.userInfo?.roleName" disabled size="large" />
                   </div>
                 </div>
-                <input ref="fileInputRef" type="file" accept="image/*" style="display:none" @change="handleAvatarUpload" />
-                <div v-if="profileForm.uploadProgress > 0 && profileForm.uploadProgress < 100" class="upload-progress">
-                  头像上传进度: {{ profileForm.uploadProgress }}%
-                </div>
-                <button v-if="profileForm.avatarPreview" class="preview-btn" @click="showFullAvatar = true">查看头像</button>
               </div>
-              <el-form label-width="80px" class="profile-form">
-                <el-form-item label="用户名">
-                  <el-input :model-value="userStore.userInfo?.userName" disabled />
-                </el-form-item>
-                <el-form-item label="昵称">
-                  <el-input v-model="profileForm.nikeName" placeholder="请输入昵称" />
-                </el-form-item>
-                <el-form-item label="邮箱">
-                  <div class="email-row">
-                    <el-input v-model="profileForm.email" :disabled="!profileForm.emailEditing" placeholder="请输入邮箱" />
-                    <el-button v-if="!profileForm.emailEditing" type="primary" link @click="profileForm.emailEditing = true">修改邮箱</el-button>
-                  </div>
-                </el-form-item>
-                <el-form-item v-if="profileForm.emailEditing" label="验证码">
-                  <div class="code-row">
-                    <el-input v-model="profileForm.emailCode" placeholder="验证码" />
-                    <el-button :disabled="codeCountdown > 0" @click="handleSendCode">
-                      {{ codeCountdown > 0 ? `${codeCountdown}s` : '发送验证码' }}
-                    </el-button>
-                  </div>
-                </el-form-item>
-                <el-form-item label="角色">
-                  <el-input :model-value="userStore.userInfo?.roleName" disabled />
-                </el-form-item>
-              </el-form>
             </div>
             <div class="modal-footer">
-              <el-button @click="profileVisible = false">取消</el-button>
-              <el-button type="primary" :loading="profileSaving" @click="handleSaveProfile">保存</el-button>
+              <el-button size="large" @click="profileVisible = false">取消</el-button>
+              <el-button size="large" type="primary" :loading="profileSaving" class="confirm-btn" @click="handleSaveProfile">确认</el-button>
             </div>
           </div>
         </div>
@@ -141,13 +144,20 @@
           <img :src="profileForm.avatarPreview || avatarUrl" class="full-avatar-img" />
         </div>
       </transition>
+      <transition name="modal-fade">
+        <div v-if="showAvatarTooltip" class="avatar-tooltip-overlay" @click="showAvatarTooltip = false">
+          <div class="avatar-tooltip">
+            <img :src="avatarUrl" class="avatar-tooltip-img" />
+          </div>
+        </div>
+      </transition>
     </teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
@@ -155,6 +165,7 @@ import { logout as logoutApi, getUserInfo as getUserInfoApi, sendEmailCode } fro
 import { clearAuth, setUserInfo } from '@/utils/auth'
 
 const router = useRouter()
+const route = useRoute()
 const appStore = useAppStore()
 const userStore = useUserStore()
 const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
@@ -167,6 +178,10 @@ const showFullAvatar = ref(false)
 const profileSaving = ref(false)
 const codeCountdown = ref(0)
 let codeTimer = null
+
+// 头像悬浮计时器
+let avatarHoverTimer = null
+const showAvatarTooltip = ref(false)
 
 const userTriggerRef = ref(null)
 const dropdownRef = ref(null)
@@ -233,15 +248,15 @@ async function handleAvatarUpload(e) {
   formData.append('file', file)
   profileForm.value.uploadProgress = 1
   try {
-    const { default: axios } = await import('axios')
-    const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL || '/api'}/admin/file/upload`, formData, {
+    const { default: request } = await import('@/utils/request')
+    const res = await request.post('/admin/file/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (e) => {
         if (e.total) profileForm.value.uploadProgress = Math.round((e.loaded / e.total) * 100)
       }
     })
-    if (res.data?.code === 200) {
-      profileForm.value.avatarUrl = res.data.data?.url || res.data.data?.path || ''
+    if (res.code === 200) {
+      profileForm.value.avatarUrl = res.data?.url || res.data?.path || ''
       ElMessage.success('头像上传成功')
     }
   } catch {
@@ -278,7 +293,7 @@ async function handleSaveProfile() {
   }
   profileSaving.value = true
   try {
-    const { default: axios } = await import('axios')
+    const { default: request } = await import('@/utils/request')
     const payload = {
       id: userStore.userInfo?.id,
       nikeName: profileForm.value.nikeName
@@ -289,8 +304,8 @@ async function handleSaveProfile() {
       payload.key = profileForm.value.emailKey
       payload.captcha = profileForm.value.emailCode
     }
-    const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL || '/api'}/admin/user/update`, payload)
-    if (res.data?.code === 200) {
+    const res = await request.post('/admin/user/update', payload)
+    if (res.code === 200) {
       const userRes = await getUserInfoApi()
       if (userRes.code === 200) {
         userStore.userInfo = userRes.data
@@ -330,10 +345,25 @@ function handleClickOutside(e) {
   }
 }
 
+// 头像悬浮事件处理
+function handleAvatarMouseEnter() {
+  avatarHoverTimer = setTimeout(() => {
+    showAvatarTooltip.value = true
+  }, 5000)
+}
+
+function handleAvatarMouseLeave() {
+  if (avatarHoverTimer) {
+    clearTimeout(avatarHoverTimer)
+    avatarHoverTimer = null
+  }
+}
+
 onMounted(() => document.addEventListener('click', handleClickOutside))
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   if (codeTimer) clearInterval(codeTimer)
+  if (avatarHoverTimer) clearTimeout(avatarHoverTimer)
 })
 </script>
 
@@ -358,6 +388,10 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
+}
+
+.el-button{
+    border-radius: 10px !important;
 }
 
 .hamburger {
@@ -605,8 +639,8 @@ onUnmounted(() => {
 .profile-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -614,7 +648,7 @@ onUnmounted(() => {
 }
 
 .profile-modal {
-  width: 480px;
+  width: 700px;
   max-width: 90vw;
   max-height: 85vh;
   background: var(--card-bg, #fff);
@@ -622,43 +656,57 @@ onUnmounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  font-size: 16px;
-  font-weight: 600;
-  border-bottom: 1px solid var(--border-color, #f0f2f5);
+  padding: 22px 32px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  border-bottom: 1px solid #ebeef5;
 }
 .close-btn {
   cursor: pointer;
-  color: var(--text-secondary, #909399);
-  font-size: 18px;
-  &:hover { color: var(--text-primary, #303133); }
+  color: #c0c4cc;
+  font-size: 20px;
+  transition: color 0.2s;
+  &:hover { color: #606266; }
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 32px;
   overflow-y: auto;
 }
 
-.avatar-section {
+.profile-layout {
+  display: flex;
+  gap: 40px;
+}
+
+.profile-left {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 20px;
+  width: 160px;
+  flex-shrink: 0;
 }
 
 .avatar-upload {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
   position: relative;
+  border: 3px solid #e4e7ed;
+  transition: border-color 0.3s;
+  &:hover {
+    border-color: #00bcd4;
+  }
   &:hover .upload-overlay { opacity: 1; }
 }
 
@@ -675,7 +723,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 40px;
   font-weight: 700;
   color: #fff;
 }
@@ -683,53 +731,162 @@ onUnmounted(() => {
 .upload-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 11px;
   opacity: 0;
-  transition: opacity 0.2s;
-  gap: 2px;
+  transition: opacity 0.25s ease;
+  gap: 6px;
 }
 
-.upload-progress {
+.overlay-text {
   font-size: 12px;
-  color: #fb7299;
-  margin-top: 8px;
+  font-weight: 500;
 }
 
-.preview-btn {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #fb7299;
+.profile-username {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-top: 16px;
+}
+
+.profile-email-text {
+  font-size: 13px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.view-avatar-btn {
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #00bcd4;
   background: none;
-  border: none;
+  border: 1.5px solid #00bcd4;
+  border-radius: 20px;
+  padding: 6px 18px;
   cursor: pointer;
-  &:hover { text-decoration: underline; }
-}
-
-.profile-form {
-  :deep(.el-form-item__label) {
-    font-size: 13px;
+  transition: all 0.2s;
+  &:hover {
+    background: rgba(0, 188, 212, 0.08);
   }
 }
 
-.email-row, .code-row {
+.profile-right {
+  flex: 1;
   display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #606266;
+}
+
+.profile-modal :deep(.el-input__wrapper) {
+  border-radius: 10px;
+  background-color: #f5f7fa;
+  box-shadow: none;
+  border: 1px solid #e4e7ed;
+  padding: 0 14px;
+  height: 42px;
+  transition: border-color 0.2s;
+}
+
+.profile-modal :deep(.el-input__wrapper:hover) {
+  border-color: #c0c4cc;
+}
+
+.profile-modal :deep(.el-input.is-disabled .el-input__wrapper) {
+  background-color: #f5f7fa;
+  border-color: #e4e7ed;
+  box-shadow: none;
+  cursor: default;
+}
+
+.profile-modal :deep(.el-input__inner) {
+  font-size: 14px;
+  color: #303133;
+  height: 40px;
+  line-height: 40px;
+}
+
+.profile-modal :deep(.el-input.is-disabled .el-input__inner) {
+  color: #a8abb2;
+  -webkit-text-fill-color: #a8abb2;
+}
+
+.profile-modal :deep(.el-input__inner::placeholder) {
+  color: #c0c4cc;
+}
+
+.edit-email-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00bcd4;
+  cursor: pointer;
+  display: inline-block;
+  transition: opacity 0.2s;
+  &:hover { opacity: 0.75; }
+}
+
+.code-row {
+  display: flex;
+  gap: 10px;
   width: 100%;
   .el-input { flex: 1; }
+}
+
+.code-btn {
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #00bcd4;
+  border-color: #00bcd4;
+  color: #fff;
+  font-weight: 600;
+  padding: 0 18px;
+  &:hover, &:focus {
+    background: #00a5bb;
+    border-color: #00a5bb;
+    color: #fff;
+  }
+  &:disabled {
+    background: #b2ebf2;
+    border-color: #b2ebf2;
+    color: #fff;
+  }
+}
+
+.confirm-btn {
+  background: #00bcd4;
+  border-color: #00bcd4;
+  border-radius: 10px;
+  font-weight: 600;
+  &:hover, &:focus {
+    background: #00a5bb;
+    border-color: #00a5bb;
+  }
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 12px 20px;
-  border-top: 1px solid var(--border-color, #f0f2f5);
+  gap: 10px;
+  padding: 16px 32px;
+  border-top: 1px solid #ebeef5;
 }
 
 .modal-fade-enter-active { animation: modal-in 0.25s ease-out; }
@@ -754,5 +911,37 @@ onUnmounted(() => {
   max-height: 90vh;
   border-radius: 8px;
   object-fit: contain;
+}
+
+.avatar-tooltip-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2500;
+  cursor: pointer;
+}
+
+.avatar-tooltip {
+  background: transparent;
+  border-radius: 16px;
+  box-shadow: none;
+  animation: tooltip-in 0.3s ease-out;
+}
+
+.avatar-tooltip-img {
+  max-width: 80vw;
+  max-height: 80vh;
+  border-radius: 8px;
+  object-fit: contain;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes tooltip-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
 }
 </style>

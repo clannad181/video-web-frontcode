@@ -180,7 +180,7 @@ onUnmounted(() => {
 
 <style scoped>
 .dashboard {
-  padding: 24px;
+  /* padding: 24px; */
   max-width: 1400px;
   margin: 0 auto;
 }

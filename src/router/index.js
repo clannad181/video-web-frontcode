@@ -23,138 +23,106 @@ export const constantRoutes = [
         meta: { title: '工作台', icon: 'Odometer', requiresAuth: true }
       },
       {
-        path: 'analytics',
-        name: 'Analytics',
+        path: 'data-analysis',
+        name: 'DataAnalysis',
         component: () => import('@/views/analytics/index.vue'),
         meta: { title: '数据分析', icon: 'TrendCharts', requiresAuth: true }
       }
     ]
   },
   {
-    path: '/video',
-    component: Layout,
-    redirect: '/video/video-manage',
-    meta: { title: '视频管理', icon: 'VideoCamera' },
-    children: [
-      {
-        path: 'video-manage',
-        name: 'VideoManage',
-        component: () => import('@/views/video/video-manage.vue'),
-        meta: { title: '视频管理', requiresAuth: true }
-      },
-      {
-        path: 'comment-manage',
-        name: 'CommentManage',
-        component: () => import('@/views/video/comment-manage.vue'),
-        meta: { title: '评论管理', requiresAuth: true }
-      },
-      {
-        path: 'danmaku-manage',
-        name: 'DanmakuManage',
-        component: () => import('@/views/video/danmaku-manage.vue'),
-        meta: { title: '弹幕管理', requiresAuth: true }
-      }
-    ]
-  },
-  {
-    path: '/audit',
-    component: Layout,
-    redirect: '/audit/video-audit',
-    meta: { title: '审核管理', icon: 'Stamp' },
-    children: [
-      {
-        path: 'video-audit',
-        name: 'VideoAudit',
-        component: () => import('@/views/audit/video-audit.vue'),
-        meta: { title: '视频审核', requiresAuth: true }
-      },
-      {
-        path: 'comment-audit',
-        name: 'CommentAudit',
-        component: () => import('@/views/audit/comment-audit.vue'),
-        meta: { title: '评论审核', requiresAuth: true }
-      }
-    ]
-  },
-  {
-    path: '/user',
-    component: Layout,
-    redirect: '/user/user-manage',
-    meta: { title: '用户管理', icon: 'User' },
-    children: [
-      {
-        path: 'user-manage',
-        name: 'UserManage',
-        component: () => import('@/views/user/user-manage.vue'),
-        meta: { title: '用户管理', requiresAuth: true }
-      },
-      {
-        path: 'category-manage',
-        name: 'CategoryManage',
-        component: () => import('@/views/user/category-manage.vue'),
-        meta: { title: '分类管理', requiresAuth: true }
-      }
-    ]
-  },
-  {
-    path: '/notice',
+    path: '/video-manage',
     component: Layout,
     children: [
       {
         path: '',
-        name: 'Notice',
-        component: () => import('@/views/notice/index.vue'),
-        meta: { title: '通知中心', icon: 'Bell', requiresAuth: true }
+        name: 'VideoManage',
+        component: () => import('@/views/video/video-manage.vue'),
+        meta: { title: '视频管理', icon: 'VideoCamera', requiresAuth: true }
       }
     ]
   },
   {
-    path: '/system',
+    path: '/users',
     component: Layout,
-    redirect: '/system/website',
-    meta: { title: '系统管理', icon: 'Setting' },
     children: [
       {
-        path: 'website',
-        name: 'Website',
+        path: '',
+        name: 'UserManage',
+        component: () => import('@/views/user/user-manage.vue'),
+        meta: { title: '人员管理', icon: 'User', requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/roles',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'Role',
+        component: () => import('@/views/role/index.vue'),
+        meta: { title: '角色管理', icon: 'UserFilled', requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/menus',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'MenuManage',
+        component: () => import('@/views/menu-manage/index.vue'),
+        meta: { title: '菜单管理', icon: 'Menu', requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/category-manage',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'CategoryManage',
+        component: () => import('@/views/user/category-manage.vue'),
+        meta: { title: '分类管理', icon: 'Folder', requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/comment-manage',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'CommentManage',
+        component: () => import('@/views/video/comment-manage.vue'),
+        meta: { title: '评论管理', icon: 'ChatDotRound', requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/review',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'VideoAudit',
+        component: () => import('@/views/audit/video-audit.vue'),
+        meta: { title: '稿件审核', icon: 'CircleCheck', requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/settings',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'Settings',
         component: () => import('@/views/system/website.vue'),
-        meta: { title: '网站设置', requiresAuth: true }
-      },
-      {
-        path: 'security',
-        name: 'Security',
-        component: () => import('@/views/system/security.vue'),
-        meta: { title: '安全设置', requiresAuth: true }
-      },
-      {
-        path: 'token',
-        name: 'Token',
-        component: () => import('@/views/system/token.vue'),
-        meta: { title: '令牌安全', requiresAuth: true }
-      },
-      {
-        path: 'notification',
-        name: 'Notification',
-        component: () => import('@/views/system/notification.vue'),
-        meta: { title: '通知设置', requiresAuth: true }
-      },
-      {
-        path: 'appearance',
-        name: 'Appearance',
-        component: () => import('@/views/system/appearance.vue'),
-        meta: { title: '外观设置', requiresAuth: true }
-      },
-      {
-        path: 'audit-config',
-        name: 'AuditConfig',
-        component: () => import('@/views/system/audit-config.vue'),
-        meta: { title: '审核设置', requiresAuth: true }
-      },
-      {
-        path: 'default',
-        name: 'Default',
-        component: () => import('@/views/system/default.vue'),
-        meta: { title: '默认设置', requiresAuth: true }
+        meta: { title: '系统设置', icon: 'Setting', requiresAuth: true }
       }
     ]
   },
@@ -173,50 +141,48 @@ export const constantRoutes = [
   {
     path: '/system-log',
     component: Layout,
-    redirect: '/system-log/login-log',
-    meta: { title: '日志管理', icon: 'Document' },
     children: [
       {
-        path: 'login-log',
+        path: '',
+        name: 'SystemLog',
+        component: () => import('@/views/system-log/login-log.vue'),
+        meta: { title: '系统日志', icon: 'Document', requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/login-log',
+    component: Layout,
+    children: [
+      {
+        path: '',
         name: 'LoginLog',
         component: () => import('@/views/system-log/login-log.vue'),
-        meta: { title: '登录日志', requiresAuth: true }
-      },
+        meta: { title: '登录日志', icon: 'Key', requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/operation-log',
+    component: Layout,
+    children: [
       {
-        path: 'operation-log',
+        path: '',
         name: 'OperationLog',
         component: () => import('@/views/system-log/operation-log.vue'),
-        meta: { title: '运行日志', requiresAuth: true }
-      },
+        meta: { title: '运行日志', icon: 'Cpu', requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/log-statistics',
+    component: Layout,
+    children: [
       {
-        path: 'log-statistics',
+        path: '',
         name: 'LogStatistics',
         component: () => import('@/views/system-log/log-statistics.vue'),
-        meta: { title: '日志统计', requiresAuth: true }
-      }
-    ]
-  },
-  {
-    path: '/role',
-    component: Layout,
-    children: [
-      {
-        path: '',
-        name: 'Role',
-        component: () => import('@/views/role/index.vue'),
-        meta: { title: '角色管理', icon: 'UserFilled', requiresAuth: true }
-      }
-    ]
-  },
-  {
-    path: '/menu-manage',
-    component: Layout,
-    children: [
-      {
-        path: '',
-        name: 'MenuManage',
-        component: () => import('@/views/menu-manage/index.vue'),
-        meta: { title: '菜单管理', icon: 'Menu', requiresAuth: true }
+        meta: { title: '日志统计', icon: 'DataAnalysis', requiresAuth: true }
       }
     ]
   },
