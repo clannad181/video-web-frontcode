@@ -26,6 +26,7 @@ const appStore = useAppStore()
   height: 100vh;
   overflow: hidden;
   background-color: var(--bg-color);
+  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .main-container {
@@ -34,6 +35,8 @@ const appStore = useAppStore()
   flex-direction: column;
   overflow: hidden;
   margin-left: 240px;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: var(--bg-color);
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>

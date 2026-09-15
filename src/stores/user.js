@@ -1,3 +1,10 @@
+/**
+ * User Store
+ * 用户状态管理，包含：
+ * 1. 用户登录/登出
+ * 2. 用户信息获取和更新
+ * 3. 主题应用
+ */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { login as loginApi, getUserInfo as getUserInfoApi, logout as logoutApi } from '@/api/auth'
@@ -5,10 +12,17 @@ import { setAuth, clearAuth, setUser, getUser, setUserInfo, getUserInfo as getSt
 import router from '@/router'
 
 export const useUserStore = defineStore('user', () => {
+  // 用户token
   const token = ref('')
+  // 用户详细信息
   const userInfo = ref(getStoredUserInfo())
+  // 基本用户信息
   const user = ref(getUser())
 
+  /**
+   * 应用用户主题设置
+   * @param {Number} userId - 用户ID
+   */
   function applyTheme(userId) {
     const settings = getAppSettings(userId)
     if (settings) {
@@ -23,6 +37,10 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 用户登录
+   * @param {Object} loginData - 登录数据（用户名/密码等）
+   */
   async function login(loginData) {
     const res = await loginApi(loginData)
     const { accessToken, refreshToken: refreshTokenValue } = res.data
@@ -30,6 +48,7 @@ export const useUserStore = defineStore('user', () => {
     setAuth(accessToken, refreshTokenValue)
 
     try {
+      // 获取用户详细信息
       const userRes = await getUserInfoApi()
       if (userRes.code === 200) {
         userInfo.value = userRes.data
@@ -49,10 +68,12 @@ export const useUserStore = defineStore('user', () => {
         applyTheme(userRes.data.id)
       }
     } catch (e) {
+      // 获取用户信息失败时使用本地存储的数据
       const storedUser = getUser()
       if (storedUser) {
         user.value = storedUser
       } else {
+        // 创建默认用户信息
         user.value = {
           id: 1,
           name: loginData.username || loginData.email,
@@ -71,6 +92,9 @@ export const useUserStore = defineStore('user', () => {
     router.push('/')
   }
 
+  /**
+   * 获取用户信息
+   */
   async function getUserInfoAction() {
     try {
       const res = await getUserInfoApi()
@@ -96,6 +120,9 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 用户登出
+   */
   async function logoutAction() {
     try {
       await logoutApi()
@@ -109,6 +136,9 @@ export const useUserStore = defineStore('user', () => {
     router.push('/login')
   }
 
+  /**
+   * 强制登出（不调用API）
+   */
   function forceLogoutAction() {
     clearAuth()
     token.value = ''

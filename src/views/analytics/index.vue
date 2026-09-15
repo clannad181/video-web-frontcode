@@ -126,7 +126,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import {
   VideoCamera, View, ChatDotRound, User,
@@ -136,6 +136,9 @@ import {
   getStatsOverview, getActiveUsers, getDailyIncrement,
   getCategoryDailyIncrement, getCategoryStats, getHourlyActive
 } from '@/api/analytics'
+import { useAppStore } from '@/stores/app'
+
+const appStore = useAppStore()
 
 const PALETTE = ['#00a1d6', '#fb7299', '#4caf50', '#e6a23c', '#7c5cfc', '#ff6b6b', '#1ecf54', '#ff9f43', '#5f7fff', '#a855f7']
 
@@ -184,12 +187,25 @@ let contentPieChart = null
 let hourlyActiveChart = null
 let categoryIncrementChart = null
 
-const baseTooltip = {
-  backgroundColor: 'rgba(15, 23, 42, 0.92)',
-  borderColor: 'rgba(99, 102, 241, 0.2)',
-  borderWidth: 1,
-  textStyle: { color: '#e2e8f0', fontSize: 12 }
-}
+// 根据主题动态生成tooltip样式
+const baseTooltip = computed(() => {
+  if (appStore.darkMode) {
+    // 深色主题
+    return {
+      backgroundColor: 'rgba(15, 23, 42, 0.92)',
+      borderColor: 'rgba(99, 102, 241, 0.2)',
+      borderWidth: 1,
+      textStyle: { color: '#e2e8f0', fontSize: 12 }
+    }
+  }
+  // 亮色主题
+  return {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderWidth: 1,
+    textStyle: { color: '#303133', fontSize: 12 }
+  }
+})
 
 function normalizeData(raw) {
   if (Array.isArray(raw)) return raw
@@ -223,9 +239,19 @@ async function loadVideoTrend() {
     if (!videoTrendRef.value) return
     if (!videoTrendChart) videoTrendChart = echarts.init(videoTrendRef.value)
     const dates = data.map(d => d.date)
+    // 根据数据点数量动态计算柱子宽度，避免重叠
+    const dataCount = dates.length
+    let barWidth = 16
+    if (dataCount > 30) {
+      barWidth = 6
+    } else if (dataCount > 14) {
+      barWidth = 10
+    } else if (dataCount > 7) {
+      barWidth = 12
+    }
     videoTrendChart.setOption({
       tooltip: {
-        ...baseTooltip,
+        ...baseTooltip.value,
         trigger: 'axis',
         axisPointer: { type: 'cross', crossStyle: { color: '#999' } }
       },
@@ -236,7 +262,12 @@ async function loadVideoTrend() {
         data: dates,
         axisLine: { lineStyle: { color: 'rgba(0,0,0,0.06)' } },
         axisTick: { show: false },
-        axisLabel: { color: '#909399', fontSize: 11 }
+        axisLabel: { 
+          color: '#909399', 
+          fontSize: 11,
+          rotate: dataCount > 14 ? 45 : 0,
+          interval: dataCount > 30 ? Math.floor(dataCount / 15) : 'auto'
+        }
       },
       yAxis: [
         {
@@ -256,14 +287,14 @@ async function loadVideoTrend() {
         {
           name: '新增视频',
           type: 'bar',
-          barWidth: 16,
+          barWidth: barWidth,
           itemStyle: { color: '#00a1d6', borderRadius: [3, 3, 0, 0] },
           data: data.map(d => d.videoCount ?? d.uploadCount ?? 0)
         },
         {
           name: '新增评论',
           type: 'bar',
-          barWidth: 16,
+          barWidth: barWidth,
           itemStyle: { color: '#fb7299', borderRadius: [3, 3, 0, 0] },
           data: data.map(d => d.commentCount ?? 0)
         },
@@ -297,8 +328,18 @@ async function loadActiveUsers() {
     if (!activeUserRef.value) return
     if (!activeUserChart) activeUserChart = echarts.init(activeUserRef.value)
     const dates = data.map(d => d.date)
+    // 根据数据点数量动态计算柱子宽度，避免重叠
+    const dataCount = dates.length
+    let barWidth = 24
+    if (dataCount > 30) {
+      barWidth = 8
+    } else if (dataCount > 14) {
+      barWidth = 12
+    } else if (dataCount > 7) {
+      barWidth = 16
+    }
     activeUserChart.setOption({
-      tooltip: { ...baseTooltip, trigger: 'axis', axisPointer: { type: 'shadow' } },
+      tooltip: { ...baseTooltip.value, trigger: 'axis', axisPointer: { type: 'shadow' } },
       legend: { bottom: 0, textStyle: { color: '#909399', fontSize: 12 } },
       grid: { top: '5%', right: '4%', bottom: '15%', left: '3%', containLabel: true },
       xAxis: {
@@ -306,7 +347,12 @@ async function loadActiveUsers() {
         data: dates,
         axisLine: { lineStyle: { color: 'rgba(0,0,0,0.06)' } },
         axisTick: { show: false },
-        axisLabel: { color: '#909399', fontSize: 11 }
+        axisLabel: { 
+          color: '#909399', 
+          fontSize: 11,
+          rotate: dataCount > 14 ? 45 : 0,
+          interval: dataCount > 30 ? Math.floor(dataCount / 15) : 'auto'
+        }
       },
       yAxis: {
         type: 'value',
@@ -317,7 +363,7 @@ async function loadActiveUsers() {
         {
           name: '活跃用户',
           type: 'bar',
-          barWidth: 24,
+          barWidth: barWidth,
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: '#4caf50' },
@@ -352,7 +398,7 @@ async function loadContentPie() {
     console.log('[内容分布] seriesData:', seriesData)
     contentPieChart.setOption({
       tooltip: {
-        ...baseTooltip,
+        ...baseTooltip.value,
         trigger: 'item',
         formatter: (p) => `${p.name}: ${p.value.toLocaleString()} (${p.percent}%)`
       },
@@ -409,7 +455,7 @@ async function loadHourlyActive() {
     if (!hourlyActiveChart) hourlyActiveChart = echarts.init(hourlyActiveRef.value)
     const hours = data.map(d => d.hour ?? d.time ?? `${String(d.hourOfDay ?? 0).padStart(2, '0')}:00`)
     hourlyActiveChart.setOption({
-      tooltip: { ...baseTooltip, trigger: 'axis' },
+      tooltip: { ...baseTooltip.value, trigger: 'axis' },
       grid: { top: '8%', right: '4%', bottom: '12%', left: '3%', containLabel: true },
       xAxis: {
         type: 'category',
@@ -473,7 +519,7 @@ async function loadCategoryIncrement() {
     if (!categoryIncrementChart) categoryIncrementChart = echarts.init(categoryIncrementRef.value)
     categoryIncrementChart.setOption({
       tooltip: {
-        ...baseTooltip,
+        ...baseTooltip.value,
         trigger: 'axis',
         axisPointer: { type: 'cross', crossStyle: { color: '#999' } },
         formatter: (params) => {
@@ -535,6 +581,24 @@ function handleResize() {
   hourlyActiveChart?.resize()
   categoryIncrementChart?.resize()
 }
+
+// 重新加载所有图表（用于主题切换）
+async function reloadAllCharts() {
+  await Promise.allSettled([
+    loadVideoTrend(),
+    loadActiveUsers(),
+    loadContentPie(),
+    loadHourlyActive(),
+    loadCategoryIncrement()
+  ])
+}
+
+// 监听主题变化，重新加载图表
+watch(() => appStore.darkMode, () => {
+  nextTick(() => {
+    reloadAllCharts()
+  })
+})
 
 onMounted(async () => {
   await Promise.allSettled([

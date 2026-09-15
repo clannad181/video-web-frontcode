@@ -1,9 +1,13 @@
 <template>
+  <!-- 顶部导航栏 -->
   <div class="topbar">
+    <!-- 左侧：汉堡菜单 + 面包屑 -->
     <div class="topbar-left">
+      <!-- 汉堡菜单按钮，点击展开/收起侧边栏 -->
       <div class="hamburger" @click="appStore.toggleSidebar">
         <el-icon :size="20"><Fold v-if="!appStore.sidebar.collapsed" /><Expand v-else /></el-icon>
       </div>
+      <!-- 面包屑导航 -->
       <div class="breadcrumb">
         <span class="bc-home">🏠</span>
         <span class="bc-sep">/</span>
@@ -11,6 +15,7 @@
       </div>
     </div>
 
+    <!-- 中间：搜索框 -->
     <div class="topbar-center">
       <div class="search-box" :class="{ focused: searchFocused }">
         <el-icon class="search-icon" :class="{ active: searchFocused }"><Search /></el-icon>
@@ -25,23 +30,46 @@
       </div>
     </div>
 
+    <!-- 右侧：功能按钮 + 用户信息 -->
     <div class="topbar-right">
-      <div class="action-btn" @click="toggleLanguage">
-        <span class="lang-text">{{ appStore.language === 'zh-cn' ? '中文' : 'EN' }}</span>
+      <!-- 语言切换按钮 -->
+      <div 
+        class="action-btn lang-toggle"
+        :class="{ 'is-dark': appStore.darkMode }"
+        @click="handleLanguageToggle"
+      >
+        <div class="lang-icon-wrapper">
+          <transition name="lang-icon" mode="out-in">
+            <span class="lang-text" :key="appStore.language">
+              {{ appStore.language === 'zh-cn' ? '中文' : 'EN' }}
+            </span>
+          </transition>
+        </div>
       </div>
 
-      <div class="action-btn" @click="appStore.toggleDarkMode">
-        <el-icon :size="18">
-          <Sunny v-if="appStore.darkMode" />
-          <Moon v-else />
-        </el-icon>
+      <!-- 深色模式切换按钮 -->
+      <div 
+        class="action-btn theme-toggle" 
+        :class="{ 'is-dark': appStore.darkMode }"
+        @click="handleThemeToggle"
+      >
+        <div class="theme-icon-wrapper">
+          <transition name="theme-icon" mode="out-in">
+            <el-icon :size="18" :key="appStore.darkMode ? 'moon' : 'sunny'">
+              <Moon v-if="appStore.darkMode" />
+              <Sunny v-else />
+            </el-icon>
+          </transition>
+        </div>
       </div>
 
+      <!-- 通知按钮 -->
       <div class="action-btn" @click="router.push('/notice')">
         <el-icon :size="18"><Bell /></el-icon>
         <span class="notif-dot" />
       </div>
 
+      <!-- 用户头像和下拉菜单触发器 -->
       <div class="user-trigger" ref="userTriggerRef" @click="showDropdown = !showDropdown" @mouseenter="handleAvatarMouseEnter" @mouseleave="handleAvatarMouseLeave">
         <div class="avatar-ring">
           <div class="avatar-inner">
@@ -58,6 +86,7 @@
         <el-icon class="arrow" :class="{ open: showDropdown }"><ArrowDown /></el-icon>
       </div>
 
+      <!-- 用户下拉菜单 -->
       <transition name="dropdown">
         <div v-if="showDropdown" class="user-dropdown" ref="dropdownRef">
           <div class="dd-header">
@@ -79,7 +108,9 @@
       </transition>
     </div>
 
+    <!-- 弹窗区域（使用Teleport渲染到body） -->
     <teleport to="body">
+      <!-- 个人中心弹窗 -->
       <transition name="modal-fade">
         <div v-if="profileVisible" class="profile-overlay" @click.self="profileVisible = false">
           <div class="profile-modal">
@@ -89,6 +120,7 @@
             </div>
             <div class="modal-body">
               <div class="profile-layout">
+                <!-- 左侧：头像和用户信息 -->
                 <div class="profile-left">
                   <div class="avatar-upload" @click="fileInputRef?.click()">
                     <img v-if="profileForm.avatarPreview || avatarUrl" :src="profileForm.avatarPreview || avatarUrl" class="preview-img" />
@@ -103,6 +135,7 @@
                   <div class="profile-email-text">{{ userStore.userInfo?.email || 'user@example.com' }}</div>
                   <button class="view-avatar-btn" @click="showFullAvatar = true">查看头像</button>
                 </div>
+                <!-- 右侧：表单 -->
                 <div class="profile-right">
                   <div class="form-group">
                     <label class="form-label">用户名</label>
@@ -139,11 +172,13 @@
           </div>
         </div>
       </transition>
+      <!-- 头像全屏预览 -->
       <transition name="modal-fade">
         <div v-if="showFullAvatar" class="full-avatar-overlay" @click="showFullAvatar = false">
           <img :src="profileForm.avatarPreview || avatarUrl" class="full-avatar-img" />
         </div>
       </transition>
+      <!-- 头像悬浮大图预览（鼠标悬浮5秒后显示） -->
       <transition name="modal-fade">
         <div v-if="showAvatarTooltip" class="avatar-tooltip-overlay" @click="showAvatarTooltip = false">
           <div class="avatar-tooltip">
@@ -156,6 +191,18 @@
 </template>
 
 <script setup>
+/**
+ * Navbar 组件
+ * 顶部导航栏组件，包含以下功能：
+ * 1. 汉堡菜单按钮（展开/收起侧边栏）
+ * 2. 面包屑导航
+ * 3. 搜索框
+ * 4. 语言切换
+ * 5. 深色模式切换
+ * 6. 通知按钮
+ * 7. 用户信息和下拉菜单
+ * 8. 个人中心弹窗（头像上传、信息修改）
+ */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -164,38 +211,50 @@ import { useUserStore } from '@/stores/user'
 import { logout as logoutApi, getUserInfo as getUserInfoApi, sendEmailCode } from '@/api/auth'
 import { clearAuth, setUserInfo } from '@/utils/auth'
 
+// 路由和状态管理
 const router = useRouter()
 const route = useRoute()
 const appStore = useAppStore()
 const userStore = useUserStore()
 const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
 
+// 搜索相关状态
 const searchQuery = ref('')
 const searchFocused = ref(false)
+
+// 下拉菜单状态
 const showDropdown = ref(false)
+
+// 个人中心弹窗状态
 const profileVisible = ref(false)
 const showFullAvatar = ref(false)
 const profileSaving = ref(false)
+
+// 验证码倒计时
 const codeCountdown = ref(0)
 let codeTimer = null
 
-// 头像悬浮计时器
+// 头像悬浮计时器（5秒后显示大图）
 let avatarHoverTimer = null
 const showAvatarTooltip = ref(false)
 
+// DOM引用
 const userTriggerRef = ref(null)
 const dropdownRef = ref(null)
 const fileInputRef = ref(null)
 
+// 计算属性：头像URL
 const avatarUrl = computed(() => {
   const av = userStore.userInfo?.avatar || userStore.userInfo?.avater
   return av ? fileBaseUrl + av : ''
 })
 
+// 计算属性：用户首字母（用于头像占位符）
 const initials = computed(() => {
   return (userStore.userInfo?.nikeName || 'A')[0].toUpperCase()
 })
 
+// 个人中心表单数据
 const profileForm = ref({
   nikeName: '',
   email: '',
@@ -207,11 +266,47 @@ const profileForm = ref({
   uploadProgress: 0
 })
 
+/**
+ * 切换语言（中文/英文）
+ */
 function toggleLanguage() {
   const newLang = appStore.language === 'zh-cn' ? 'en' : 'zh-cn'
   appStore.setLanguage(newLang)
 }
 
+// 语言切换按钮点击状态
+const isLangToggling = ref(false)
+
+/**
+ * 处理语言切换（带动画）
+ */
+function handleLanguageToggle() {
+  if (isLangToggling.value) return
+  isLangToggling.value = true
+  toggleLanguage()
+  setTimeout(() => {
+    isLangToggling.value = false
+  }, 400)
+}
+
+// 主题切换按钮点击状态
+const isThemeToggling = ref(false)
+
+/**
+ * 处理主题切换（带动画）
+ */
+function handleThemeToggle() {
+  if (isThemeToggling.value) return
+  isThemeToggling.value = true
+  appStore.toggleDarkMode()
+  setTimeout(() => {
+    isThemeToggling.value = false
+  }, 500)
+}
+
+/**
+ * 打开个人中心弹窗
+ */
 function openProfileModal() {
   showDropdown.value = false
   profileForm.value = {
@@ -227,23 +322,34 @@ function openProfileModal() {
   profileVisible.value = true
 }
 
+/**
+ * 处理头像上传
+ * @param {Event} e - 文件选择事件
+ */
 async function handleAvatarUpload(e) {
   const file = e.target.files[0]
   if (!file) return
+  
+  // 验证文件类型
   if (!file.type.startsWith('image/')) {
     ElMessage.warning('请选择图片文件')
     return
   }
+  
+  // 验证文件大小（最大5MB）
   if (file.size > 5 * 1024 * 1024) {
     ElMessage.warning('图片大小不能超过5MB')
     return
   }
+  
+  // 预览图片
   const reader = new FileReader()
   reader.onload = (ev) => {
     profileForm.value.avatarPreview = ev.target.result
   }
   reader.readAsDataURL(file)
 
+  // 上传图片
   const formData = new FormData()
   formData.append('file', file)
   profileForm.value.uploadProgress = 1
@@ -266,6 +372,9 @@ async function handleAvatarUpload(e) {
   }
 }
 
+/**
+ * 发送邮箱验证码
+ */
 async function handleSendCode() {
   if (!profileForm.value.email) {
     ElMessage.warning('请先输入邮箱')
@@ -276,6 +385,7 @@ async function handleSendCode() {
     profileForm.value.emailKey = key
     await sendEmailCode(profileForm.value.email)
     ElMessage.success('验证码已发送')
+    // 开始60秒倒计时
     codeCountdown.value = 60
     codeTimer = setInterval(() => {
       codeCountdown.value--
@@ -286,6 +396,9 @@ async function handleSendCode() {
   }
 }
 
+/**
+ * 保存个人资料
+ */
 async function handleSaveProfile() {
   if (!profileForm.value.nikeName) {
     ElMessage.warning('请输入昵称')
@@ -306,11 +419,13 @@ async function handleSaveProfile() {
     }
     const res = await request.post('/admin/user/update', payload)
     if (res.code === 200) {
+      // 更新本地用户信息
       const userRes = await getUserInfoApi()
       if (userRes.code === 200) {
         userStore.userInfo = userRes.data
         setUserInfo(userRes.data)
       }
+      // 触发用户更新事件
       window.dispatchEvent(new CustomEvent('user-updated'))
       ElMessage.success('保存成功')
       profileVisible.value = false
@@ -324,6 +439,9 @@ async function handleSaveProfile() {
   }
 }
 
+/**
+ * 处理登出
+ */
 async function handleLogout() {
   showDropdown.value = false
   try {
@@ -339,19 +457,27 @@ async function handleLogout() {
   router.push('/login')
 }
 
+/**
+ * 点击外部关闭下拉菜单
+ */
 function handleClickOutside(e) {
   if (dropdownRef.value && !dropdownRef.value.contains(e.target) && userTriggerRef.value && !userTriggerRef.value.contains(e.target)) {
     showDropdown.value = false
   }
 }
 
-// 头像悬浮事件处理
+/**
+ * 头像鼠标悬浮事件处理（5秒后显示大图）
+ */
 function handleAvatarMouseEnter() {
   avatarHoverTimer = setTimeout(() => {
     showAvatarTooltip.value = true
   }, 5000)
 }
 
+/**
+ * 头像鼠标离开事件处理（取消计时器）
+ */
 function handleAvatarMouseLeave() {
   if (avatarHoverTimer) {
     clearTimeout(avatarHoverTimer)
@@ -359,7 +485,10 @@ function handleAvatarMouseLeave() {
   }
 }
 
+// 组件挂载时添加点击外部关闭下拉菜单的事件监听
 onMounted(() => document.addEventListener('click', handleClickOutside))
+
+// 组件卸载时清理事件监听和计时器
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   if (codeTimer) clearInterval(codeTimer)
@@ -368,6 +497,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+// ========== 顶部导航栏 ==========
 .topbar {
   height: 64px;
   display: flex;
@@ -380,7 +510,9 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 999;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .topbar-left {
@@ -394,6 +526,7 @@ onUnmounted(() => {
     border-radius: 10px !important;
 }
 
+// 汉堡菜单按钮
 .hamburger {
   width: 36px;
   height: 36px;
@@ -410,6 +543,7 @@ onUnmounted(() => {
   }
 }
 
+// 面包屑导航
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -420,6 +554,7 @@ onUnmounted(() => {
 .bc-sep { color: #c0c4cc; }
 .bc-current { color: #303133; font-weight: 500; }
 
+// 搜索区域
 .topbar-center {
   flex: 1;
   display: flex;
@@ -475,6 +610,7 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+// 右侧功能区
 .topbar-right {
   display: flex;
   align-items: center;
@@ -482,6 +618,7 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+// 功能按钮（语言、深色模式、通知）
 .action-btn {
   width: 40px;
   height: 40px;
@@ -499,11 +636,210 @@ onUnmounted(() => {
   }
 }
 
+// 语言切换按钮动画
+.lang-toggle {
+  overflow: hidden;
+  width: auto;
+  min-width: 40px;
+  padding: 0 8px;
+  
+  &:hover {
+    background: rgba(251, 114, 153, 0.1);
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  &.is-dark {
+    color: #e2e8f0;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffd700;
+    }
+  }
+}
+
+// 语言图标容器
+.lang-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+// 语言文字样式
 .lang-text {
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
+// 语言切换动画
+.lang-icon-enter-active {
+  animation: langIconIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lang-icon-leave-active {
+  animation: langIconOut 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes langIconIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.8);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateY(-2px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes langIconOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.8);
+  }
+}
+
+// 语言切换按钮涟漪效果
+.lang-toggle::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 114, 153, 0.3) 0%, transparent 70%);
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.5s, opacity 0.5s;
+  pointer-events: none;
+}
+
+.lang-toggle:active::after {
+  transform: scale(2);
+  opacity: 1;
+  transition: 0s;
+}
+
+html.dark-mode .lang-toggle::after {
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+}
+
+// 主题切换按钮动画
+.theme-toggle {
+  overflow: hidden;
+  
+  &:hover {
+    background: rgba(251, 114, 153, 0.1);
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  &.is-dark {
+    color: #e2e8f0;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffd700;
+    }
+  }
+}
+
+// 图标容器
+.theme-icon-wrapper {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 图标切换动画 - 更自然的过渡效果
+.theme-icon-enter-active {
+  animation: themeIconIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-icon-leave-active {
+  animation: themeIconOut 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes themeIconIn {
+  0% {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.3);
+    filter: blur(2px);
+  }
+  40% {
+    opacity: 0.6;
+    transform: rotate(-20deg) scale(1.15);
+    filter: blur(0);
+  }
+  70% {
+    opacity: 0.9;
+    transform: rotate(10deg) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes themeIconOut {
+  0% {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.3);
+    filter: blur(2px);
+  }
+}
+
+// 按钮点击涟漪效果
+.theme-toggle::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 114, 153, 0.3) 0%, transparent 70%);
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.5s, opacity 0.5s;
+  pointer-events: none;
+}
+
+.theme-toggle:active::after {
+  transform: scale(2);
+  opacity: 1;
+  transition: 0s;
+}
+
+// 深色模式下的涟漪效果
+html.dark-mode .theme-toggle::after {
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+}
+
+// 通知红点
 .notif-dot {
   position: absolute;
   top: 8px;
@@ -520,6 +856,7 @@ onUnmounted(() => {
   50% { transform: scale(1.3); }
 }
 
+// 用户触发器（头像+用户名）
 .user-trigger {
   display: flex;
   align-items: center;
@@ -531,6 +868,7 @@ onUnmounted(() => {
   &:hover { background: #f5f7fa; }
 }
 
+// 头像外环（渐变色）
 .avatar-ring {
   width: 36px;
   height: 36px;
@@ -544,6 +882,7 @@ onUnmounted(() => {
   }
 }
 
+// 头像内部容器
 .avatar-inner {
   width: 100%;
   height: 100%;
@@ -561,6 +900,7 @@ onUnmounted(() => {
   object-fit: cover;
 }
 
+// 头像占位符（首字母）
 .avatar-text {
   font-size: 14px;
   font-weight: 700;
@@ -573,6 +913,7 @@ onUnmounted(() => {
   color: var(--text-primary, #303133);
 }
 
+// 下拉箭头
 .arrow {
   font-size: 12px;
   color: var(--text-secondary, #909399);
@@ -580,6 +921,7 @@ onUnmounted(() => {
   &.open { transform: rotate(180deg); }
 }
 
+// 用户下拉菜单
 .user-dropdown {
   position: absolute;
   top: 56px;
@@ -629,6 +971,7 @@ onUnmounted(() => {
   }
 }
 
+// 下拉菜单动画
 .dropdown-enter-active { animation: dd-in 0.2s ease-out; }
 .dropdown-leave-active { animation: dd-in 0.15s ease-in reverse; }
 @keyframes dd-in {
@@ -636,6 +979,7 @@ onUnmounted(() => {
   to { opacity: 1; transform: translateY(0); }
 }
 
+// ========== 个人中心弹窗 ==========
 .profile-overlay {
   position: fixed;
   inset: 0;
@@ -687,6 +1031,7 @@ onUnmounted(() => {
   gap: 40px;
 }
 
+// 左侧：头像区域
 .profile-left {
   display: flex;
   flex-direction: column;
@@ -695,6 +1040,7 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+// 头像上传区域
 .avatar-upload {
   width: 120px;
   height: 120px;
@@ -716,6 +1062,7 @@ onUnmounted(() => {
   object-fit: cover;
 }
 
+// 头像占位符
 .preview-placeholder {
   width: 100%;
   height: 100%;
@@ -728,6 +1075,7 @@ onUnmounted(() => {
   color: #fff;
 }
 
+// 上传遮罩层
 .upload-overlay {
   position: absolute;
   inset: 0;
@@ -776,6 +1124,7 @@ onUnmounted(() => {
   }
 }
 
+// 右侧：表单区域
 .profile-right {
   flex: 1;
   display: flex;
@@ -796,6 +1145,7 @@ onUnmounted(() => {
   color: #606266;
 }
 
+// 表单输入框样式覆盖
 .profile-modal :deep(.el-input__wrapper) {
   border-radius: 10px;
   background-color: #f5f7fa;
@@ -833,6 +1183,7 @@ onUnmounted(() => {
   color: #c0c4cc;
 }
 
+// 修改邮箱链接
 .edit-email-link {
   font-size: 13px;
   font-weight: 600;
@@ -843,6 +1194,7 @@ onUnmounted(() => {
   &:hover { opacity: 0.75; }
 }
 
+// 验证码输入行
 .code-row {
   display: flex;
   gap: 10px;
@@ -889,6 +1241,7 @@ onUnmounted(() => {
   border-top: 1px solid #ebeef5;
 }
 
+// 弹窗动画
 .modal-fade-enter-active { animation: modal-in 0.25s ease-out; }
 .modal-fade-leave-active { animation: modal-in 0.2s ease-in reverse; }
 @keyframes modal-in {
@@ -896,6 +1249,7 @@ onUnmounted(() => {
   to { opacity: 1; }
 }
 
+// ========== 头像全屏预览 ==========
 .full-avatar-overlay {
   position: fixed;
   inset: 0;
@@ -913,6 +1267,7 @@ onUnmounted(() => {
   object-fit: contain;
 }
 
+// ========== 头像悬浮大图预览 ==========
 .avatar-tooltip-overlay {
   position: fixed;
   inset: 0;

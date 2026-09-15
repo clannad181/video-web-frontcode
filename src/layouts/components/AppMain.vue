@@ -23,7 +23,7 @@ const route = useRoute()
   overflow-y: auto;
   overflow-x: hidden;
   background-color: var(--bg-color);
-  transition: background-color 0.3s;
+  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 
   &::-webkit-scrollbar {
     width: 6px;

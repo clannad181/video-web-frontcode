@@ -1,14 +1,17 @@
 <template>
+  <!-- 侧边栏容器，支持折叠/展开状态，支持深色/浅色主题 -->
   <div
     class="sidebar"
     :class="{ collapsed: appStore.sidebar.collapsed }"
     :data-sidebar="appStore.darkMode ? 'dark' : 'light'"
   >
+    <!-- 背景光晕效果 -->
     <div class="glow-orb" />
 
-    <!-- LOGO区 -->
+    <!-- LOGO区域 -->
     <div class="logo-section" @click="router.push('/')">
       <div class="logo-icon">
+        <!-- 渐变色SVG Logo -->
         <svg viewBox="0 0 32 32" class="logo-svg">
           <defs>
             <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -20,19 +23,21 @@
           <polygon points="13,9 13,23 24,16" fill="white" />
         </svg>
       </div>
+      <!-- Logo文字，收缩时隐藏 -->
       <transition name="fade-text">
         <span v-show="!appStore.sidebar.collapsed" class="logo-title">VideoHub</span>
       </transition>
     </div>
 
-    <!-- 菜单区域 -->
+    <!-- 菜单滚动区域 -->
     <el-scrollbar class="menu-scrollbar" ref="scrollbarRef">
       <div class="menu-content">
         <!-- 主导航组 -->
         <div v-if="mainMenus.length" class="menu-group">
+          <!-- 组标题，收缩时显示省略号 -->
           <div v-show="!appStore.sidebar.collapsed" class="group-title">主导航</div>
           <template v-for="item in mainMenus" :key="item.id || item.path">
-            <!-- 有子菜单 -->
+            <!-- 有子菜单的项 -->
             <div v-if="item.children?.length" class="menu-submenu" :class="{ expanded: expandedMenuIds.has(item.id) }">
               <div
                 class="menu-item submenu-title"
@@ -43,10 +48,12 @@
                   <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
                 </span>
                 <span class="menu-text">{{ item.menuName || item.name }}</span>
+                <!-- 箭头图标，展开时旋转 -->
                 <span class="submenu-arrow" :class="{ rotated: expandedMenuIds.has(item.id) }">
                   <el-icon><ArrowDown /></el-icon>
                 </span>
               </div>
+              <!-- 子菜单容器，通过maxHeight控制展开/收起动画 -->
               <div class="submenu-children" :style="{ maxHeight: expandedMenuIds.has(item.id) ? `${item.children.length * 44}px` : '0px', opacity: expandedMenuIds.has(item.id) ? 1 : 0 }">
                 <div
                   v-for="child in item.children"
@@ -62,7 +69,7 @@
                 </div>
               </div>
             </div>
-            <!-- 无子菜单 -->
+            <!-- 无子菜单的项 -->
             <div
               v-else
               class="menu-item"
@@ -77,7 +84,7 @@
           </template>
         </div>
 
-        <!-- 次导航组 -->
+        <!-- 次导航组（系统管理） -->
         <div v-if="otherMenus.length" class="menu-group">
           <div v-show="!appStore.sidebar.collapsed" class="group-title">系统管理</div>
           <template v-for="item in otherMenus" :key="item.id || item.path">
@@ -132,6 +139,7 @@
     <!-- 底部用户卡片 -->
     <div class="user-card">
       <div class="user-card-inner">
+        <!-- 用户头像 -->
         <el-avatar :size="36" class="user-avatar">
           <template v-if="userStore.userInfo?.avater || userStore.userInfo?.avatar">
             <img :src="fileBaseUrl + (userStore.userInfo.avater || userStore.userInfo.avatar)" alt="avatar" />
@@ -140,12 +148,14 @@
             {{ userStore.userInfo?.nikeName?.[0] || userStore.user?.name?.[0] || 'A' }}
           </template>
         </el-avatar>
+        <!-- 用户信息，收缩时隐藏 -->
         <transition name="fade-text">
           <div v-show="!appStore.sidebar.collapsed" class="user-info">
             <div class="user-name">{{ userStore.userInfo?.nikeName || userStore.user?.name || '管理员' }}</div>
             <div class="user-role">{{ userStore.userInfo?.roleName || '超级管理员' }}</div>
           </div>
         </transition>
+        <!-- 登出按钮，收缩时隐藏 -->
         <transition name="fade-text">
           <el-button
             v-show="!appStore.sidebar.collapsed"
@@ -170,6 +180,15 @@
 </template>
 
 <script setup>
+/**
+ * Sidebar 组件
+ * 侧边栏导航组件，支持以下功能：
+ * 1. 菜单折叠/展开
+ * 2. 子菜单展开/收起
+ * 3. 深色/浅色主题切换
+ * 4. 滑动激活指示条
+ * 5. 用户信息展示和登出
+ */
 import { ref, computed, watch, onMounted, nextTick, markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
@@ -177,20 +196,30 @@ import { useUserStore } from '@/stores/user'
 import { constantRoutes } from '@/router'
 import { SwitchButton, Fold, Expand, ArrowDown, Document, Monitor, Edit, ChatDotRound, ChatLineSquare, VideoCamera, Comment, User, DataAnalysis, Bell, Setting, Menu, Tickets, Key, List, Reading, Star, Wallet, Connection, Picture, Film, Histogram, Grid, Stamp, Finished, Cpu, Flag, HomeFilled, Odometer, TrendCharts, UserFilled, Avatar, Lock, Search, Delete, Plus, Refresh, Download, Upload, Folder, FolderOpened, Aim, Location, Message, Trophy, Notebook, Calendar, Clock, Mic, VideoPlay, Headset } from '@element-plus/icons-vue'
 
+// 路由和状态管理
 const route = useRoute()
 const router = useRouter()
 const appStore = useAppStore()
 const userStore = useUserStore()
 const scrollbarRef = ref(null)
 
+// 文件基础URL
 const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
 
+// 主题色（从CSS变量获取）
 const primaryColor = computed(() => {
   return getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#fb7299'
 })
 
+// 当前激活的菜单路径
 const activeMenu = computed(() => route.path)
 
+/**
+ * 将路由配置扁平化为一维数组
+ * @param {Array} routes - 路由配置数组
+ * @param {String} parentPath - 父级路径
+ * @returns {Array} 扁平化后的路由数组
+ */
 function flattenRoutes(routes, parentPath = '') {
   const result = []
   for (const r of routes) {
@@ -204,9 +233,18 @@ function flattenRoutes(routes, parentPath = '') {
   return result
 }
 
+// 扁平化路由列表
 const flatRoutes = flattenRoutes(constantRoutes)
 
+/**
+ * 根据菜单名称、标识符或图标解析对应的路由路径
+ * @param {String} menuName - 菜单名称
+ * @param {String} menuIdentification - 菜单标识符
+ * @param {String} menuIcon - 菜单图标
+ * @returns {String} 匹配的路由路径
+ */
 function resolveMenuPath(menuName, menuIdentification, menuIcon) {
+  // 优先通过菜单标识符匹配
   if (menuIdentification) {
     const s = String(menuIdentification)
     if (s.startsWith('/')) {
@@ -220,14 +258,17 @@ function resolveMenuPath(menuName, menuIdentification, menuIcon) {
       }
     }
   }
+  // 通过菜单名称匹配
   if (menuName) {
     const found = flatRoutes.find(r => r.title === menuName)
     if (found) return found.path
   }
+  // 通过图标匹配
   if (menuIcon) {
     const found = flatRoutes.find(r => r.icon === menuIcon)
     if (found) return found.path
   }
+  // 通过标识符名称匹配
   if (menuIdentification) {
     const s = String(menuIdentification).toLowerCase()
     const found = flatRoutes.find(r => r.name?.toLowerCase() === s)
@@ -236,23 +277,40 @@ function resolveMenuPath(menuName, menuIdentification, menuIcon) {
   return ''
 }
 
+/**
+ * 标准化路径，确保以/开头
+ * @param {String} p - 原始路径
+ * @returns {String} 标准化后的路径
+ */
 function normalizePath(p) {
   if (p == null || p === '') return ''
   const s = String(p)
   return s.startsWith('/') ? s : '/' + s
 }
 
+/**
+ * 判断菜单路径是否与当前路由路径匹配
+ * @param {String} menuPath - 菜单路径
+ * @param {String} routePath - 路由路径
+ * @returns {Boolean} 是否匹配
+ */
 function isPathMatch(menuPath, routePath) {
   if (!menuPath) return false
   return normalizePath(menuPath).toLowerCase() === (routePath || '').toLowerCase()
 }
 
+// 菜单列表（从用户信息中获取并处理）
 const menuList = computed(() => {
   const raw = userStore.userInfo?.menuList || userStore.user?.menuList || []
   const tree = Array.isArray(raw) ? raw : []
   return tree.map(item => processMenuItem(item)).sort((a, b) => (a.descSort || 0) - (b.descSort || 0))
 })
 
+/**
+ * 处理菜单项，解析路径并递归处理子菜单
+ * @param {Object} item - 菜单项
+ * @returns {Object} 处理后的菜单项
+ */
 function processMenuItem(item) {
   const resolvedPath = resolveMenuPath(item.menuName, item.menuIdentification, item.icon)
   return {
@@ -264,15 +322,24 @@ function processMenuItem(item) {
   }
 }
 
+// 主导航菜单（category为MAIN）
 const mainMenus = computed(() => {
   return menuList.value.filter(m => m.category === 'MAIN')
 })
 
+// 次导航菜单（系统管理等）
 const otherMenus = computed(() => {
   return menuList.value.filter(m => m.category !== 'MAIN')
 })
 
+// 图标缓存，避免重复创建
 const iconCache = {}
+
+/**
+ * 根据图标名称解析对应的组件
+ * @param {String} name - 图标名称
+ * @returns {Component} 图标组件
+ */
 function resolveIcon(name) {
   if (!name) return markRaw(Document)
   if (iconCache[name]) return iconCache[name]
@@ -290,15 +357,26 @@ function resolveIcon(name) {
   return iconCache[name]
 }
 
+/**
+ * 判断菜单项是否激活（自身或子菜单包含当前路由）
+ * @param {Object} item - 菜单项
+ * @returns {Boolean} 是否激活
+ */
 function isMenuActive(item) {
   if (isPathMatch(item.path, activeMenu.value)) return true
   return item.children?.some(c => isPathMatch(c.path, activeMenu.value))
 }
 
-// 展开的子菜单
+// 展开的子菜单ID集合
 const expandedMenuIds = ref(new Set())
 const STORAGE_KEY = 'expandedMenus'
 
+// 保存收缩前的展开状态（用于展开时恢复）
+const savedExpandedIds = ref(new Set())
+
+/**
+ * 展开包含当前路由的父菜单
+ */
 function expandActiveParent() {
   const allMenus = [...mainMenus.value, ...otherMenus.value]
   for (const m of allMenus) {
@@ -308,6 +386,7 @@ function expandActiveParent() {
   }
 }
 
+// 组件挂载时恢复展开状态
 onMounted(() => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
@@ -316,19 +395,30 @@ onMounted(() => {
   expandActiveParent()
 })
 
+// 监听路由变化，自动展开父菜单并更新指示条
 watch(activeMenu, () => {
   expandActiveParent()
   updateIndicator()
 }, { immediate: true })
 
-// 收缩侧边栏时自动收起所有展开的子菜单
+// 监听侧边栏折叠状态变化
 watch(() => appStore.sidebar.collapsed, (isCollapsed) => {
   if (isCollapsed) {
-    expandedMenuIds.value = new Set()
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...expandedMenuIds.value]))
+    // 收缩时保存当前展开状态
+    savedExpandedIds.value = new Set(expandedMenuIds.value)
+  } else {
+    // 展开时恢复之前保存的展开状态
+    if (savedExpandedIds.value.size > 0) {
+      expandedMenuIds.value = new Set(savedExpandedIds.value)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...expandedMenuIds.value]))
+    }
   }
 })
 
+/**
+ * 切换子菜单展开/收起状态
+ * @param {Number} id - 菜单ID
+ */
 function toggleSubMenu(id) {
   // 收缩状态下点击含子菜单的菜单项，先展开侧边栏
   if (appStore.sidebar.collapsed) {
@@ -345,6 +435,10 @@ function toggleSubMenu(id) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify([...expandedMenuIds.value]))
 }
 
+/**
+ * 导航到指定路径
+ * @param {String} path - 目标路径
+ */
 function navigateTo(path) {
   if (path) router.push(path)
 }
@@ -353,6 +447,9 @@ function navigateTo(path) {
 const indicatorTop = ref(0)
 const indicatorHeight = ref(0)
 
+/**
+ * 更新滑动指示条位置
+ */
 function updateIndicator() {
   nextTick(() => {
     const activeEl = document.querySelector('.sidebar .menu-item.active')
@@ -366,15 +463,19 @@ function updateIndicator() {
   })
 }
 
+// 监听折叠状态变化，延迟更新指示条
 watch(() => appStore.sidebar.collapsed, () => setTimeout(updateIndicator, 350))
 
+// 指示条样式
 const indicatorStyle = computed(() => ({
   transform: `translateY(${indicatorTop.value}px)`,
   height: `${indicatorHeight.value}px`,
   opacity: activeMenu.value ? 1 : 0
 }))
 
-// 登出
+/**
+ * 处理登出操作
+ */
 async function handleLogout() {
   try {
     await userStore.logoutAction()
@@ -403,9 +504,12 @@ async function handleLogout() {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 
+  // 折叠状态
   &.collapsed {
     width: var(--sidebar-collapsed-width);
   }
@@ -499,6 +603,7 @@ async function handleLogout() {
   background-clip: text;
 }
 
+// 文字淡入淡出动画
 .fade-text-enter-active, .fade-text-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .fade-text-enter-from, .fade-text-leave-to { opacity: 0; transform: translateX(-10px); }
 
@@ -507,6 +612,7 @@ async function handleLogout() {
 .menu-content { padding: 8px 0; }
 .menu-group { margin-bottom: 4px; }
 
+// 菜单组标题
 .group-title {
   padding: 12px 20px 6px;
   font-size: 11px;
@@ -517,6 +623,7 @@ async function handleLogout() {
   white-space: nowrap;
   overflow: hidden;
 
+  // 折叠状态下显示省略号
   .collapsed & {
     padding: 12px 0 6px;
     text-align: center;
@@ -545,12 +652,14 @@ async function handleLogout() {
     transform: translateX(2px);
   }
 
+  // 激活状态
   &.active {
     color: var(--color-primary);
     background: rgba(var(--color-primary-rgb, 251, 114, 153), 0.15);
     .menu-icon { filter: drop-shadow(0 0 6px var(--color-primary)); }
   }
 
+  // 折叠状态下的样式
   .collapsed & { justify-content: center; padding: 0; margin: 2px 8px; }
 }
 
@@ -592,6 +701,7 @@ async function handleLogout() {
   margin-left: 8px;
   animation: badgePulse 2s ease-in-out infinite;
 
+  // 折叠状态下的徽标样式
   .collapsed & {
     min-width: 8px;
     height: 8px;
@@ -626,12 +736,14 @@ async function handleLogout() {
     }
   }
 
+  // 子菜单容器动画
   .submenu-children {
     overflow: hidden;
     transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
   }
 }
 
+// 子菜单项样式
 .sub-item { padding-left: 42px !important; }
 .collapsed .sub-item { display: none !important; }
 

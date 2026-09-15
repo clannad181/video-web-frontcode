@@ -68,7 +68,9 @@ watch(() => props.value, (v) => animateValue(v))
   border-radius: var(--radius-lg, 16px);
   padding: 24px;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, 
+              box-shadow 0.3s ease,
+              background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: default;
 }
 .stat-card:hover {
