@@ -70,7 +70,14 @@
       <div class="preview-panel" v-loading="previewLoading">
         <template v-if="selectedVideo">
           <div class="preview-player">
-            <div class="player-wrap" @click="handlePlay">
+            <DPlayer
+              v-if="selectedVideo.videoUrl"
+              :src="selectedVideo.videoUrl"
+              :title="selectedVideo.title"
+              :poster="selectedVideo.cover"
+              :height="'100%'"
+            />
+            <div v-else class="player-wrap">
               <img
                 v-if="selectedVideo.cover"
                 :src="selectedVideo.cover"
@@ -79,9 +86,6 @@
               />
               <div v-else class="player-cover player-cover-empty">
                 <el-icon :size="64"><VideoPlay /></el-icon>
-              </div>
-              <div class="player-overlay">
-                <el-icon :size="64" color="#fff"><VideoPlay /></el-icon>
               </div>
             </div>
           </div>
@@ -182,6 +186,7 @@ import { VideoPlay, CircleCheckFilled, CircleCloseFilled } from '@element-plus/i
 import { formatDuration } from '@/utils/format'
 import { getVideoList } from '@/api/video'
 import { auditItem, rejectItem, getAuditStats } from '@/api/audit'
+import DPlayer from '@/components/DPlayer.vue'
 
 const loading = ref(false)
 const previewLoading = ref(false)
@@ -236,7 +241,7 @@ const selectVideo = async (item) => {
 }
 
 const handlePlay = () => {
-  ElMessage.info('视频播放功能开发中')
+  // DPlayer handles playback internally
 }
 
 const handleApprove = async () => {

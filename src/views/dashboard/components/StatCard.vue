@@ -70,7 +70,7 @@ watch(() => props.value, (v) => animateValue(v))
   overflow: hidden;
   transition: transform 0.3s ease, 
               box-shadow 0.3s ease,
-              background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+              background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: default;
 }
 .stat-card:hover {

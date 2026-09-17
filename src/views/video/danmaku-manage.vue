@@ -130,7 +130,15 @@
     >
       <div v-if="locateData" class="locate-body">
         <div class="locate-player">
-          <div class="player-wrap">
+          <DPlayer
+            v-if="locateData.videoUrl"
+            :src="locateData.videoUrl"
+            :title="locateData.title"
+            :poster="locateData.videoCover"
+            :currentTime="locateData.timePoint"
+            :height="'100%'"
+          />
+          <div v-else class="player-wrap">
             <img
               v-if="locateData.videoCover"
               :src="locateData.videoCover"
@@ -139,9 +147,6 @@
             />
             <div v-else class="player-cover player-cover-empty">
               <el-icon :size="48"><VideoPlay /></el-icon>
-            </div>
-            <div class="player-overlay">
-              <el-icon :size="48" color="#fff"><VideoPlay /></el-icon>
             </div>
             <div class="time-indicator">
               <el-icon><Clock /></el-icon>
@@ -181,6 +186,7 @@ import { ElMessage } from 'element-plus'
 import { Search, Refresh, WarningFilled, VideoPlay, Clock } from '@element-plus/icons-vue'
 import { formatDuration } from '@/utils/format'
 import { getDanmakuList, deleteDanmaku } from '@/api/danmaku'
+import DPlayer from '@/components/DPlayer.vue'
 
 const danmakuTypeMap = {
   0: { label: '滚动', type: 'primary' },

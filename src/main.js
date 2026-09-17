@@ -8,6 +8,8 @@ import router from './router'
 import i18n from './locales'
 import App from './App.vue'
 import './styles/index.scss'
+import vue3videoPlay from 'vue3-video-play'
+import 'vue3-video-play/dist/style.css'
 
 const app = createApp(App)
 
@@ -19,5 +21,6 @@ app.use(ElementPlus, { locale: zhCn, size: 'default' })
 app.use(createPinia())
 app.use(router)
 app.use(i18n)
+app.use(vue3videoPlay)
 
 app.mount('#app')

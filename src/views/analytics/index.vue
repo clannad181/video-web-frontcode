@@ -16,8 +16,8 @@
           <el-icon :size="26"><component :is="card.icon" /></el-icon>
         </div>
         <div class="stat-card__body">
-          <span class="stat-card__label">{{ card.label }}</span>
           <span class="stat-card__value">{{ formatNum(overviewData[card.key]) }}</span>
+          <span class="stat-card__label">{{ card.label }}</span>
         </div>
       </div>
     </div>
@@ -142,6 +142,27 @@ const appStore = useAppStore()
 
 const PALETTE = ['#00a1d6', '#fb7299', '#4caf50', '#e6a23c', '#7c5cfc', '#ff6b6b', '#1ecf54', '#ff9f43', '#5f7fff', '#a855f7']
 
+const fontMap = {
+  '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+  '微软雅黑': "'Microsoft YaHei', sans-serif",
+  '宋体': "'SimSun', serif",
+  '黑体': "'SimHei', sans-serif",
+  '楷体': "'KaiTi', serif",
+  '仿宋': "'FangSong', serif",
+  '思源黑体': "'Noto Sans SC', sans-serif",
+  '思源宋体': "'Noto Serif SC', serif",
+  '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif",
+  '等线': "'DengXian', sans-serif"
+}
+
+function getCurrentFontFamily() {
+  return fontMap[appStore.fontFamily] || fontMap['默认']
+}
+
+function getChartTextStyle() {
+  return { fontFamily: getCurrentFontFamily() }
+}
+
 const formatNum = (n) => {
   if (n == null) return '0'
   if (n >= 100000000) return (n / 100000000).toFixed(1) + '亿'
@@ -189,13 +210,14 @@ let categoryIncrementChart = null
 
 // 根据主题动态生成tooltip样式
 const baseTooltip = computed(() => {
+  const ff = getCurrentFontFamily()
   if (appStore.darkMode) {
     // 深色主题
     return {
       backgroundColor: 'rgba(15, 23, 42, 0.92)',
       borderColor: 'rgba(99, 102, 241, 0.2)',
       borderWidth: 1,
-      textStyle: { color: '#e2e8f0', fontSize: 12 }
+      textStyle: { color: '#e2e8f0', fontSize: 12, fontFamily: ff }
     }
   }
   // 亮色主题
@@ -203,7 +225,7 @@ const baseTooltip = computed(() => {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderColor: 'rgba(0, 0, 0, 0.08)',
     borderWidth: 1,
-    textStyle: { color: '#303133', fontSize: 12 }
+    textStyle: { color: '#303133', fontSize: 12, fontFamily: ff }
   }
 })
 
@@ -250,12 +272,13 @@ async function loadVideoTrend() {
       barWidth = 12
     }
     videoTrendChart.setOption({
+      textStyle: getChartTextStyle(),
       tooltip: {
         ...baseTooltip.value,
         trigger: 'axis',
         axisPointer: { type: 'cross', crossStyle: { color: '#999' } }
       },
-      legend: { bottom: 0, textStyle: { color: '#909399', fontSize: 12 } },
+      legend: { bottom: 0, textStyle: { color: '#909399', fontSize: 12, fontFamily: getCurrentFontFamily() } },
       grid: { top: '5%', right: '4%', bottom: '15%', left: '3%', containLabel: true },
       xAxis: {
         type: 'category',
@@ -265,6 +288,7 @@ async function loadVideoTrend() {
         axisLabel: { 
           color: '#909399', 
           fontSize: 11,
+          fontFamily: getCurrentFontFamily(),
           rotate: dataCount > 14 ? 45 : 0,
           interval: dataCount > 30 ? Math.floor(dataCount / 15) : 'auto'
         }
@@ -274,13 +298,13 @@ async function loadVideoTrend() {
           type: 'value',
           name: '数量',
           splitLine: { lineStyle: { color: 'rgba(0,0,0,0.04)' } },
-          axisLabel: { color: '#909399', fontSize: 11 }
+          axisLabel: { color: '#909399', fontSize: 11, fontFamily: getCurrentFontFamily() }
         },
         {
           type: 'value',
           name: '播放量',
           splitLine: { show: false },
-          axisLabel: { color: '#909399', fontSize: 11 }
+          axisLabel: { color: '#909399', fontSize: 11, fontFamily: getCurrentFontFamily() }
         }
       ],
       series: [
@@ -339,8 +363,9 @@ async function loadActiveUsers() {
       barWidth = 16
     }
     activeUserChart.setOption({
+      textStyle: getChartTextStyle(),
       tooltip: { ...baseTooltip.value, trigger: 'axis', axisPointer: { type: 'shadow' } },
-      legend: { bottom: 0, textStyle: { color: '#909399', fontSize: 12 } },
+      legend: { bottom: 0, textStyle: { color: '#909399', fontSize: 12, fontFamily: getCurrentFontFamily() } },
       grid: { top: '5%', right: '4%', bottom: '15%', left: '3%', containLabel: true },
       xAxis: {
         type: 'category',
@@ -350,6 +375,7 @@ async function loadActiveUsers() {
         axisLabel: { 
           color: '#909399', 
           fontSize: 11,
+          fontFamily: getCurrentFontFamily(),
           rotate: dataCount > 14 ? 45 : 0,
           interval: dataCount > 30 ? Math.floor(dataCount / 15) : 'auto'
         }
@@ -357,7 +383,7 @@ async function loadActiveUsers() {
       yAxis: {
         type: 'value',
         splitLine: { lineStyle: { color: 'rgba(0,0,0,0.04)' } },
-        axisLabel: { color: '#909399', fontSize: 11 }
+        axisLabel: { color: '#909399', fontSize: 11, fontFamily: getCurrentFontFamily() }
       },
       series: [
         {
@@ -385,9 +411,7 @@ async function loadContentPie() {
     const res = await getCategoryStats()
     let raw = res.data
     if (raw && typeof raw === 'object' && raw.data) raw = raw.data
-    console.log('[内容分布] 原始数据:', raw)
     const data = normalizeData(raw)
-    console.log('[内容分布] 解析后:', data)
     if (!contentPieRef.value) return
     if (!contentPieChart) contentPieChart = echarts.init(contentPieRef.value)
     const seriesData = data.map((d, i) => {
@@ -395,8 +419,8 @@ async function loadContentPie() {
       const value = d.value ?? d.count ?? d.num ?? d.total ?? d.videoCount ?? 0
       return { name, value, itemStyle: { color: PALETTE[i % PALETTE.length] } }
     }).filter(d => d.name && d.value > 0)
-    console.log('[内容分布] seriesData:', seriesData)
     contentPieChart.setOption({
+      textStyle: getChartTextStyle(),
       tooltip: {
         ...baseTooltip.value,
         trigger: 'item',
@@ -406,7 +430,7 @@ async function loadContentPie() {
         orient: 'vertical',
         right: 10,
         bottom: 20,
-        textStyle: { color: '#909399', fontSize: 12 }
+        textStyle: { color: '#909399', fontSize: 12, fontFamily: getCurrentFontFamily() }
       },
       series: [
         {
@@ -423,14 +447,16 @@ async function loadContentPie() {
             show: true,
             formatter: '{b}\n{d}%',
             fontSize: 12,
-            color: '#606266'
+            color: '#606266',
+            fontFamily: getCurrentFontFamily()
           },
           emphasis: {
             label: {
               show: true,
               fontSize: 16,
               fontWeight: 'bold',
-              formatter: '{b}\n{d}%'
+              formatter: '{b}\n{d}%',
+              fontFamily: getCurrentFontFamily()
             },
             itemStyle: {
               shadowBlur: 10,
@@ -455,6 +481,7 @@ async function loadHourlyActive() {
     if (!hourlyActiveChart) hourlyActiveChart = echarts.init(hourlyActiveRef.value)
     const hours = data.map(d => d.hour ?? d.time ?? `${String(d.hourOfDay ?? 0).padStart(2, '0')}:00`)
     hourlyActiveChart.setOption({
+      textStyle: getChartTextStyle(),
       tooltip: { ...baseTooltip.value, trigger: 'axis' },
       grid: { top: '8%', right: '4%', bottom: '12%', left: '3%', containLabel: true },
       xAxis: {
@@ -463,12 +490,12 @@ async function loadHourlyActive() {
         boundaryGap: false,
         axisLine: { lineStyle: { color: 'rgba(0,0,0,0.06)' } },
         axisTick: { show: false },
-        axisLabel: { color: '#909399', fontSize: 11 }
+        axisLabel: { color: '#909399', fontSize: 11, fontFamily: getCurrentFontFamily() }
       },
       yAxis: {
         type: 'value',
         splitLine: { lineStyle: { color: 'rgba(0,0,0,0.04)' } },
-        axisLabel: { color: '#909399', fontSize: 11 }
+        axisLabel: { color: '#909399', fontSize: 11, fontFamily: getCurrentFontFamily() }
       },
       series: [
         {
@@ -518,6 +545,7 @@ async function loadCategoryIncrement() {
     if (!categoryIncrementRef.value) return
     if (!categoryIncrementChart) categoryIncrementChart = echarts.init(categoryIncrementRef.value)
     categoryIncrementChart.setOption({
+      textStyle: getChartTextStyle(),
       tooltip: {
         ...baseTooltip.value,
         trigger: 'axis',
@@ -542,7 +570,7 @@ async function loadCategoryIncrement() {
       },
       legend: {
         bottom: 0,
-        textStyle: { color: '#909399', fontSize: 12 },
+        textStyle: { color: '#909399', fontSize: 12, fontFamily: getCurrentFontFamily() },
         type: 'scroll'
       },
       grid: { top: '5%', right: '4%', bottom: '15%', left: '3%', containLabel: true },
@@ -551,12 +579,12 @@ async function loadCategoryIncrement() {
         data: dates,
         axisLine: { lineStyle: { color: 'rgba(0,0,0,0.06)' } },
         axisTick: { show: false },
-        axisLabel: { color: '#909399', fontSize: 11 }
+        axisLabel: { color: '#909399', fontSize: 11, fontFamily: getCurrentFontFamily() }
       },
       yAxis: {
         type: 'value',
         splitLine: { lineStyle: { color: 'rgba(0,0,0,0.04)' } },
-        axisLabel: { color: '#909399', fontSize: 11 }
+        axisLabel: { color: '#909399', fontSize: 11, fontFamily: getCurrentFontFamily() }
       },
       series: categoryNames.map((cat, i) => ({
         name: cat,
@@ -595,6 +623,13 @@ async function reloadAllCharts() {
 
 // 监听主题变化，重新加载图表
 watch(() => appStore.darkMode, () => {
+  nextTick(() => {
+    reloadAllCharts()
+  })
+})
+
+// 监听字体变化，重新渲染图表
+watch(() => appStore.fontFamily, () => {
   nextTick(() => {
     reloadAllCharts()
   })
@@ -661,7 +696,7 @@ onBeforeUnmount(() => {
   gap: 16px;
   padding: 20px;
   background: var(--card-bg, #fff);
-  border: 1px solid var(--border-color, #f2f3f5);
+  border: none;
   border-radius: 12px;
   transition: all 0.3s ease;
   animation: fadeSlideUp 0.5s ease both;
@@ -686,18 +721,18 @@ onBeforeUnmount(() => {
 .stat-card__body {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   min-width: 0;
 }
 
 .stat-card__label {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text-secondary, #909399);
   white-space: nowrap;
 }
 
 .stat-card__value {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--text-primary, #1f2937);
   letter-spacing: -0.5px;
@@ -712,7 +747,7 @@ onBeforeUnmount(() => {
 }
 
 .chart-card {
-  border: 1px solid var(--border-color, #f2f3f5);
+  border: none;
   border-radius: 12px;
   transition: all 0.3s ease;
 
@@ -722,7 +757,7 @@ onBeforeUnmount(() => {
 
   :deep(.el-card__header) {
     padding: 14px 20px;
-    border-bottom: 1px solid var(--border-color, #f2f3f5);
+    border: none;
     background: linear-gradient(135deg, rgba(251, 114, 153, 0.03), rgba(124, 92, 252, 0.03));
   }
 

@@ -4,6 +4,12 @@
 
 // CSS Custom Properties (Variables)
 :root {
+  // 全局字体配置 - 修改此处可切换整个应用的字体
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-size-base: 14px;
+  --font-size-sm: 12px;
+  --font-size-lg: 16px;
+  
   --color-primary: #fb7299;
   --color-primary-rgb: 251, 114, 153;
   --color-accent: #7c5cfc;
@@ -23,7 +29,7 @@
   --transition-duration: 0.3s;
 
   // 主题切换过渡参数（统一控制所有元素）
-  --theme-transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --theme-transition: 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 
   // Extended palette
   --success-color: #67c23a;
@@ -66,18 +72,24 @@ html.dark-mode {
   box-sizing: border-box;
 }
 
-// 全局主题切换过渡 - 使用CSS变量确保所有元素同步
-*,
-html,
-body {
+// 全局主题切换过渡 - 通过临时类 .theme-transition 统一控制
+// 说明：平时不加全局 transition，避免覆盖各组件 hover 等交互效果；
+// 切换主题时由 app.js 临时添加 .theme-transition 类，强制所有元素统一动画。
+html.theme-transition,
+html.theme-transition body,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
   transition: background-color var(--theme-transition),
               color var(--theme-transition),
               border-color var(--theme-transition),
-              box-shadow var(--theme-transition);
+              box-shadow var(--theme-transition),
+              fill var(--theme-transition),
+              stroke var(--theme-transition) !important;
 }
 
 html {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -85,12 +97,17 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: 14px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--text-primary);
   background-color: var(--bg-color);
   overflow-x: hidden;
+}
+
+// 全局字号设置 - 让所有元素继承html的font-size
+html {
+  font-size: var(--font-size-base);
 }
 
 a {
@@ -236,7 +253,6 @@ html.dark-mode .table-row:hover {
   top: 0;
   z-index: var(--z-index-navbar);
   box-shadow: var(--shadow-sm);
-  transition: background-color var(--transition-duration);
 }
 
 .page-container {
@@ -823,6 +839,28 @@ html.dark-mode .el-loading-mask {
 }
 
 // ============================================
+// Date Range Picker - Separator 垂直居中修复
+// ============================================
+
+// ~ 字符在大多数字体中字形偏下，line-height / flex 均无法稳定修正。
+// 方案：隐藏原始文本，用伪元素 + 绝对定位精确居中，再微调上移。
+.el-date-editor .el-range-separator {
+  font-size: 0 !important;
+  line-height: 1 !important;
+  position: relative !important;
+
+  &::after {
+    content: "~";
+    font-size: var(--el-font-size-base, 14px);
+    line-height: 1;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+// ============================================
 // Dark Mode - Date Picker Styles
 // ============================================
 
@@ -856,6 +894,9 @@ html.dark-mode {
 
     .el-range-separator {
       color: #909399;
+      line-height: 1;
+      display: flex;
+      align-items: center;
     }
 
     .el-range-input {

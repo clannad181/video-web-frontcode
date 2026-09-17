@@ -63,6 +63,44 @@
         </div>
       </div>
 
+      <!-- 字体设置按钮 -->
+      <div class="action-btn font-toggle" @click="showFontPopover = !showFontPopover">
+        <span class="font-icon-text">Aa</span>
+      </div>
+
+      <!-- 字体设置弹出框 -->
+      <transition name="dropdown">
+        <div v-if="showFontPopover" class="font-popover" ref="fontPopoverRef">
+          <div class="font-popover-title">字体设置</div>
+          <div class="font-option-group">
+            <div class="font-option-label">字体</div>
+            <el-select v-model="currentFont" placeholder="选择字体" @change="handleFontChange" style="width: 100%">
+              <el-option label="默认" value="默认" />
+              <el-option label="微软雅黑" value="微软雅黑" />
+              <el-option label="宋体" value="宋体" />
+              <el-option label="黑体" value="黑体" />
+              <el-option label="楷体" value="楷体" />
+              <el-option label="仿宋" value="仿宋" />
+              <el-option label="思源黑体" value="思源黑体" />
+              <el-option label="思源宋体" value="思源宋体" />
+              <el-option label="苹方" value="苹方" />
+              <el-option label="等线" value="等线" />
+            </el-select>
+          </div>
+          <div class="font-option-group">
+            <div class="font-option-label">字号</div>
+            <el-slider v-model="currentFontSize" :min="12" :max="20" :step="1" show-stops @input="handleFontSizeInput" @change="handleFontSizeChange" />
+            <div class="font-size-labels">
+              <span>小</span>
+              <span>大</span>
+            </div>
+          </div>
+          <div class="font-preview" :style="{ fontFamily: getFontFamily(currentFont), fontSize: currentFontSize + 'px' }">
+            预览文字 Abc 123
+          </div>
+        </div>
+      </transition>
+
       <!-- 通知按钮 -->
       <div class="action-btn" @click="router.push('/notice')">
         <el-icon :size="18"><Bell /></el-icon>
@@ -242,6 +280,12 @@ const showAvatarTooltip = ref(false)
 const userTriggerRef = ref(null)
 const dropdownRef = ref(null)
 const fileInputRef = ref(null)
+const fontPopoverRef = ref(null)
+
+// 字体设置状态
+const showFontPopover = ref(false)
+const currentFont = ref(appStore.fontFamily || '默认')
+const currentFontSize = ref(parseInt(appStore.fontSize) || 14)
 
 // 计算属性：头像URL
 const avatarUrl = computed(() => {
@@ -349,22 +393,16 @@ async function handleAvatarUpload(e) {
   }
   reader.readAsDataURL(file)
 
-  // 上传图片
-  const formData = new FormData()
-  formData.append('file', file)
+  // 使用统一上传工具
   profileForm.value.uploadProgress = 1
   try {
-    const { default: request } = await import('@/utils/request')
-    const res = await request.post('/admin/file/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      onUploadProgress: (e) => {
-        if (e.total) profileForm.value.uploadProgress = Math.round((e.loaded / e.total) * 100)
-      }
+    const { uploadFile } = await import('@/utils/upload')
+    const result = await uploadFile(file, {
+      category: 'image',
+      onProgress: (p) => { profileForm.value.uploadProgress = p }
     })
-    if (res.code === 200) {
-      profileForm.value.avatarUrl = res.data?.url || res.data?.path || ''
-      ElMessage.success('头像上传成功')
-    }
+    profileForm.value.avatarUrl = result.url
+    ElMessage.success('头像上传成功')
   } catch {
     ElMessage.error('头像上传失败')
   } finally {
@@ -464,6 +502,126 @@ function handleClickOutside(e) {
   if (dropdownRef.value && !dropdownRef.value.contains(e.target) && userTriggerRef.value && !userTriggerRef.value.contains(e.target)) {
     showDropdown.value = false
   }
+  if (fontPopoverRef.value && !fontPopoverRef.value.contains(e.target) && !e.target.closest('.font-toggle')) {
+    showFontPopover.value = false
+  }
+}
+
+/**
+ * 获取字体样式
+ */
+function getFontFamily(fontName) {
+  const fontMap = {
+    '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+    '微软雅黑': "'Microsoft YaHei', sans-serif",
+    '宋体': "'SimSun', serif",
+    '黑体': "'SimHei', sans-serif",
+    '楷体': "'KaiTi', serif",
+    '仿宋': "'FangSong', serif",
+    '思源黑体': "'Noto Sans SC', sans-serif",
+    '思源宋体': "'Noto Serif SC', serif",
+    '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif",
+    '等线': "'DengXian', sans-serif"
+  }
+  return fontMap[fontName] || fontMap['默认']
+}
+
+/**
+ * 处理字体切换
+ */
+function handleFontChange(value) {
+  appStore.setFontFamily(value)
+}
+
+/**
+ * 处理字号实时变化（拖动时）
+ */
+function handleFontSizeInput(value) {
+  currentFontSize.value = value
+  applyFontSizeRealtime(value)
+}
+
+/**
+ * 处理字号变化（松开鼠标时）
+ */
+function handleFontSizeChange(value) {
+  appStore.setFontSize(String(value))
+}
+
+/**
+ * 实时应用字号（不保存到localStorage）
+ */
+function applyFontSizeRealtime(size) {
+  const sizeNum = parseInt(size) || 14
+  const ratio = sizeNum / 14
+  // 更新自定义CSS变量
+  document.documentElement.style.setProperty('--font-size-base', `${sizeNum}px`)
+  document.documentElement.style.setProperty('--font-size-sm', `${Math.round(12 * ratio)}px`)
+  document.documentElement.style.setProperty('--font-size-lg', `${Math.round(16 * ratio)}px`)
+  let styleEl = document.getElementById('dynamic-font-size')
+  if (!styleEl) {
+    styleEl = document.createElement('style')
+    styleEl.id = 'dynamic-font-size'
+    document.head.appendChild(styleEl)
+  }
+  styleEl.textContent = `
+    html { font-size: ${sizeNum}px !important; }
+    body { font-size: ${sizeNum}px !important; }
+    :root {
+      --el-font-size-extra-large: ${Math.round(18 * ratio)}px !important;
+      --el-font-size-large: ${Math.round(16 * ratio)}px !important;
+      --el-font-size-medium: ${sizeNum}px !important;
+      --el-font-size-base: ${sizeNum}px !important;
+      --el-font-size-small: ${Math.round(13 * ratio)}px !important;
+      --el-font-size-extra-small: ${Math.round(12 * ratio)}px !important;
+    }
+    /* Element Plus 组件 */
+    .el-button, .el-input, .el-select, .el-textarea,
+    .el-table, .el-dialog, .el-card, .el-tag, .el-menu,
+    .el-pagination, .el-form-item__label, .el-dropdown-menu__item,
+    .el-checkbox__label, .el-radio__label,
+    .el-collapse-item__header, .el-transfer__panel,
+    .el-statistic__head, .el-statistic__content,
+    .el-result__title, .el-result__subtitle,
+    .el-empty__description, .el-page-header__title,
+    .el-breadcrumb__item, .el-tabs__item,
+    .el-step__title, .el-alert__title, .el-alert__description,
+    .el-divider__text, .el-timeline-item__timestamp,
+    .el-table__header th, .el-table__body td,
+    .el-popover__title, .el-message-box__title,
+    .el-message-box__content, .el-notification__title,
+    .el-notification__content, .el-drawer__header,
+    .el-color-picker__trigger, .el-date-editor .el-input__inner,
+    .el-cascader, .el-slider__runway, .el-slider__button-wrapper span,
+    .el-date-editor .el-range-input {
+      font-size: ${sizeNum}px !important;
+    }
+    .el-dialog__title { font-size: ${Math.round(16 * ratio)}px !important; }
+    .el-message-box__title { font-size: ${Math.round(16 * ratio)}px !important; }
+    .el-table th { font-size: ${Math.round(13 * ratio)}px !important; }
+    /* 通用页面元素 */
+    p, span, div, a, li, td, th, label, input, textarea, select,
+    h1, h2, h3, h4, h5, h6 {
+      font-size: inherit;
+    }
+    /* 侧边栏 */
+    .sidebar-menu .el-menu-item,
+    .sidebar-menu .el-sub-menu__title,
+    .sidebar-link, .menu-title, .submenu-item {
+      font-size: ${sizeNum}px !important;
+    }
+    .logo-text { font-size: ${Math.round(18 * ratio)}px !important; }
+    .user-name { font-size: ${sizeNum}px !important; }
+    .user-role { font-size: ${Math.round(11 * ratio)}px !important; }
+    /* 导航栏 */
+    .breadcrumb-item { font-size: ${Math.round(13 * ratio)}px !important; }
+    .nav-username { font-size: ${sizeNum}px !important; }
+    /* 卡片标题 */
+    .card-header__title, .stat-label { font-size: ${sizeNum}px !important; }
+    .stat-value { font-size: ${Math.round(28 * ratio)}px !important; }
+    /* 表格 */
+    .el-table .cell { font-size: ${Math.round(13 * ratio)}px !important; }
+  `
 }
 
 /**
@@ -486,7 +644,12 @@ function handleAvatarMouseLeave() {
 }
 
 // 组件挂载时添加点击外部关闭下拉菜单的事件监听
-onMounted(() => document.addEventListener('click', handleClickOutside))
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+  // 初始化字体设置
+  appStore.applyFontFamily()
+  appStore.applyFontSize()
+})
 
 // 组件卸载时清理事件监听和计时器
 onUnmounted(() => {
@@ -511,8 +674,8 @@ onUnmounted(() => {
   top: 0;
   z-index: 999;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+              background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .topbar-left {
@@ -837,6 +1000,71 @@ html.dark-mode .lang-toggle::after {
 // 深色模式下的涟漪效果
 html.dark-mode .theme-toggle::after {
   background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+}
+
+// 字体设置按钮
+.font-toggle {
+  &:hover {
+    background: rgba(251, 114, 153, 0.1);
+    transform: scale(1.05);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.font-icon-text {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+// 字体设置弹出框
+.font-popover {
+  position: absolute;
+  top: 56px;
+  right: 70px;
+  width: 280px;
+  background: var(--card-bg, #fff);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  padding: 16px;
+  z-index: 1000;
+  border: 1px solid var(--border-color, #f0f2f5);
+}
+
+.font-popover-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #303133);
+  margin-bottom: 16px;
+}
+
+.font-option-group {
+  margin-bottom: 16px;
+}
+
+.font-option-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #909399);
+  margin-bottom: 8px;
+}
+
+.font-size-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary, #909399);
+  margin-top: 4px;
+}
+
+.font-preview {
+  padding: 12px;
+  background: var(--bg-color, #f5f7fa);
+  border-radius: 8px;
+  text-align: center;
+  color: var(--text-primary, #303133);
 }
 
 // 通知红点

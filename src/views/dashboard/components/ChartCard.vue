@@ -33,6 +33,23 @@ import { useAppStore } from '@/stores/app'
 const appStore = useAppStore()
 const isDark = computed(() => appStore.darkMode)
 
+const fontMap = {
+  '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+  '微软雅黑': "'Microsoft YaHei', sans-serif",
+  '宋体': "'SimSun', serif",
+  '黑体': "'SimHei', sans-serif",
+  '楷体': "'KaiTi', serif",
+  '仿宋': "'FangSong', serif",
+  '思源黑体': "'Noto Sans SC', sans-serif",
+  '思源宋体': "'Noto Serif SC', serif",
+  '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif",
+  '等线': "'DengXian', sans-serif"
+}
+
+function getCurrentFontFamily() {
+  return fontMap[appStore.fontFamily] || fontMap['默认']
+}
+
 const props = defineProps({
   data: {
     type: Array,
@@ -87,12 +104,13 @@ function buildOption(chartData) {
   const tooltipText = dark ? '#e6edf3' : '#303133'
 
   return {
+    textStyle: { fontFamily: getCurrentFontFamily() },
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'cross' },
       backgroundColor: tooltipBg,
       borderColor: tooltipBorder,
-      textStyle: { color: tooltipText, fontSize: 12 }
+      textStyle: { color: tooltipText, fontSize: 12, fontFamily: getCurrentFontFamily() }
     },
     grid: { left: 40, right: 20, top: 20, bottom: 30 },
     xAxis: {
@@ -181,6 +199,7 @@ onUnmounted(() => {
 
 watch(() => props.data, () => updateChart(), { deep: true })
 watch(isDark, () => updateChart())
+watch(() => appStore.fontFamily, () => updateChart())
 </script>
 
 <style scoped>

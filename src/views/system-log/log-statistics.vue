@@ -87,9 +87,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import * as echarts from 'echarts'
 import { getLogStatistics } from '@/api/log'
+import { useAppStore } from '@/stores/app'
+
+const appStore = useAppStore()
+
+const fontMap = {
+  '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+  '微软雅黑': "'Microsoft YaHei', sans-serif",
+  '宋体': "'SimSun', serif",
+  '黑体': "'SimHei', sans-serif",
+  '楷体': "'KaiTi', serif",
+  '仿宋': "'FangSong', serif",
+  '思源黑体': "'Noto Sans SC', sans-serif",
+  '思源宋体': "'Noto Serif SC', serif",
+  '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif",
+  '等线': "'DengXian', sans-serif"
+}
+
+function getCurrentFontFamily() {
+  return fontMap[appStore.fontFamily] || fontMap['默认']
+}
 
 const loginChartRef = ref(null)
 const operationChartRef = ref(null)
@@ -110,7 +130,9 @@ function initLoginChart(data) {
   if (!loginChartRef.value) return
   loginChart = echarts.init(loginChartRef.value)
   const dates = data.map(d => d.date)
+  const ff = getCurrentFontFamily()
   loginChart.setOption({
+    textStyle: { fontFamily: ff },
     tooltip: { ...baseTooltip, trigger: 'axis' },
     grid: { top: 20, right: 20, bottom: 32, left: 50 },
     xAxis: {
@@ -118,12 +140,12 @@ function initLoginChart(data) {
       data: dates,
       axisLine: { lineStyle: { color: 'rgba(0,0,0,0.06)' } },
       axisTick: { show: false },
-      axisLabel: { color: '#909399', fontSize: 11 }
+      axisLabel: { color: '#909399', fontSize: 11, fontFamily: ff }
     },
     yAxis: {
       type: 'value',
       splitLine: { lineStyle: { color: 'rgba(0,0,0,0.04)' } },
-      axisLabel: { color: '#909399', fontSize: 11 }
+      axisLabel: { color: '#909399', fontSize: 11, fontFamily: ff }
     },
     series: [
       {
@@ -158,7 +180,9 @@ function initOperationChart(data) {
   if (!operationChartRef.value) return
   operationChart = echarts.init(operationChartRef.value)
   const dates = data.map(d => d.date)
+  const ff = getCurrentFontFamily()
   operationChart.setOption({
+    textStyle: { fontFamily: ff },
     tooltip: { ...baseTooltip, trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { top: 20, right: 20, bottom: 32, left: 50 },
     xAxis: {
@@ -166,12 +190,12 @@ function initOperationChart(data) {
       data: dates,
       axisLine: { lineStyle: { color: 'rgba(0,0,0,0.06)' } },
       axisTick: { show: false },
-      axisLabel: { color: '#909399', fontSize: 11 }
+      axisLabel: { color: '#909399', fontSize: 11, fontFamily: ff }
     },
     yAxis: {
       type: 'value',
       splitLine: { lineStyle: { color: 'rgba(0,0,0,0.04)' } },
-      axisLabel: { color: '#909399', fontSize: 11 }
+      axisLabel: { color: '#909399', fontSize: 11, fontFamily: ff }
     },
     series: [{
       name: '操作次数', type: 'bar', barWidth: 24,
@@ -208,6 +232,15 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
   loginChart?.dispose()
   operationChart?.dispose()
+})
+
+// 监听字体变化，重新渲染图表
+watch(() => appStore.fontFamily, async () => {
+  await nextTick()
+  const res = await getLogStatistics({ days: 7 })
+  const daily = res.data.dailyStats || []
+  initLoginChart(daily)
+  initOperationChart(daily)
 })
 </script>
 

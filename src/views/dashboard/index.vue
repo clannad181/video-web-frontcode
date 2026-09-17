@@ -208,7 +208,6 @@ onUnmounted(() => {
   background: var(--bg-card, #fff);
   border-radius: var(--radius-lg, 16px);
   padding: 24px;
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .stat-placeholder {
   display: flex;
