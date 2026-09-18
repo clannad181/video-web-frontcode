@@ -34,16 +34,16 @@
       />
     </div>
 
-    <div class="d-player-topbar" v-if="showTopbar">
+    <!-- <div class="d-player-topbar" v-if="showTopbar">
       <div class="d-player-topbar__left">
         <span class="d-player-topbar__title">{{ title }}</span>
       </div>
       <div class="d-player-topbar__right">
         <span class="d-player-topbar__clock">{{ currentTime }}</span>
       </div>
-    </div>
+    </div> -->
 
-    <transition name="fade">
+    <!-- <transition name="fade">
       <div class="d-player-status" v-if="statusVisible">
         <div class="d-player-status__icon">
           <el-icon :size="32">
@@ -52,7 +52,7 @@
         </div>
         <div class="d-player-status__text">{{ statusText }}</div>
       </div>
-    </transition>
+    </transition> -->
   </div>
 </template>
 
@@ -188,6 +188,12 @@ onUnmounted(() => {
   clearInterval(clockTimer.value)
   clearTimeout(statusTimeout)
 })
+
+function getVideoEl() {
+  return playerWrapRef.value?.querySelector('video') || null
+}
+
+defineExpose({ getVideoEl })
 </script>
 
 <style lang="scss" scoped>

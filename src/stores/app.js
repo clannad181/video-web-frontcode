@@ -221,6 +221,8 @@ export const useAppStore = defineStore('app', {
         .stat-value { font-size: ${Math.round(28 * ratio)}px !important; }
         /* 表格 */
         .el-table .cell { font-size: ${Math.round(13 * ratio)}px !important; }
+        .data-table td, .data-table th { font-size: ${Math.round(13 * ratio)}px !important; }
+        .col-data.mono, .col-serial, .col-audit, .col-status { font-size: ${Math.round(13 * ratio)}px !important; }
       `
     }
   }
