@@ -127,7 +127,7 @@
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, WarningFilled } from '@element-plus/icons-vue'
-import { getRoleList, createRole, updateRole, deleteRole, changeRoleStatus } from '@/api/role'
+import { getRoleList, addRole as createRole, updateRole, deleteRole } from '@/api/role'
 import { getMenuList } from '@/api/menu'
 
 const loading = ref(false)
@@ -227,7 +227,7 @@ const handleSave = async () => {
 }
 
 const handleStatusChange = async (row) => {
-  await changeRoleStatus(row.id, row.status)
+  await updateRole({ id: row.id, status: row.status })
   ElMessage.success('状态已更新')
 }
 
