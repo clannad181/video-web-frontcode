@@ -30,18 +30,22 @@
         </div>
         <div class="filter-item">
           <label class="filter-label">状态</label>
-          <select v-model="filter.status" class="filter-select">
-            <option value="">全部</option>
-            <option value="0">启用</option>
-            <option value="1">禁用</option>
-          </select>
+          <div class="select-wrap" :class="{ open: statusOpen }">
+            <select v-model="filter.status" class="filter-select" @mousedown="statusOpen = true" @blur="statusOpen = false">
+              <option value="">全部</option>
+              <option value="0">启用</option>
+              <option value="1">禁用</option>
+            </select>
+          </div>
         </div>
         <div v-if="activeTab === 'admin'" class="filter-item filter-item-role">
           <label class="filter-label">角色</label>
-          <select v-model="filter.roleId" class="filter-select">
-            <option value="">全部</option>
-            <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
-          </select>
+          <div class="select-wrap" :class="{ open: roleOpen }">
+            <select v-model="filter.roleId" class="filter-select" @mousedown="roleOpen = true" @blur="roleOpen = false">
+              <option value="">全部</option>
+              <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
+            </select>
+          </div>
         </div>
         <div class="filter-actions" :class="{ 'filter-actions-inline': activeTab === 'admin' }">
           <button class="btn btn-outline" @click="onReset">
@@ -319,6 +323,8 @@ import { getUserList, addUser, updateUser, deleteUser, resetPassword, getRoleLis
 import { uploadFile } from '@/api/file'
 
 const loading = ref(false)
+const statusOpen = ref(false)
+const roleOpen = ref(false)
 const list = ref([])
 const activeTab = ref('admin')
 const filter = reactive({ userName: '', nikeName: '', email: '', status: '', roleId: '' })
@@ -575,18 +581,40 @@ const confirmDelete = async () => {
 .filter-select {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23909399' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-position: right 12px center;
+  background-color: var(--bg-color, #f5f7fa);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
   padding-right: 32px;
   transition: all 0.2s;
 
   &:focus {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fb7299' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-    background-position: right 12px center;
+    background-color: var(--card-bg, #fff);
+    box-shadow: 0 0 0 2px rgba(251,114,153,0.25);
   }
+}
 
-  &:hover {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fb7299' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+.select-wrap {
+  position: relative;
+  .filter-select { width: 100%; }
+  &::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-left: 4.5px solid transparent;
+    border-right: 4.5px solid transparent;
+    border-top: 5.5px solid var(--text-secondary, #909399);
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(-60%);
+  }
+  &:hover::after {
+    border-top-color: var(--color-primary, #fb7299);
+  }
+  &.open::after {
+    border-top-color: var(--color-primary, #fb7299);
+    transform: translateY(-40%) rotate(180deg);
   }
 }
 
@@ -764,13 +792,13 @@ const confirmDelete = async () => {
 }
 
 .status-pill.active {
-  color: #2deb59;
-  background: rgba(251, 114, 153, 0.08);
+  color: #67c23a;
+  background: rgba(103,194,58,0.1);
 }
 
 .status-pill.disabled {
   color: #f56c6c;
-  background: rgba(245, 108, 108, 0.1);
+  background: rgba(245,108,108,0.1);
 }
 
 .vip-pill {

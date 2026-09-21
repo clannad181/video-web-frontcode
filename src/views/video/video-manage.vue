@@ -8,7 +8,7 @@
     <div class="filter-card">
       <div class="filter-grid">
         <div class="filter-item">
-          <label class="filter-label">视频ID</label>
+          <label class="filter-label">视频AVID</label>
           <input v-model="filter.id" class="filter-input" placeholder="输入视频ID" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
@@ -17,20 +17,24 @@
         </div>
         <div class="filter-item">
           <label class="filter-label">分类</label>
-          <select v-model="filter.categoryId" class="filter-select">
-            <option value="">全部分类</option>
-            <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
+          <div class="select-wrap" :class="{ open: categoryOpen }">
+            <select v-model="filter.categoryId" class="filter-select" @mousedown="categoryOpen = true" @blur="categoryOpen = false">
+              <option value="">全部分类</option>
+              <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </select>
+          </div>
         </div>
         <div class="filter-item">
           <label class="filter-label">视频状态</label>
-          <select v-model="filter.videoStatus" class="filter-select">
-            <option value="">全部</option>
-            <option :value="0">草稿</option>
-            <option :value="1">待发布</option>
-            <option :value="2">已发布</option>
-            <option :value="3">已下架</option>
-          </select>
+          <div class="select-wrap" :class="{ open: videoStatusOpen }">
+            <select v-model="filter.videoStatus" class="filter-select" @mousedown="videoStatusOpen = true" @blur="videoStatusOpen = false">
+              <option value="">全部</option>
+              <option :value="0">草稿</option>
+              <option :value="1">待发布</option>
+              <option :value="2">已发布</option>
+              <option :value="3">已下架</option>
+            </select>
+          </div>
         </div>
         <div class="filter-item">
           <label class="filter-label">UP主昵称</label>
@@ -42,11 +46,13 @@
         </div>
         <div class="filter-item">
           <label class="filter-label">连载状态</label>
-          <select v-model="filter.serialStatus" class="filter-select">
-            <option value="">全部</option>
-            <option :value="1">连载中</option>
-            <option :value="0">已完结</option>
-          </select>
+          <div class="select-wrap" :class="{ open: serialStatusOpen }">
+            <select v-model="filter.serialStatus" class="filter-select" @mousedown="serialStatusOpen = true" @blur="serialStatusOpen = false">
+              <option value="">全部</option>
+              <option :value="1">连载中</option>
+              <option :value="0">已完结</option>
+            </select>
+          </div>
         </div>
         <div class="filter-actions">
           <button class="btn btn-outline" @click="onReset">
@@ -85,7 +91,7 @@
           <thead>
             <tr>
               <th class="col-index">#</th>
-              <th class="col-id">视频ID</th>
+              <th class="col-id">视频AVID</th>
               <th class="col-cover">封面</th>
               <th class="col-title">标题</th>
               <th class="col-user">UP主</th>
@@ -510,6 +516,9 @@ const route = useRoute()
 const loading = ref(false)
 const tableData = ref([])
 const categories = ref([])
+const categoryOpen = ref(false)
+const videoStatusOpen = ref(false)
+const serialStatusOpen = ref(false)
 
 const filter = reactive({ id: '', title: '', categoryId: '', videoStatus: '', username: '', userId: '', serialStatus: '' })
 const sortField = ref('')
@@ -924,18 +933,40 @@ onMounted(async () => {
 .filter-select {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23909399' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-position: right 12px center;
+  background-color: var(--bg-color, #f5f7fa);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
   padding-right: 32px;
   transition: all 0.2s;
 
   &:focus {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fb7299' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-    background-position: right 12px center;
+    background-color: var(--card-bg, #fff);
+    box-shadow: 0 0 0 2px rgba(251,114,153,0.25);
   }
+}
 
-  &:hover {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fb7299' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+.select-wrap {
+  position: relative;
+  .filter-select { width: 100%; }
+  &::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-left: 4.5px solid transparent;
+    border-right: 4.5px solid transparent;
+    border-top: 5.5px solid var(--text-secondary, #909399);
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(-60%);
+  }
+  &:hover::after {
+    border-top-color: var(--color-primary, #fb7299);
+  }
+  &.open::after {
+    border-top-color: var(--color-primary, #fb7299);
+    transform: translateY(-40%) rotate(180deg);
   }
 }
 
@@ -2409,10 +2440,6 @@ html.dark-mode {
     &:focus {
       background-color: var(--card-bg);
     }
-  }
-
-  .fs {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b949e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   }
 
   .btn-secondary {

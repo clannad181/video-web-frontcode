@@ -1,364 +1,1181 @@
 <template>
-  <div class="menu-manage">
-    <el-card shadow="never" class="table-card fade-in">
-      <template #header>
-        <div class="card-header">
-          <span class="header-title">菜单管理</span>
-          <el-button type="primary" :icon="Plus" @click="handleAdd()">新增菜单</el-button>
-        </div>
-      </template>
+  <div class="page-container">
+    <div class="page-header">
+      <h1 class="page-title">菜单管理</h1>
+      <p class="page-subtitle">管理系统菜单结构与层级</p>
+    </div>
 
-      <el-table
-        :data="tableData"
-        v-loading="loading"
-        row-key="id"
-        default-expand-all
-        class="menu-table"
-        :tree-props="{ children: 'children' }"
-      >
-        <el-table-column prop="title" label="菜单名称" min-width="200">
-          <template #default="{ row }">
-            <div class="menu-name-cell">
-              <el-icon v-if="row.icon" :size="16" class="menu-icon"><component :is="row.icon" /></el-icon>
-              <span>{{ row.title }}</span>
+    <div class="filter-card">
+      <div class="filter-grid">
+        <div class="filter-item">
+          <label class="filter-label">菜单名称</label>
+          <input v-model="query.menuName" class="filter-input" placeholder="请输入菜单名称" @keyup.enter="search" />
+        </div>
+        <div class="filter-item">
+          <label class="filter-label">状态</label>
+          <div class="select-wrap" :class="{ open: statusOpen }">
+            <select v-model="query.status" class="filter-select" @mousedown="statusOpen = true"
+              @blur="statusOpen = false">
+              <option value="">全部</option>
+              <option :value="true">启用</option>
+              <option :value="false">禁用</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-secondary" @click="resetQuery">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          重置
+        </button>
+        <button class="btn btn-primary" @click="search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          搜索
+        </button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-wrap" v-loading="loading">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="col-index">#</th>
+              <th>菜单名称</th>
+              <th>图标</th>
+              <th>路由路径</th>
+              <th>排序</th>
+              <th>状态</th>
+              <th class="sticky-col">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="pagedData.length === 0 && !loading">
+              <td colspan="7" class="empty-row">暂无数据</td>
+            </tr>
+            <tr v-for="(row, idx) in pagedData" :key="row.id" class="table-row">
+              <td class="col-index">{{ (currentPage - 1) * pageSize + idx + 1 }}</td>
+              <td>
+                <div class="menu-name-cell" :style="{ paddingLeft: row._level * 24 + 'px' }">
+                  <span v-if="row._hasChildren" class="tree-indent">
+                    <span class="tree-line">└</span>
+                  </span>
+                  <button v-if="row._hasChildren" class="expand-btn" :class="{ expanded: expandedIds.has(row.id) }"
+                    @click="toggleExpand(row.id)">▶</button>
+                  <span v-else class="expand-spacer"></span>
+                  <el-icon v-if="row.icon" :size="15" class="menu-icon">
+                    <component :is="row.icon" />
+                  </el-icon>
+                  <span class="cell-bold">{{ row.menuName }}</span>
+                </div>
+              </td>
+              <td>
+                <el-icon v-if="row.icon" :size="17" class="icon-preview">
+                  <component :is="row.icon" />
+                </el-icon>
+                <span v-else class="cell-muted">—</span>
+              </td>
+              <td class="cell-mono">{{ row.menuIdentification || '—' }}</td>
+              <td><span class="sort-num">{{ row.descSort }}</span></td>
+              <td>
+                <span class="status-badge" :class="row.status ? 'active' : 'inactive'">
+                  {{ row.status ? '启用' : '禁用' }}
+                </span>
+              </td>
+              <td class="sticky-col">
+                <div class="action-group">
+                  <button class="btn-action btn-edit" @click="openEditModal(row)">编辑</button>
+                  <button class="btn-action btn-delete" @click="confirmDelete(row)">删除</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="totalFiltered > 0" class="pagination-wrap">
+        <div class="page-info">共 {{ totalFiltered }} 条</div>
+        <div class="page-btns">
+          <button class="pg-btn" :disabled="currentPage <= 1" @click="goPage(currentPage - 1)">&#8249;</button>
+          <template v-for="p in totalPages" :key="p">
+            <span v-if="p === '...'" class="pg-ellipsis">...</span>
+            <button v-else class="pg-btn" :class="{ active: currentPage === p }" @click="goPage(p)">{{ p }}</button>
+          </template>
+          <button class="pg-btn" :disabled="currentPage >= totalPages" @click="goPage(currentPage + 1)">&#8250;</button>
+        </div>
+        <select v-model.number="pageSize" class="page-size-sel">
+          <option :value="10">10 条/页</option>
+          <option :value="20">20 条/页</option>
+          <option :value="50">50 条/页</option>
+          <option :value="100">100 条/页</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 编辑弹窗 -->
+    <teleport to="body">
+      <transition name="modal-fade">
+        <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
+          <div class="modal-card modal-std" @click.stop>
+            <div class="modal-header">
+              <h3>{{ editForm.id ? '编辑菜单' : '新增菜单' }}</h3>
+              <button class="modal-close" @click="closeEditModal">&times;</button>
             </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="icon" label="图标" width="70" align="center">
-          <template #default="{ row }">
-            <el-icon v-if="row.icon" :size="18" color="#909399"><component :is="row.icon" /></el-icon>
-            <span v-else class="text-muted">—</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="path" label="路由路径" width="180">
-          <template #default="{ row }">
-            <span class="mono-text">{{ row.path || '—' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="component" label="组件路径" width="200" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span class="mono-text">{{ row.component || '—' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="sort" label="排序" width="70" align="center">
-          <template #default="{ row }">
-            <span class="sort-num">{{ row.sort }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="type" label="类型" width="90" align="center">
-          <template #default="{ row }">
-            <el-tag
-              :type="['', 'success', 'warning'][row.type]"
-              size="small"
-              effect="dark"
-              round
-            >
-              {{ ['目录', '菜单', '按钮'][row.type] }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="80" align="center">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
-              {{ row.status === 1 ? '正常' : '禁用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="permission" label="权限标识" width="160" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span class="mono-text" v-if="row.permission">{{ row.permission }}</span>
-            <span v-else class="text-muted">—</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right" align="center">
-          <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button v-if="row.type !== 2" type="primary" link size="small" @click="handleAdd(row.id)">添加子菜单</el-button>
-            <el-popconfirm
-              :title="`确定删除「${row.title}」吗？`"
-              confirm-button-text="确定"
-              cancel-button-text="取消"
-              :icon="WarningFilled"
-              icon-color="#E6A23C"
-              @confirm="handleDelete(row.id)"
-            >
-              <template #reference>
-                <el-button type="danger" link size="small">删除</el-button>
-              </template>
-            </el-popconfirm>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
-
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEditing ? '编辑菜单' : '新增菜单'"
-      width="560px"
-      destroy-on-close
-      class="edit-dialog"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-        class="edit-form"
-      >
-        <el-form-item label="上级菜单">
-          <el-tree-select
-            v-model="form.parentId"
-            :data="menuTree"
-            :props="{ label: 'title', children: 'children' }"
-            check-strictly
-            :render-after-expand="false"
-            placeholder="选择上级菜单（不选则为顶级）"
-            clearable
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item label="菜单类型" prop="type">
-          <el-radio-group v-model="form.type">
-            <el-radio :value="0">目录</el-radio>
-            <el-radio :value="1">菜单</el-radio>
-            <el-radio :value="2">按钮</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="菜单名称" prop="title">
-          <el-input v-model="form.title" placeholder="请输入菜单名称" />
-        </el-form-item>
-        <el-form-item v-if="form.type !== 2" label="图标">
-          <el-select v-model="form.icon" placeholder="选择图标" clearable style="width: 100%">
-            <el-option v-for="icon in iconOptions" :key="icon" :label="icon" :value="icon">
-              <div class="icon-option">
-                <el-icon><component :is="icon" /></el-icon>
-                <span>{{ icon }}</span>
+            <div class="modal-body">
+              <div class="fg">
+                <label class="fl">菜单名称 <span class="req">*</span></label>
+                <input v-model="editForm.menuName" class="fi" placeholder="请输入菜单名称" />
               </div>
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item v-if="form.type !== 2" label="路由路径" prop="path">
-          <el-input v-model="form.path" placeholder="如 /user/manage" />
-        </el-form-item>
-        <el-form-item v-if="form.type === 1" label="组件路径" prop="component">
-          <el-input v-model="form.component" placeholder="如 views/user/manage" />
-        </el-form-item>
-        <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="form.sort" :min="0" :max="999" controls-position="right" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-radio-group v-model="form.status">
-            <el-radio :value="1">正常</el-radio>
-            <el-radio :value="0">禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item v-if="form.type === 2" label="权限标识">
-          <el-input v-model="form.permission" placeholder="如 user:add, user:edit" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" :loading="saving" @click="handleSave">确定</el-button>
+              <div class="fg">
+                <label class="fl">菜单图标</label>
+                <div class="icon-select-trigger" @click="showIconPicker = true">
+                  <template v-if="editForm.icon">
+                    <el-icon :size="18">
+                      <component :is="editForm.icon" />
+                    </el-icon>
+                    <span class="icon-selected-name">{{ editForm.icon }}</span>
+                  </template>
+                  <span v-else class="icon-placeholder">点击选择图标</span>
+                </div>
+              </div>
+              <div class="fg">
+                <label class="fl">路由路径</label>
+                <input class="fi fi-readonly" :value="editForm.menuIdentification" readonly />
+              </div>
+              <div class="fg">
+                <label class="fl">排序 <span class="req">*</span></label>
+                <input v-model.number="editForm.descSort" class="fi" type="number" placeholder="请输入排序值" />
+              </div>
+              <div class="fg">
+                <label class="fl">上级菜单</label>
+                <div class="select-wrap" :class="{ open: parentOpen }">
+                  <select v-model="editForm.parentId" class="filter-select" @mousedown="parentOpen = true"
+                    @blur="parentOpen = false">
+                    <option :value="null">无父级</option>
+                    <option v-for="opt in parentOptions" :key="opt.id" :value="opt.id">{{ opt.label }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fg">
+                <label class="fl">状态</label>
+                <div class="toggle-wrap" @click="editForm.status = !editForm.status">
+                  <button class="toggle-btn" :class="{ on: editForm.status }">
+                    <span class="toggle-knob"></span>
+                  </button>
+                  <span class="toggle-label">{{ editForm.status ? '启用' : '禁用' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" @click="closeEditModal">取消</button>
+              <button class="btn btn-primary" @click="handleSave">确认</button>
+            </div>
+          </div>
         </div>
-      </template>
-    </el-dialog>
+      </transition>
+    </teleport>
+
+    <IconPicker v-model="editForm.icon" :visible="showIconPicker" @close="showIconPicker = false" />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, WarningFilled } from '@element-plus/icons-vue'
-import { getMenuList, createMenu, updateMenu, deleteMenu } from '@/api/menu'
+import { getMenuList, updateMenu, deleteMenu } from '@/api/menu'
+import IconPicker from '@/components/IconPicker.vue'
 
 const loading = ref(false)
-const saving = ref(false)
-const tableData = ref([])
-const menuTree = ref([])
+const rawList = ref([])
+const total = ref(0)
+const statusOpen = ref(false)
+const parentOpen = ref(false)
 
-const dialogVisible = ref(false)
-const isEditing = ref(false)
-const formRef = ref(null)
+const query = reactive({ menuName: '', status: '' })
+const appliedFilter = reactive({ menuName: '', status: '' })
 
-const iconOptions = [
-  'HomeFilled', 'Setting', 'User', 'UserFilled', 'VideoCamera', 'ChatDotRound',
-  'View', 'Document', 'Folder', 'Menu', 'Lock', 'Key', 'Bell', 'Warning',
-  'SuccessFilled', 'CircleCloseFilled', 'InfoFilled', 'Search', 'Download',
-  'Upload', 'Plus', 'Delete', 'Edit', 'Refresh', 'DataLine', 'TrendCharts'
-]
+// --- 树构建 ---
+const expandedIds = ref(new Set())
 
-const form = reactive({
-  id: null,
-  parentId: null,
-  type: 0,
-  title: '',
-  icon: '',
-  path: '',
-  component: '',
-  sort: 0,
-  status: 1,
-  permission: ''
-})
-
-const rules = {
-  title: [{ required: true, message: '请输入菜单名称', trigger: 'blur' }],
-  type: [{ required: true, message: '请选择菜单类型', trigger: 'change' }]
+function buildTree(list) {
+  const map = {}
+  list.forEach(item => { map[item.id] = { ...item, children: [] } })
+  const roots = []
+  list.forEach(item => {
+    if (item.parentId && map[item.parentId]) {
+      map[item.parentId].children.push(map[item.id])
+    } else {
+      roots.push(map[item.id])
+    }
+  })
+  function sortTree(nodes) {
+    nodes.sort((a, b) => (a.descSort ?? 0) - (b.descSort ?? 0))
+    nodes.forEach(n => sortTree(n.children))
+  }
+  sortTree(roots)
+  return roots
 }
 
-const fetchData = async () => {
+function flattenTree(nodes, level = 0) {
+  const result = []
+  nodes.forEach(node => {
+    const hasChildren = node.children && node.children.length > 0
+    result.push({ ...node, _level: level, _hasChildren: hasChildren })
+    if (hasChildren && expandedIds.value.has(node.id)) {
+      result.push(...flattenTree(node.children, level + 1))
+    }
+  })
+  return result
+}
+
+const treeData = computed(() => buildTree(rawList.value))
+const flatTree = computed(() => flattenTree(treeData.value))
+
+const filteredData = computed(() => {
+  return flatTree.value.filter(row => {
+    if (appliedFilter.menuName && !row.menuName.toLowerCase().includes(appliedFilter.menuName.toLowerCase())) return false
+    if (appliedFilter.status !== '' && row.status !== appliedFilter.status) return false
+    return true
+  })
+})
+
+const totalFiltered = computed(() => total.value)
+const totalPages = computed(() => Math.max(1, Math.ceil(totalFiltered.value / pageSize.value)))
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+watch(pageSize, () => { currentPage.value = 1; fetchData() })
+
+const pagedData = computed(() => filteredData.value)
+
+function toggleExpand(id) {
+  const s = new Set(expandedIds.value)
+  if (s.has(id)) s.delete(id); else s.add(id)
+  expandedIds.value = s
+}
+
+// --- 上级菜单选项 ---
+function flattenForOptions(nodes, level = 0) {
+  const result = []
+  nodes.forEach(node => {
+    const prefix = '\u3000'.repeat(level) + '└ '
+    result.push({ id: node.id, label: prefix + node.menuName })
+    if (node.children && node.children.length) {
+      result.push(...flattenForOptions(node.children, level + 1))
+    }
+  })
+  return result
+}
+
+const parentOptions = computed(() => {
+  const roots = buildTree(rawList.value)
+  const opts = flattenForOptions(roots)
+  if (editForm.id) {
+    const descIds = new Set()
+    function collectDesc(nodes) {
+      nodes.forEach(n => { descIds.add(n.id); if (n.children) collectDesc(n.children) })
+    }
+    const targetNode = buildTree(rawList.value).find(n => n.id === editForm.id)
+    if (targetNode && targetNode.children) collectDesc(targetNode.children)
+    return opts.filter(o => o.id !== editForm.id && !descIds.has(o.id))
+  }
+  return opts
+})
+
+// --- 筛选 ---
+function goPage(p) {
+  currentPage.value = p
+  fetchData()
+}
+function search() {
+  appliedFilter.menuName = query.menuName
+  appliedFilter.status = query.status
+  currentPage.value = 1
+  fetchData()
+}
+function resetQuery() {
+  query.menuName = ''
+  query.status = ''
+  appliedFilter.menuName = ''
+  appliedFilter.status = ''
+  currentPage.value = 1
+  fetchData()
+}
+
+// --- 编辑弹窗 ---
+const showEditModal = ref(false)
+const showIconPicker = ref(false)
+const editForm = reactive({ id: null, menuName: '', icon: '', menuIdentification: '', descSort: 0, parentId: null, status: true })
+
+function openEditModal(row) {
+  editForm.id = row.id
+  editForm.menuName = row.menuName
+  editForm.icon = row.icon
+  editForm.menuIdentification = row.menuIdentification
+  editForm.descSort = row.descSort
+  editForm.parentId = row.parentId || null
+  editForm.status = row.status
+  showEditModal.value = true
+}
+
+function closeEditModal() { showEditModal.value = false }
+
+async function handleSave() {
+  if (!editForm.menuName || editForm.menuName.trim() === '') {
+    ElMessage.warning('请填写菜单名称')
+    return
+  }
+  if (editForm.descSort === '' || editForm.descSort == null) {
+    ElMessage.warning('请填写排序值')
+    return
+  }
+  try {
+    await updateMenu({
+      id: editForm.id,
+      menuName: editForm.menuName,
+      icon: editForm.icon,
+      menuIdentification: editForm.menuIdentification,
+      descSort: editForm.descSort,
+      parentId: editForm.parentId,
+      status: editForm.status
+    })
+    ElMessage.success('菜单更新成功')
+    showEditModal.value = false
+    fetchData()
+    window.dispatchEvent(new Event('menu-updated'))
+  } catch (e) {
+    console.error('更新菜单失败', e)
+  }
+}
+
+// --- 删除 ---
+async function confirmDelete(row) {
+  try {
+    await ElMessageBox.confirm(`确定要删除菜单「${row.menuName}」吗？`, '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await deleteMenu(row.id)
+    ElMessage.success('删除成功')
+    fetchData()
+    window.dispatchEvent(new Event('menu-updated'))
+  } catch (e) {
+    if (e !== 'cancel') console.error('删除失败', e)
+  }
+}
+
+// --- 数据加载 ---
+async function fetchData() {
   loading.value = true
   try {
-    const res = await getMenuList()
-    tableData.value = res.data
-    menuTree.value = [{ id: 0, title: '顶级菜单', children: res.data }]
+    const params = { page: currentPage.value, size: pageSize.value }
+    if (appliedFilter.menuName) params.menuName = appliedFilter.menuName
+    if (appliedFilter.status !== '') params.status = appliedFilter.status
+    const res = await getMenuList(params)
+    rawList.value = res.data?.records || res.data || []
+    total.value = res.data?.total ?? rawList.value.length
+  } catch (e) {
+    console.error('加载菜单失败', e)
   } finally {
     loading.value = false
   }
-}
-
-const resetForm = () => {
-  form.id = null
-  form.parentId = null
-  form.type = 0
-  form.title = ''
-  form.icon = ''
-  form.path = ''
-  form.component = ''
-  form.sort = 0
-  form.status = 1
-  form.permission = ''
-}
-
-const handleAdd = (parentId) => {
-  isEditing.value = false
-  resetForm()
-  form.parentId = parentId || null
-  dialogVisible.value = true
-}
-
-const handleEdit = (row) => {
-  isEditing.value = true
-  resetForm()
-  form.id = row.id
-  form.parentId = row.parentId
-  form.type = row.type
-  form.title = row.title
-  form.icon = row.icon
-  form.path = row.path
-  form.component = row.component
-  form.sort = row.sort
-  form.status = row.status
-  form.permission = row.permission
-  dialogVisible.value = true
-}
-
-const handleSave = async () => {
-  await formRef.value.validate()
-  saving.value = true
-  try {
-    if (isEditing.value) {
-      await updateMenu(form.id, { ...form })
-      ElMessage.success('更新成功')
-    } else {
-      await createMenu({ ...form })
-      ElMessage.success('创建成功')
-    }
-    dialogVisible.value = false
-    fetchData()
-  } finally {
-    saving.value = false
-  }
-}
-
-const handleDelete = async (id) => {
-  await deleteMenu(id)
-  ElMessage.success('删除成功')
-  fetchData()
 }
 
 onMounted(fetchData)
 </script>
 
 <style lang="scss" scoped>
-.menu-manage {
+/* ---- Page Container ---- */
+.page-container {
   padding: 0;
 }
 
-.table-card {
+/* ---- Page Header ---- */
+.page-header {
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--el-text-color-primary, #303133);
+  margin: 0 0 4px;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--el-text-color-secondary, #909399);
+  margin: 0;
+}
+
+/* ---- Filter Card ---- */
+.filter-card {
+  background: var(--card-bg, #fff);
   border-radius: 12px;
-  border: 1px solid #f2f3f5;
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-color, #e4e7ed);
 }
 
-.card-header {
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.filter-item {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 12px;
+  color: var(--text-secondary, #909399);
+  font-weight: 500;
+}
+
+.filter-input,
+.filter-select {
+  height: 40px;
+  border-radius: 12px;
+  border: none;
+  padding: 0 14px;
+  font-size: 13px;
+  background-color: var(--bg-color, #f5f7fa);
+  outline: none;
+  transition: all 0.2s;
+  color: var(--text-primary, #303133);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  &:focus {
+    background-color: var(--card-bg, #fff);
+    box-shadow: 0 0 0 2px rgba(251, 114, 153, 0.25);
+  }
+}
+
+.filter-select {
+  cursor: pointer;
+  appearance: none;
+  background-color: var(--bg-color, #f5f7fa);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding-right: 32px;
+
+  &:focus {
+    background-color: var(--card-bg, #fff);
+    box-shadow: 0 0 0 2px rgba(251, 114, 153, 0.25);
+  }
+}
+
+.select-wrap {
+  position: relative;
+
+  .filter-select {
+    width: 100%;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-left: 4.5px solid transparent;
+    border-right: 4.5px solid transparent;
+    border-top: 5.5px solid var(--text-secondary, #909399);
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(-60%);
+  }
+
+  &:hover::after {
+    border-top-color: var(--color-primary, #fb7299);
+  }
+
+  &.open::after {
+    border-top-color: var(--color-primary, #fb7299);
+    transform: translateY(-40%) rotate(180deg);
+  }
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ---- Buttons ---- */
+.btn {
+  height: 36px;
+  padding: 0 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.25s ease;
+  display: inline-flex;
   align-items: center;
+  gap: 6px;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &.btn-primary {
+    background: linear-gradient(135deg, var(--color-primary, #fb7299) 0%, #ff9ac6 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(251, 114, 153, 0.25);
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(251, 114, 153, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &.btn-secondary {
+    background: var(--bg-color, #f5f7fa);
+    color: var(--text-primary, #303133);
+    border-color: var(--border-color, #dcdfe6);
+
+    &:hover {
+      background: var(--border-color, #ebedf0);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none !important;
+  }
 }
 
-.header-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
+/* ---- Table Card ---- */
+.table-card {
+  background: var(--card-bg, #fff);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e4e7ed);
+  overflow: hidden;
 }
 
-.menu-table {
-  :deep(.el-table__header th) {
-    background: #fafafa;
+.table-wrap {
+  overflow-x: auto;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.15);
+  }
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  min-width: 800px;
+
+  th {
+    padding: 14px 16px;
+    text-align: center;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary, #909399);
+    background: var(--bg-color, #f8f9fc);
     font-weight: 600;
-    color: #606266;
-    font-size: 13px;
+    white-space: nowrap;
+    border-bottom: 2px solid var(--border-color, #e4e7ed);
+    user-select: none;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color, #f2f3f5);
+    vertical-align: middle;
+    background: var(--card-bg, #fff);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .table-row:hover td {
+    background: var(--bg-color, #fafafa);
+  }
+
+  .col-index {
+    width: 60px;
   }
 }
 
 .menu-name-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.tree-indent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  flex-shrink: 0;
+}
+
+.tree-line {
+  color: var(--text-secondary, #c0c4cc);
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.expand-btn {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--bg-color, #f5f7fa);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 9px;
+  color: var(--text-secondary, #909399);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.expand-btn:hover {
+  background: var(--color-primary, #fb7299);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.expand-btn.expanded {
+  transform: rotate(90deg);
+  background: var(--color-primary, #fb7299);
+  color: #fff;
+}
+
+.expand-spacer {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: inline-block;
 }
 
 .menu-icon {
-  color: #409eff;
+  color: var(--color-primary, #fb7299);
+  flex-shrink: 0;
 }
 
-.mono-text {
+.icon-preview {
+  color: var(--text-secondary, #909399);
+}
+
+.cell-bold {
+  font-weight: 600;
+  color: var(--text-primary, #303133);
+}
+
+.cell-muted {
+  color: var(--text-secondary, #909399);
+}
+
+.cell-mono {
   font-family: 'SF Mono', 'Menlo', monospace;
-  font-size: 13px;
-  color: #606266;
+  font-size: 12.5px;
+  color: var(--text-secondary, #909399);
 }
 
 .sort-num {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
+  min-width: 28px;
   height: 24px;
-  background: #f5f7fa;
+  background: var(--bg-color, #f5f7fa);
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
-  color: #606266;
+  color: var(--text-primary, #606266);
 }
 
-.text-muted {
-  color: #c0c4cc;
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.active {
+    color: #67c23a;
+    background: rgba(103,194,58,0.1);
+  }
+
+  &.inactive {
+    color: #f56c6c;
+    background: rgba(245,108,108,0.1);
+  }
 }
 
-.edit-form {
-  max-height: 480px;
+/* Sticky Action Column */
+.sticky-col {
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  background: var(--card-bg, #fff);
+  border-left: 1px solid var(--border-color, #e4e7ed);
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.06);
+}
+
+.table-row:hover .sticky-col {
+  background: var(--bg-color, #fafafa);
+}
+
+.action-group {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.btn-action {
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-edit {
+  color: #ffc107;
+  background: rgba(255, 193, 7, 0.1);
+
+  &:hover {
+    color: #fff;
+    background: #ffc107;
+  }
+}
+
+.btn-delete {
+  color: #f56c6c;
+  background: rgba(245, 108, 108, 0.1);
+
+  &:hover {
+    color: #fff;
+    background: #f56c6c;
+  }
+}
+
+.empty-row {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-secondary, #909399);
+}
+
+/* ---- Pagination ---- */
+.pagination-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 10px;
+}
+
+.page-info {
+  font-size: 13px;
+  color: var(--text-secondary, #909399);
+}
+
+.page-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.pg-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #dcdfe6);
+  background: var(--card-bg, #fff);
+  color: var(--text-primary, #303133);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary, #fb7299);
+    color: var(--color-primary, #fb7299);
+  }
+
+  &.active {
+    background: var(--color-primary, #fb7299);
+    color: #fff;
+    border-color: var(--color-primary, #fb7299);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.pg-ellipsis {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--text-secondary, #909399);
+}
+
+.page-size-sel {
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #dcdfe6);
+  padding: 0 8px;
+  font-size: 12px;
+  background: var(--card-bg, #fff);
+  color: var(--text-primary, #303133);
+  cursor: pointer;
+}
+
+/* ---- Modals ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-card {
+  background: var(--card-bg, #fff);
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-std {
+  width: 480px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px 16px;
+  flex-shrink: 0;
+
+  h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-primary, #303133);
+  }
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-secondary, #909399);
+  padding: 0;
+  line-height: 1;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s;
+
+  &:hover {
+    color: var(--text-primary, #303133);
+    background: var(--bg-color, #f5f7fa);
+  }
+}
+
+.modal-body {
+  padding: 4px 28px 20px;
   overflow-y: auto;
-  padding-right: 8px;
+  flex: 1;
 }
 
-.icon-option {
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 28px;
+  border-top: 1px solid var(--border-color, #f2f3f5);
+  flex-shrink: 0;
+}
+
+/* Form */
+.fg {
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.fl {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #303133);
+  margin-bottom: 6px;
+}
+
+.req {
+  color: #f56c6c;
+}
+
+.fi {
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color, #e4e7ed);
+  padding: 0 14px;
+  font-size: 13px;
+  background: var(--card-bg, #fff);
+  color: var(--text-primary, #303133);
+  outline: none;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: var(--color-primary, #fb7299);
+    box-shadow: 0 0 0 3px rgba(251, 114, 153, 0.1);
+  }
+}
+
+.fi-readonly {
+  background: var(--bg-color, #f5f7fa) !important;
+  color: var(--text-secondary, #909399) !important;
+  cursor: not-allowed;
+}
+
+.icon-select-trigger {
   display: flex;
   align-items: center;
   gap: 8px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color, #e4e7ed);
+  padding: 0 14px;
+  background: var(--bg-color, #f5f7fa);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  color: var(--text-primary, #303133);
 }
 
-.dialog-footer {
+.icon-select-trigger:hover {
+  border-color: var(--color-primary, #fb7299);
+}
+
+.icon-selected-name {
+  font-size: 13px;
+}
+
+.icon-placeholder {
+  font-size: 13px;
+  color: var(--text-secondary, #c0c4cc);
+}
+
+/* Toggle */
+.toggle-wrap {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.toggle-btn {
+  width: 48px;
+  height: 26px;
+  border-radius: 13px;
+  border: none;
+  background: var(--border-color, #dcdfe6);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.25s ease;
+  padding: 0;
+  flex-shrink: 0;
+
+  &.on {
+    background: var(--color-primary, #fb7299);
+  }
+}
+
+.toggle-knob {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-btn.on .toggle-knob {
+  transform: translateX(22px);
+}
+
+.toggle-label {
+  font-size: 13px;
+  color: var(--text-secondary, #909399);
+}
+
+/* ---- Animations ---- */
+.modal-fade-enter-active {
+  transition: opacity 0.2s ease;
+
+  .modal-card {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+  }
+}
+
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+
+  .modal-card {
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+}
+
+.modal-fade-enter-from {
+  opacity: 0;
+
+  .modal-card {
+    transform: scale(0.9) translateY(16px);
+    opacity: 0;
+  }
+}
+
+.modal-fade-leave-to {
+  opacity: 0;
+
+  .modal-card {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* ---- Dark Mode ---- */
+html.dark-mode {
+
+  .filter-card,
+  .table-card {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+  }
+
+  .data-table th {
+    background: var(--bg-color);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .data-table td {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .data-table tbody tr:hover td {
+    background: var(--hover-bg);
+  }
+
+  .filter-input,
+  .filter-select,
+  .fi {
+    background: var(--bg-color);
+    color: var(--text-primary);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+
+  .fi:focus {
+    background: var(--card-bg);
+    box-shadow: 0 0 0 2px rgba(251, 114, 153, 0.3);
+  }
+
+  .pg-btn {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .page-size-sel {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .modal-header {
+    border-color: var(--border-color);
+
+    h3 {
+      color: var(--text-primary);
+    }
+  }
+
+  .modal-footer {
+    border-color: var(--border-color);
+  }
+
+  .btn-edit {
+    color: #ffd54f !important;
+  }
+
+  .btn-delete {
+    color: #f87171 !important;
+  }
+
+  .sticky-col {
+    background: var(--card-bg);
+  }
+
+  .table-row:hover .sticky-col {
+    background: var(--hover-bg);
+  }
 }
 </style>

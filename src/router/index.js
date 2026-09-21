@@ -61,7 +61,7 @@ export const constantRoutes = [
       {
         path: '',
         name: 'Role',
-        component: () => import('@/views/role/index.vue'),
+        component: () => import('@/views/system/role-manage.vue'),
         meta: { title: '角色管理', icon: 'UserFilled', requiresAuth: true }
       }
     ]
@@ -108,9 +108,9 @@ export const constantRoutes = [
     children: [
       {
         path: '',
-        name: 'VideoAudit',
-        component: () => import('@/views/audit/video-audit.vue'),
-        meta: { title: '稿件审核', icon: 'CircleCheck', requiresAuth: true }
+        name: 'ReviewManage',
+        component: () => import('@/views/review/index.vue'),
+        meta: { title: '内容审核', icon: 'CircleCheck', requiresAuth: true }
       }
     ]
   },

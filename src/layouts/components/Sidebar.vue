@@ -36,9 +36,10 @@
         <div v-if="mainMenus.length" class="menu-group">
           <!-- 组标题，收缩时显示省略号 -->
           <div v-show="!appStore.sidebar.collapsed" class="group-title">主导航</div>
-          <template v-for="item in mainMenus" :key="item.id || item.path">
-            <!-- 有子菜单的项 -->
-            <div v-if="item.children?.length" class="menu-submenu" :class="{ expanded: expandedMenuIds.has(item.id) }">
+          <TransitionGroup name="menu-item" tag="div">
+            <template v-for="item in mainMenus" :key="item.id || item.path">
+              <!-- 有子菜单的项 -->
+              <div v-if="item.children?.length" class="menu-submenu" :class="{ expanded: expandedMenuIds.has(item.id) }">
               <div
                 class="menu-item submenu-title"
                 :class="{ active: isMenuActive(item) }"
@@ -81,13 +82,15 @@
               </span>
               <span class="menu-text">{{ item.menuName || item.name }}</span>
             </div>
-          </template>
+            </template>
+          </TransitionGroup>
         </div>
 
         <!-- 次导航组（系统管理） -->
         <div v-if="otherMenus.length" class="menu-group">
           <div v-show="!appStore.sidebar.collapsed" class="group-title">系统管理</div>
-          <template v-for="item in otherMenus" :key="item.id || item.path">
+          <TransitionGroup name="menu-item" tag="div">
+            <template v-for="item in otherMenus" :key="item.id || item.path">
             <div v-if="item.children?.length" class="menu-submenu" :class="{ expanded: expandedMenuIds.has(item.id) }">
               <div
                 class="menu-item submenu-title"
@@ -128,7 +131,8 @@
               </span>
               <span class="menu-text">{{ item.menuName || item.name }}</span>
             </div>
-          </template>
+            </template>
+          </TransitionGroup>
         </div>
       </div>
 
@@ -189,7 +193,7 @@
  * 4. 滑动激活指示条
  * 5. 用户信息展示和登出
  */
-import { ref, computed, watch, onMounted, nextTick, markRaw } from 'vue'
+import { ref, computed, watch, onMounted, nextTick, markRaw, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
@@ -202,6 +206,7 @@ const router = useRouter()
 const appStore = useAppStore()
 const userStore = useUserStore()
 const scrollbarRef = ref(null)
+const menuRefreshKey = ref(0)
 
 // 文件基础URL
 const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
@@ -209,6 +214,17 @@ const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
 // 主题色（从CSS变量获取）
 const primaryColor = computed(() => {
   return getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#fb7299'
+})
+
+// 监听菜单更新事件，重新拉取用户菜单
+function onMenuUpdated() {
+  userStore.getUserInfoAction().then(() => {
+    menuRefreshKey.value++
+  })
+}
+window.addEventListener('menu-updated', onMenuUpdated)
+onUnmounted(() => {
+  window.removeEventListener('menu-updated', onMenuUpdated)
 })
 
 // 当前激活的菜单路径
@@ -606,6 +622,30 @@ async function handleLogout() {
 // 文字淡入淡出动画
 .fade-text-enter-active, .fade-text-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .fade-text-enter-from, .fade-text-leave-to { opacity: 0; transform: translateX(-10px); }
+
+// 菜单项刷新动画
+.menu-item-enter-active {
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) {
+      transition-delay: #{$i * 0.03}s;
+    }
+  }
+}
+.menu-item-leave-active {
+  transition: all 0.2s ease;
+}
+.menu-item-enter-from {
+  opacity: 0;
+  transform: translateX(-16px) scale(0.95);
+}
+.menu-item-leave-to {
+  opacity: 0;
+  transform: translateX(-10px) scale(0.98);
+}
+.menu-item-move {
+  transition: transform 0.3s ease;
+}
 
 // ========== 菜单区域 ==========
 .menu-scrollbar { flex: 1; overflow: hidden; }
