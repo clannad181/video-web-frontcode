@@ -2208,8 +2208,9 @@ onMounted(async () => {
   font-weight: 600;
   color: var(--color-primary, #fb7299);
   background: rgba(251,114,153,0.1);
-  padding: 2px 10px;
-  border-radius: 100px;
+  padding: 10px 19px;
+  border-radius: 50px;
+  width:100px;
 }
 
 .ep-rm {
