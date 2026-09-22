@@ -261,13 +261,9 @@ function walkMenus(items, fn) {
 
 function initAndFetchBadges() {
   const allMenus = [...mainMenus.value, ...otherMenus.value]
-  console.log('[Badge] initAndFetchBadges, menuList length:', allMenus.length, 'sample item:', allMenus[0])
-  console.log('[Badge] all menu paths:')
-  allMenus.forEach(m => console.log('  id=' + m.id, 'name=' + (m.menuName||''), 'ident=' + (m.menuIdentification||''), '→ path=' + JSON.stringify(m.path), m.children?.length ? 'children: ' + m.children.map(c => JSON.stringify(c.path)).join(', ') : ''))
   const map = {}
   walkMenus(allMenus, item => { map[item.id] = 0 })
   badgeMap.value = map
-  console.log('[Badge] badgeMap initialized:', JSON.stringify(map))
   fetchBadges()
 }
 
@@ -281,24 +277,18 @@ async function fetchBadges() {
     ])
     const videoStats = videoRes.status === 'fulfilled' ? (videoRes.value?.data || {}) : {}
     const commentStats = commentRes.status === 'fulfilled' ? (commentRes.value?.data || {}) : {}
-    console.log('[Badge] videoStats:', videoStats, 'commentStats:', commentStats)
     const e = (videoStats.pendingCount || 0) + (videoStats.partialCount || 0) + (videoStats.pendingPublishCount || 0)
     const t = commentStats.pendingReviewCount || 0
     const n = e + t
-    console.log('[Badge] values: /review=' + n, '/video-manage=' + e, '/comment-manage=' + t)
     const values = { '/review': n, '/video-manage': e, '/comment-manage': t }
     const map = { ...badgeMap.value }
     const allMenus = [...mainMenus.value, ...otherMenus.value]
     walkMenus(allMenus, item => {
       const val = values[normalizeBadgePath(item.path)]
-      if (val !== undefined) {
-        map[item.id] = val
-        console.log('[Badge] matched:', item.path, '→ id:', item.id, 'val:', val)
-      }
+      if (val !== undefined) map[item.id] = val
     })
-    console.log('[Badge] final badgeMap:', JSON.stringify(map))
     badgeMap.value = map
-  } catch (err) { console.error('[Badge] fetch error:', err) }
+  } catch { /* ignore */ }
 }
 
 function getBadge(id) { return badgeMap.value[id] || 0 }

@@ -1,435 +1,432 @@
 <template>
-  <div class="operation-log">
-    <el-card shadow="never" class="search-card fade-in">
-      <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="模块">
-          <el-select v-model="searchForm.module" placeholder="全部模块" clearable>
-            <el-option v-for="m in modules" :key="m" :label="m" :value="m" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="URI">
-          <el-input v-model="searchForm.uri" placeholder="搜索 URI" clearable :prefix-icon="Search" />
-        </el-form-item>
-        <el-form-item label="操作人">
-          <el-input v-model="searchForm.operator" placeholder="搜索操作人" clearable :prefix-icon="Search" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="全部" clearable>
-            <el-option label="成功" :value="1" />
-            <el-option label="失败" :value="0" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="日期范围">
-          <el-date-picker
-            v-model="searchForm.dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch" :icon="Search">搜索</el-button>
-          <el-button @click="handleReset" :icon="Refresh">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+  <div class="page-container">
+    <div class="page-header">
+      <h2 class="page-title">运行日志</h2>
+      <span class="page-sub">查看系统操作记录和接口调用日志</span>
+    </div>
 
-    <el-card shadow="never" class="table-card fade-in" style="animation-delay: 0.1s">
-      <template #header>
-        <div class="card-header">
-          <span class="header-title">操作日志</span>
-          <div class="header-actions">
-            <el-button type="danger" plain :icon="Delete" @click="handleBatchDelete" :disabled="!selectedIds.length">
-              批量删除
-            </el-button>
-            <el-button type="success" plain :icon="Download" @click="handleExport">
-              导出
-            </el-button>
+    <div class="filter-card">
+      <div class="filter-grid">
+        <div class="filter-item">
+          <label class="filter-label">操作用户</label>
+          <input v-model="filter.username" class="filter-input" placeholder="搜索操作用户" @keyup.enter="onSearch" />
+        </div>
+        <div class="filter-item">
+          <label class="filter-label">所属模块</label>
+          <input v-model="filter.module" class="filter-input" placeholder="搜索所属模块" @keyup.enter="onSearch" />
+        </div>
+        <div class="filter-item">
+          <label class="filter-label">操作结果</label>
+          <div class="select-wrap" :class="{ open: resultOpen }">
+            <select v-model="filter.resultStatus" class="filter-select" @mousedown="resultOpen = true" @blur="resultOpen = false">
+              <option value="">全部</option>
+              <option value="2">成功</option>
+              <option value="1">业务异常</option>
+              <option value="0">系统异常</option>
+            </select>
           </div>
         </div>
-      </template>
-
-      <div v-if="selectedIds.length" class="batch-bar">
-        <span class="batch-count">已选择 <strong>{{ selectedIds.length }}</strong> 项</span>
-        <el-button link type="primary" @click="clearSelection">取消选择</el-button>
-      </div>
-
-      <el-table
-        ref="tableRef"
-        :data="tableData"
-        v-loading="loading"
-        @selection-change="handleSelectionChange"
-        stripe
-        row-key="id"
-        class="log-table"
-      >
-        <el-table-column type="selection" width="50" reserve-selection />
-        <el-table-column prop="id" label="ID" width="70" align="center" />
-        <el-table-column prop="module" label="模块" width="110" align="center">
-          <template #default="{ row }">
-            <el-tag size="small" :type="moduleTagType(row.module)">{{ row.module }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="operator" label="操作人" width="100" />
-        <el-table-column prop="action" label="操作描述" min-width="160" show-overflow-tooltip />
-        <el-table-column prop="uri" label="请求 URI" min-width="180" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span class="mono-text">{{ row.uri }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="method" label="方法" width="90" align="center">
-          <template #default="{ row }">
-            <el-tag size="small" :type="methodTagType(row.method)" effect="dark" round>
-              {{ row.method }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="ip" label="IP" width="140">
-          <template #default="{ row }">
-            <span class="mono-text">{{ row.ip }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="duration" label="耗时" width="90" align="center">
-          <template #default="{ row }">
-            <span :class="durationClass(row.duration)">{{ row.duration }}ms</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="80" align="center">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'" effect="dark" round size="small">
-              {{ row.status === 1 ? '成功' : '失败' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="operateTime" label="操作时间" width="170" />
-        <el-table-column label="详情" width="70" align="center" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="showDetail(row)">详情</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="pagination-wrap">
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :total="pagination.total"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          background
-          @change="fetchData"
-        />
-      </div>
-    </el-card>
-
-    <el-drawer
-      v-model="detailVisible"
-      title="操作详情"
-      size="560px"
-      class="detail-drawer"
-    >
-      <div v-if="detailData" class="detail-content">
-        <el-descriptions :column="2" border size="small">
-          <el-descriptions-item label="操作模块">{{ detailData.module }}</el-descriptions-item>
-          <el-descriptions-item label="操作人">{{ detailData.operator }}</el-descriptions-item>
-          <el-descriptions-item label="请求方法">
-            <el-tag size="small" :type="methodTagType(detailData.method)" effect="dark" round>
-              {{ detailData.method }}
-            </el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="请求 URI" :span="2">
-            <span class="mono-text">{{ detailData.uri }}</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="IP 地址">{{ detailData.ip }}</el-descriptions-item>
-          <el-descriptions-item label="耗时">
-            <span :class="durationClass(detailData.duration)">{{ detailData.duration }}ms</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="detailData.status === 1 ? 'success' : 'danger'" size="small">
-              {{ detailData.status === 1 ? '成功' : '失败' }}
-            </el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="操作时间">{{ detailData.operateTime }}</el-descriptions-item>
-        </el-descriptions>
-
-        <div class="detail-section">
-          <h4 class="section-title">请求参数</h4>
-          <pre class="code-block">{{ detailData.requestParams || '无' }}</pre>
+        <div class="filter-item">
+          <label class="filter-label">系统类型</label>
+          <div class="select-wrap" :class="{ open: systemTypeOpen }">
+            <select v-model="filter.systemType" class="filter-select" @mousedown="systemTypeOpen = true" @blur="systemTypeOpen = false">
+              <option value="">全部</option>
+              <option value="1">后台</option>
+              <option value="0">前台</option>
+            </select>
+          </div>
         </div>
-
-        <div class="detail-section">
-          <h4 class="section-title">响应结果</h4>
-          <pre class="code-block">{{ detailData.response || '无' }}</pre>
+        <div class="filter-item">
+          <label class="filter-label">开始时间</label>
+          <input v-model="filter.startTime" type="datetime-local" class="filter-input" />
         </div>
-
-        <div v-if="detailData.exception" class="detail-section">
-          <h4 class="section-title error">异常堆栈</h4>
-          <pre class="code-block error">{{ detailData.exception }}</pre>
+        <div class="filter-item">
+          <label class="filter-label">结束时间</label>
+          <input v-model="filter.endTime" type="datetime-local" class="filter-input" />
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-outline" @click="onReset">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
+            </svg>
+            重置
+          </button>
+          <button class="btn btn-primary" @click="onSearch">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+            </svg>
+            搜索
+          </button>
         </div>
       </div>
-    </el-drawer>
+    </div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>操作用户</th>
+              <th>所属模块</th>
+              <th>操作描述</th>
+              <th>请求 URI</th>
+              <th>请求方式</th>
+              <th>IP 地址</th>
+              <th>执行耗时</th>
+              <th>操作结果</th>
+              <th>操作时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="list.length === 0 && !loading">
+              <td colspan="11" class="empty-cell"><div class="empty-state"><p>暂无数据</p></div></td>
+            </tr>
+            <tr v-for="(row, idx) in list" :key="row.id" class="table-row">
+              <td>{{ (pagination.page - 1) * pagination.size + idx + 1 }}</td>
+              <td>{{ row.username || '-' }}</td>
+              <td>{{ row.module || '-' }}</td>
+              <td class="col-truncate">{{ row.operationDesc || '-' }}</td>
+              <td class="url-cell">{{ row.requestUri || '-' }}</td>
+              <td><span class="method-badge" :class="'method-' + (row.requestMethod || '').toLowerCase()">{{ row.requestMethod || '-' }}</span></td>
+              <td class="mono">{{ row.ipAddress || '-' }}</td>
+              <td class="mono">{{ row.executionTime != null ? row.executionTime + 'ms' : '-' }}</td>
+              <td><span class="badge" :class="resultBadgeCls(row.resultStatus)">{{ resultLbl(row.resultStatus) }}</span></td>
+              <td class="mono">{{ row.operationTime || '-' }}</td>
+              <td>
+                <div class="action-group">
+                  <button class="act-btn act-blue" @click="viewDetail(row)">查看</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="page-info">共 {{ pagination.total }} 条日志</div>
+        <div class="page-btns">
+          <button class="pg-btn" :disabled="pagination.page <= 1" @click="goPage(pagination.page - 1)">&#8249;</button>
+          <template v-for="p in visiblePages" :key="p">
+            <span v-if="p === '...'" class="pg-ellipsis">...</span>
+            <button v-else class="pg-btn" :class="{ active: p === pagination.page }" @click="goPage(p)">{{ p }}</button>
+          </template>
+          <button class="pg-btn" :disabled="pagination.page >= totalPages" @click="goPage(pagination.page + 1)">&#8250;</button>
+        </div>
+        <div class="page-size">每页 <select v-model.number="pagination.size" class="size-sel" @change="onPageSizeChange">
+          <option :value="10">10</option><option :value="20">20</option><option :value="50">50</option><option :value="100">100</option>
+        </select> 条</div>
+      </div>
+    </div>
+
+    <teleport to="body">
+      <transition name="modal-fade">
+        <div v-if="visible" class="modal-overlay" @click.self="closeModal">
+          <div class="modal-card modal-detail" :class="{ closing: closing }" @click.stop>
+            <div class="modal-header">
+              <h3>操作详情</h3>
+              <button class="modal-close" @click="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" v-if="detail">
+              <div class="detail-row"><span class="dr-label">操作用户</span><span class="dr-value">{{ detail.username || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">所属模块</span><span class="dr-value detail-code">{{ detail.module || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">操作描述</span><span class="dr-value">{{ detail.operationDesc || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">类名.方法</span><span class="dr-value detail-code">{{ detail.className || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">请求 URI</span><span class="dr-value detail-code">{{ detail.requestUri || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">请求方式</span><span class="dr-value">{{ detail.requestMethod || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">请求参数</span><span class="dr-value detail-code">{{ detail.requestParams || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">IP 地址</span><span class="dr-value mono">{{ detail.ipAddress || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">执行耗时</span><span class="dr-value mono">{{ detail.executionTime != null ? detail.executionTime + 'ms' : '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">操作结果</span><span class="dr-value"><span class="badge" :class="resultBadgeCls(detail.resultStatus)">{{ resultLbl(detail.resultStatus) }}</span></span></div>
+              <div class="detail-row"><span class="dr-label">错误信息</span><span class="dr-value">{{ detail.errorMessage || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">异常堆栈</span><span class="dr-value detail-code">{{ detail.stackTrace || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">日志类型</span><span class="dr-value">{{ detail.logType === 1 ? '业务日志' : '系统日志' }}</span></div>
+              <div class="detail-row"><span class="dr-label">系统类型</span><span class="dr-value">{{ detail.systemType === 1 ? '后台' : '前台' }}</span></div>
+              <div class="detail-row"><span class="dr-label">操作时间</span><span class="dr-value mono">{{ detail.operationTime || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">创建时间</span><span class="dr-value mono">{{ detail.createTime || '-' }}</span></div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" @click="closeModal">关闭</button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Delete, Download } from '@element-plus/icons-vue'
-import { getOperationLogList, deleteLogs, batchDeleteLogs, exportLogs } from '@/api/log'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { getOperationLogList, getOperationLogDetail } from '@/api/operationLog'
 
 const loading = ref(false)
-const tableData = ref([])
-const selectedIds = ref([])
-const tableRef = ref(null)
-const detailVisible = ref(false)
-const detailData = ref(null)
+const list = ref([])
+const pagination = reactive({ page: 1, size: 10, total: 0 })
+const filter = reactive({ username: '', module: '', resultStatus: '', systemType: '', startTime: '', endTime: '' })
 
-const modules = ['视频管理', '用户管理', '系统设置', '审核管理', '角色管理', '菜单管理']
-const searchForm = ref({ module: '', uri: '', operator: '', status: '', dateRange: null })
-const pagination = ref({ page: 1, pageSize: 10, total: 0 })
+const resultOpen = ref(false)
+const systemTypeOpen = ref(false)
 
-const moduleTagType = (m) => {
-  const map = { '视频管理': 'primary', '用户管理': 'success', '系统设置': 'warning', '审核管理': 'danger', '角色管理': '', '菜单管理': 'info' }
-  return map[m] || 'info'
+const visible = ref(false)
+const closing = ref(false)
+const detail = ref(null)
+
+const totalPages = computed(() => Math.max(1, Math.ceil(pagination.total / pagination.size)))
+
+function makePages(cur, total) {
+  const pages = []
+  if (total <= 7) { for (let i = 1; i <= total; i++) pages.push(i); return pages }
+  pages.push(1)
+  if (cur > 3) pages.push('...')
+  const start = Math.max(2, cur - 1)
+  const end = Math.min(total - 1, cur + 1)
+  for (let i = start; i <= end; i++) pages.push(i)
+  if (cur < total - 2) pages.push('...')
+  pages.push(total)
+  return pages
+}
+const visiblePages = computed(() => makePages(pagination.page, totalPages.value))
+
+function resultBadgeCls(s) { return s === 2 ? 'badge-green' : s === 1 ? 'badge-amber' : 'badge-red' }
+function resultLbl(s) { return s === 2 ? '成功' : s === 1 ? '业务异常' : '系统异常' }
+
+function buildParams() {
+  const p = { page: pagination.page, size: pagination.size }
+  if (filter.username) p.username = filter.username
+  if (filter.module) p.module = filter.module
+  if (filter.resultStatus !== '') p.resultStatus = filter.resultStatus
+  if (filter.systemType !== '') p.systemType = filter.systemType
+  if (filter.startTime) p.startTime = filter.startTime.replace('T', ' ') + ':00'
+  if (filter.endTime) p.endTime = filter.endTime.replace('T', ' ') + ':00'
+  return p
 }
 
-const methodTagType = (m) => {
-  const map = { GET: 'success', POST: 'primary', PUT: 'warning', DELETE: 'danger' }
-  return map[m] || 'info'
-}
-
-const durationClass = (d) => {
-  if (d > 500) return 'duration-slow'
-  if (d > 100) return 'duration-medium'
-  return 'duration-fast'
-}
-
-const fetchData = async () => {
+async function loadData() {
   loading.value = true
   try {
-    const params = {
-      ...searchForm.value,
-      page: pagination.value.page,
-      pageSize: pagination.value.pageSize
-    }
-    if (params.dateRange) {
-      params.startDate = params.dateRange[0]
-      params.endDate = params.dateRange[1]
-    }
-    delete params.dateRange
-    const res = await getOperationLogList(params)
-    tableData.value = res.data.list
-    pagination.value.total = res.data.total
-  } finally {
-    loading.value = false
-  }
+    const res = await getOperationLogList(buildParams())
+    const data = res.data || {}
+    list.value = data.records || []
+    pagination.total = data.total || 0
+  } catch (e) { console.error(e) } finally { loading.value = false }
 }
 
-const handleSearch = () => {
-  pagination.value.page = 1
-  fetchData()
+function onSearch() { pagination.page = 1; loadData() }
+function onReset() {
+  filter.username = ''; filter.module = ''; filter.resultStatus = ''
+  filter.systemType = ''; filter.startTime = ''; filter.endTime = ''
+  onSearch()
+}
+function goPage(p) { if (p >= 1 && p <= totalPages.value) { pagination.page = p; loadData() } }
+function onPageSizeChange() { pagination.page = 1; loadData() }
+
+async function viewDetail(row) {
+  try {
+    const res = await getOperationLogDetail(row.id)
+    detail.value = res.data || row
+    closing.value = false
+    visible.value = true
+  } catch (e) { console.error(e) }
 }
 
-const handleReset = () => {
-  searchForm.value = { module: '', uri: '', operator: '', status: '', dateRange: null }
-  handleSearch()
+function closeModal() {
+  closing.value = true
+  setTimeout(() => { visible.value = false; closing.value = false; detail.value = null }, 200)
 }
 
-const handleSelectionChange = (rows) => {
-  selectedIds.value = rows.map(r => r.id)
-}
-
-const clearSelection = () => {
-  tableRef.value?.clearSelection()
-}
-
-const handleBatchDelete = async () => {
-  await ElMessageBox.confirm(
-    `确定要批量删除选中的 ${selectedIds.value.length} 条日志吗？`,
-    '批量删除确认',
-    { type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消' }
-  )
-  await batchDeleteLogs(selectedIds.value)
-  ElMessage.success('批量删除成功')
-  fetchData()
-}
-
-const handleExport = async () => {
-  await exportLogs('operation', searchForm.value)
-  ElMessage.success('导出成功')
-}
-
-const showDetail = (row) => {
-  detailData.value = {
-    ...row,
-    requestParams: JSON.stringify({ userId: 1, action: row.action, module: row.module }, null, 2),
-    response: JSON.stringify({ code: 200, message: 'success', data: null }, null, 2),
-    exception: row.status === 0 ? 'java.lang.NullPointerException: Cannot invoke method on null reference\n\tat com.example.service.UserService.getUser(UserService.java:42)\n\tat com.example.controller.UserController.getUser(UserController.java:28)' : null
-  }
-  detailVisible.value = true
-}
-
-onMounted(fetchData)
+onMounted(loadData)
 </script>
 
 <style lang="scss" scoped>
-.operation-log {
-  padding: 0;
+.page-container { padding: 0; }
+.page-header { margin-bottom: 20px; }
+.page-title { font-size: 22px; font-weight: 700; color: var(--el-text-color-primary, #303133); margin: 0 0 4px; }
+.page-sub { font-size: 13px; color: var(--el-text-color-secondary, #909399); }
+
+.filter-card {
+  background: var(--card-bg, #fff); border-radius: 12px; padding: 20px; margin-bottom: 16px;
+  border: 1px solid var(--border-color, #e4e7ed);
 }
-
-.search-card {
-  margin-bottom: 16px;
-  border-radius: 12px;
-  border: 1px solid #f2f3f5;
-
-  :deep(.el-card__body) {
-    padding-bottom: 2px;
+.filter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.filter-item { display: flex; flex-direction: column; gap: 6px; }
+.filter-label { font-size: 12px; color: var(--text-secondary, #909399); font-weight: 500; }
+.filter-input, .filter-select {
+  height: 40px; border-radius: 12px; border: none; padding: 0 14px; font-size: 13px;
+  background-color: var(--bg-color, #f5f7fa); outline: none; transition: all 0.2s;
+  color: var(--text-primary, #303133); box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+  &:focus { background-color: var(--card-bg, #fff); box-shadow: 0 0 0 2px rgba(251,114,153,0.25); }
+}
+.filter-select {
+  cursor: pointer; appearance: none; padding-right: 32px;
+  background-color: var(--bg-color, #f5f7fa); box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+  &:focus { background-color: var(--card-bg, #fff); box-shadow: 0 0 0 2px rgba(251,114,153,0.25); }
+}
+.select-wrap {
+  position: relative;
+  .filter-select { width: 100%; }
+  &::after {
+    content: ''; position: absolute; right: 12px; top: 50%; width: 0; height: 0;
+    border-left: 4.5px solid transparent; border-right: 4.5px solid transparent;
+    border-top: 5.5px solid var(--text-secondary, #909399); pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1); transform: translateY(-60%);
   }
+  &:hover::after { border-top-color: var(--color-primary, #fb7299); }
+  &.open::after { border-top-color: var(--color-primary, #fb7299); transform: translateY(-40%) rotate(180deg); }
 }
+.filter-actions { display: flex; align-items: flex-end; gap: 10px; justify-content: flex-end; grid-column: 1 / -1; }
 
-.search-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
-
-  .el-form-item {
-    margin-bottom: 16px;
-    margin-right: 16px;
+.btn {
+  height: 36px; padding: 0 22px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
+  border: 1px solid transparent; transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 6px;
+  svg { flex-shrink: 0; }
+  &.btn-primary {
+    background: linear-gradient(135deg, var(--color-primary, #fb7299) 0%, #ff9ac6 100%); color: #fff;
+    box-shadow: 0 2px 8px rgba(251,114,153,0.25);
+    &:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(251,114,153,0.4); }
+  }
+  &.btn-outline {
+    background: transparent; color: var(--text-secondary, #909399); border-color: var(--border-color, #dcdfe6);
+    &:hover { color: var(--color-primary, #fb7299); border-color: var(--color-primary, #fb7299); background: rgba(251,114,153,0.04); }
+  }
+  &.btn-secondary {
+    background: var(--bg-color, #f5f7fa); color: var(--text-primary, #303133); border-color: var(--border-color, #dcdfe6);
+    &:hover { background: var(--border-color, #ebedf0); border-color: #c0c4cc; }
   }
 }
 
 .table-card {
-  border-radius: 12px;
-  border: 1px solid #f2f3f5;
+  background: var(--card-bg, #fff); border-radius: 12px; border: 1px solid var(--border-color, #e4e7ed); overflow: hidden;
 }
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.batch-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  margin-bottom: 16px;
-  background: #f0f9ff;
-  border-radius: 8px;
-  border: 1px solid #d4e8ff;
-  animation: slideDown 0.25s ease;
-
-  .batch-count {
-    color: #606266;
-    font-size: 13px;
-
-    strong {
-      color: #409eff;
-      font-weight: 600;
-    }
+.table-scroll { overflow-x: auto; }
+.data-table {
+  width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px;
+  th {
+    padding: 14px 16px; text-align: center; font-size: 12px; color: var(--text-primary, #303133);
+    background: var(--bg-color, #f8f9fc); font-weight: 600; white-space: nowrap;
+    border-bottom: 2px solid var(--border-color, #e4e7ed); user-select: none;
   }
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.log-table {
-  :deep(.el-table__header th) {
-    background: #fafafa;
-    font-weight: 600;
-    color: #606266;
-    font-size: 13px;
+  td {
+    padding: 14px 16px; border-bottom: 1px solid var(--border-color, #f2f3f5); vertical-align: middle;
+    background: var(--card-bg, #fff); text-align: center; white-space: nowrap;
   }
+  .table-row:hover td { background: var(--bg-color, #fafafa); }
+}
+.col-truncate { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.url-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.badge {
+  display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; white-space: nowrap;
+  &.badge-green { color: #4caf50; background: rgba(76,175,80,0.1); }
+  &.badge-amber { color: #e6a23c; background: rgba(230,162,60,0.1); }
+  &.badge-red { color: #f56c6c; background: rgba(245,108,108,0.1); }
 }
 
-.mono-text {
-  font-family: 'SF Mono', 'Menlo', monospace;
-  font-size: 13px;
-  color: #606266;
+.method-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+  &.method-get { color: #4caf50; background: rgba(76,175,80,0.1); }
+  &.method-post { color: #409eff; background: rgba(64,158,255,0.1); }
+  &.method-put { color: #e6a23c; background: rgba(230,162,60,0.1); }
+  &.method-delete { color: #f56c6c; background: rgba(245,108,108,0.1); }
 }
 
-.duration-fast {
-  color: #67c23a;
-  font-weight: 600;
+.mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; }
+
+.action-group { display: flex; gap: 6px; justify-content: center; white-space: nowrap; }
+.act-btn {
+  padding: 7px 15px; border-radius: 100px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s ease;
+  &.act-blue { color: #00a1d6; background: rgba(0,161,214,0.1); &:hover { color: #fff; background: #00a1d6; box-shadow: 0 2px 8px rgba(0,161,214,0.35); } }
 }
 
-.duration-medium {
-  color: #e6a23c;
-  font-weight: 600;
+.pagination { display: flex; align-items: center; justify-content: space-between; padding: 16px 10px; }
+.page-info { padding-left: 10px; font-size: 13px; color: var(--text-secondary, #909399); }
+.page-btns { display: flex; align-items: center; gap: 4px; }
+.pg-btn {
+  width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border-color, #dcdfe6);
+  background: var(--card-bg, #fff); color: var(--text-primary, #303133); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s;
+  &:hover:not(:disabled) { border-color: var(--color-primary, #fb7299); color: var(--color-primary, #fb7299); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+  &.active { background: var(--color-primary, #fb7299); color: #fff; border-color: var(--color-primary, #fb7299); }
+}
+.pg-ellipsis { width: 32px; text-align: center; color: var(--text-secondary, #909399); }
+.page-size { font-size: 13px; color: var(--text-secondary, #909399); display: flex; align-items: center; gap: 6px; padding-right: 10px; }
+.size-sel {
+  height: 32px; border-radius: 6px; border: 1px solid var(--border-color, #dcdfe6); padding: 0 8px; font-size: 13px;
+  background: var(--card-bg, #fff); color: var(--text-primary, #303133); cursor: pointer;
 }
 
-.duration-slow {
-  color: #f56c6c;
-  font-weight: 600;
+.empty-cell { text-align: center; padding: 48px 0 !important; }
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--el-text-color-secondary, #909399); p { margin: 0; font-size: 14px; } }
+
+html.dark-mode {
+  .filter-card, .table-card { background: var(--card-bg); border-color: var(--border-color); }
+  .filter-input, .filter-select { background: var(--bg-color); color: var(--text-primary); box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); }
+  .data-table th { background: var(--bg-color); border-color: var(--border-color); color: var(--text-primary); }
+  .data-table td { border-color: var(--border-color); color: var(--text-primary); }
+  .data-table .table-row:hover td { background: var(--hover-bg); }
+  .pg-btn { background: var(--card-bg); border-color: var(--border-color); color: var(--text-primary); }
+  .size-sel { background: var(--card-bg); border-color: var(--border-color); color: var(--text-primary); }
+  .badge-green { color: #6fcf73 !important; background: rgba(76,175,80,0.15) !important; }
+  .badge-amber { color: #f0c060 !important; background: rgba(230,162,60,0.15) !important; }
+  .badge-red { color: #f87171 !important; background: rgba(245,108,108,0.15) !important; }
+  .act-blue { color: #6cb4ee !important; }
+}
+</style>
+
+<style lang="scss">
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  z-index: 2000; display: flex; align-items: center; justify-content: center;
+}
+.modal-card {
+  background: var(--card-bg, #fff); border-radius: 16px; max-height: 90vh;
+  display: flex; flex-direction: column; box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+}
+.modal-detail { width: 600px; max-height: 80vh; }
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px; border-bottom: 1px solid var(--border-color, #ebeef5); flex-shrink: 0;
+  h3 { margin: 0; font-size: 17px; font-weight: 600; color: var(--text-primary, #303133); }
+}
+.modal-close {
+  background: none; border: none; font-size: 22px; cursor: pointer; color: var(--el-text-color-secondary, #909399);
+  padding: 4px 8px; border-radius: 8px; transition: all 0.15s;
+  &:hover { background: var(--bg-color, #f5f7fa); color: var(--text-primary, #303133); }
+}
+.modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px;
+  border-top: 1px solid var(--border-color, #ebeef5); flex-shrink: 0;
 }
 
-.pagination-wrap {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-  padding: 4px 0;
+.detail-row {
+  display: flex; align-items: flex-start; padding: 12px 0;
+  border-bottom: 1px solid var(--border-color, #f2f3f5);
+  &:last-child { border-bottom: none; }
+}
+.dr-label {
+  width: 100px; flex-shrink: 0; font-size: 13px; color: var(--text-secondary, #909399); font-weight: 500;
+}
+.dr-value {
+  flex: 1; font-size: 14px; color: var(--text-primary, #303133); word-break: break-all;
+}
+.detail-code {
+  background: var(--bg-color, #f5f7fa); padding: 8px 12px; border-radius: 6px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.5;
+  overflow-x: auto; white-space: pre;
 }
 
-.detail-content {
-  padding: 0 4px;
-}
+.modal-fade-enter-active { transition: opacity 0.2s ease; .modal-card { transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease; } }
+.modal-fade-leave-active { transition: opacity 0.2s ease; .modal-card { transition: transform 0.15s ease, opacity 0.15s ease; } }
+.modal-fade-enter-from { opacity: 0; .modal-card { transform: scale(0.9) translateY(16px); opacity: 0; } }
+.modal-fade-leave-to { opacity: 0; .modal-card { transform: scale(0.95); opacity: 0; } }
+.modal-card.closing { animation: modalOut 0.2s ease forwards; }
+@keyframes modalOut { to { transform: scale(0.95); opacity: 0; } }
 
-.detail-section {
-  margin-top: 20px;
-}
-
-.section-title {
-  margin: 0 0 10px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
-  padding-left: 10px;
-  border-left: 3px solid #409eff;
-
-  &.error {
-    color: #f56c6c;
-    border-left-color: #f56c6c;
-  }
-}
-
-.code-block {
-  background: #f5f7fa;
-  border: 1px solid #ebeef5;
-  border-radius: 8px;
-  padding: 14px;
-  font-family: 'SF Mono', 'Menlo', monospace;
-  font-size: 12px;
-  line-height: 1.6;
-  color: #303133;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
-
-  &.error {
-    background: #fef0f0;
-    border-color: #fde2e2;
-    color: #f56c6c;
-  }
-}
-
-@keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+html.dark-mode {
+  .modal-card { background: var(--card-bg); }
+  .modal-header { border-color: var(--border-color); h3 { color: var(--text-primary); } }
+  .modal-footer { border-color: var(--border-color); }
+  .detail-code { background: var(--bg-color); }
 }
 </style>

@@ -110,8 +110,8 @@
                 <td>
                   <div class="action-group">
                     <button class="act-btn act-blue" @click="previewVideo(row)">预览</button>
-                    <button class="act-btn act-green" @click="approveVideo(row)">通过</button>
-                    <button class="act-btn act-red" @click="rejectVideo(row)">驳回</button>
+                    <button class="act-btn act-green" :disabled="row.reviewStatus !== 2" @click="approveVideo(row)">通过</button>
+                    <button class="act-btn act-red" :disabled="row.reviewStatus !== 2" @click="rejectVideo(row)">驳回</button>
                   </div>
                 </td>
               </tr>
@@ -240,7 +240,7 @@
               <div class="episode-layout">
                 <div class="episode-player-area">
                   <div v-if="currentEpisode" class="player-box">
-                    <vue3-video-play v-bind="videoPlayerOptions" :src="currentEpisode.playUrl" />
+                    <DPlayer :src="currentEpisode.playUrl" :poster="currentEpisode.coverUrl || currentEpisode.cover || ''" @ended="onPlayerEnded" />
                   </div>
                   <div v-else class="player-empty">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -256,8 +256,8 @@
                       <span v-if="currentEpisode.duration" class="il" style="margin-left:16px;">时长</span>
                       <span v-if="currentEpisode.duration" class="iv mono">{{ formatDuration(currentEpisode.duration) }}</span>
                     </div>
-                    <div v-if="currentEpisode.reviewStatus === 0 || currentEpisode.reviewStatus === undefined" class="episode-actions">
-                      <button class="btn btn-primary" @click="approveEpisode(currentEpisode)">通过</button>
+                    <div class="episode-actions">
+                      <button v-if="currentEpisode.reviewStatus === 0 || currentEpisode.reviewStatus === undefined" class="btn btn-primary" @click="approveEpisode(currentEpisode)">通过</button>
                       <button class="btn btn-danger" @click="rejectEpisode(currentEpisode)">驳回</button>
                     </div>
                   </div>
@@ -290,6 +290,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onActivated } from 'vue'
+import DPlayer from '@/components/DPlayer.vue'
 import {
   getVideoReviewList,
   getCommentReviewList,
@@ -326,14 +327,6 @@ const currentEpisode = computed(() => {
   }
   return null
 })
-
-const videoPlayerOptions = computed(() => ({
-  color: '#fb7299',
-  volume: 0.3,
-  speedRate: [0.75, 1.0, 1.25, 1.5, 2.0],
-  controlBtns: ['audioTrack', 'speedRate', 'volume', 'setting', 'pip', 'pageFullScreen', 'fullScreen'],
-  autoPlay: false
-}))
 
 const videoTotalPages = computed(() => Math.max(1, Math.ceil(videoPagination.total / videoPagination.size)))
 const commentTotalPages = computed(() => Math.max(1, Math.ceil(commentPagination.total / commentPagination.size)))
@@ -453,6 +446,12 @@ async function previewVideo(row) {
 }
 
 function selectEpisode(idx) { currentEpisodeIndex.value = idx }
+
+function onPlayerEnded() {
+  if (currentEpisodeIndex.value < episodeList.value.length - 1) {
+    currentEpisodeIndex.value++
+  }
+}
 
 async function approveEpisode(ep) {
   try {
@@ -641,9 +640,10 @@ onActivated(() => { loadVideoList(); loadCommentList() })
 .action-group { display: flex; gap: 6px; justify-content: center; white-space: nowrap; }
 .act-btn {
   padding: 7px 15px; border-radius: 100px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s ease;
-  &.act-blue { color: #00a1d6; background: rgba(0,161,214,0.1); &:hover { color: #fff; background: #00a1d6; box-shadow: 0 2px 8px rgba(0,161,214,0.35); } }
-  &.act-green { color: #67c23a; background: rgba(103,194,58,0.1); &:hover { color: #fff; background: #67c23a; box-shadow: 0 2px 8px rgba(103,194,58,0.35); } }
-  &.act-red { color: #f56c6c; background: rgba(245,108,108,0.1); &:hover { color: #fff; background: #f56c6c; box-shadow: 0 2px 8px rgba(245,108,108,0.35); } }
+  &.act-blue { color: #00a1d6; background: rgba(0,161,214,0.1); &:hover:not(:disabled) { color: #fff; background: #00a1d6; box-shadow: 0 2px 8px rgba(0,161,214,0.35); } }
+  &.act-green { color: #67c23a; background: rgba(103,194,58,0.1); &:hover:not(:disabled) { color: #fff; background: #67c23a; box-shadow: 0 2px 8px rgba(103,194,58,0.35); } }
+  &.act-red { color: #f56c6c; background: rgba(245,108,108,0.1); &:hover:not(:disabled) { color: #fff; background: #f56c6c; box-shadow: 0 2px 8px rgba(245,108,108,0.35); } }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 .pagination { display: flex; align-items: center; justify-content: space-between; padding: 16px 10px; }
@@ -730,7 +730,7 @@ html.dark-mode {
 .episode-info-row { display: flex; align-items: center; gap: 4px; font-size: 13px; margin-bottom: 12px; }
 .il { font-size: 11px; color: var(--el-text-color-secondary, #909399); }
 .iv { font-size: 13px; color: var(--el-text-color-primary, #303133); font-weight: 500; }
-.episode-actions { display: flex; gap: 12px; }
+.episode-actions { display: flex; gap: 12px; justify-content: flex-end; }
 
 .episode-list-panel {
   width: 280px; border-left: 1px solid var(--border-color, #ebeef5); display: flex; flex-direction: column; flex-shrink: 0;

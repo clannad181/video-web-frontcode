@@ -1,426 +1,706 @@
 <template>
-  <div class="system-info">
-    <div class="status-bar fade-in">
-      <div class="status-indicator">
-        <span class="status-dot pulse" />
-        <span class="status-text">运行中</span>
+  <div class="page-container">
+    <div class="page-header">
+      <div class="header-left">
+        <h2 class="page-title">系统信息</h2>
+        <span class="page-sub">服务器运行状态监控</span>
       </div>
-      <el-switch
-        v-model="autoRefresh"
-        active-text="自动刷新 (5s)"
-        size="small"
-        @change="handleAutoRefresh"
-      />
+      <div class="header-right">
+        <div class="refresh-indicator" :class="{ active: refreshing }">
+          <span class="refresh-dot"></span>
+          <span class="refresh-text">{{ refreshing ? '刷新中...' : '每 15 秒自动刷新' }}</span>
+        </div>
+      </div>
     </div>
 
-    <el-row :gutter="16">
-      <el-col :span="12">
-        <el-card shadow="never" class="info-card fade-in" style="animation-delay: 0.1s">
-          <template #header>
-            <div class="card-header">
-              <el-icon :size="18"><Monitor /></el-icon>
-              <span>服务器信息</span>
-            </div>
-          </template>
-          <div v-loading="loading" class="info-grid">
-            <div class="info-item" v-for="item in serverInfo" :key="item.label">
-              <span class="info-label">{{ item.label }}</span>
-              <span class="info-value mono">{{ item.value }}</span>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="12">
-        <el-card shadow="never" class="info-card fade-in" style="animation-delay: 0.15s">
-          <template #header>
-            <div class="card-header">
-              <el-icon :size="18"><Cpu /></el-icon>
-              <span>运行环境</span>
-            </div>
-          </template>
-          <div v-loading="loading" class="info-grid">
-            <div class="info-item" v-for="item in runtimeInfo" :key="item.label">
-              <span class="info-label">{{ item.label }}</span>
-              <span class="info-value mono">{{ item.value }}</span>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <el-row :gutter="16" style="margin-top: 16px">
-      <el-col :span="8">
-        <el-card shadow="never" class="resource-card fade-in" style="animation-delay: 0.2s">
-          <template #header>
-            <div class="card-header">
-              <el-icon :size="18"><Cpu /></el-icon>
-              <span>CPU 使用率</span>
-            </div>
-          </template>
-          <div v-loading="loading" class="cpu-wrap">
-            <el-progress
-              type="circle"
-              :percentage="sysInfo.cpuUsage"
-              :width="140"
-              :stroke-width="10"
-              :color="cpuColor"
-            />
-            <div class="cpu-detail">
-              <span>{{ sysInfo.cpuCores }} 核心</span>
-              <span>{{ sysInfo.cpuThreads }} 线程</span>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card shadow="never" class="resource-card fade-in" style="animation-delay: 0.25s">
-          <template #header>
-            <div class="card-header">
-              <el-icon :size="18"><Coin /></el-icon>
-              <span>内存使用率</span>
-            </div>
-          </template>
-          <div v-loading="loading" class="mem-wrap">
-            <el-progress
-              :percentage="sysInfo.memoryUsage"
-              :stroke-width="18"
-              :color="memoryColors"
-              text-inside
-            />
-            <div class="mem-text">
-              <span class="mem-used">{{ sysInfo.memoryUsed }} GB</span>
-              <span class="mem-total">/ {{ sysInfo.memoryTotal }} GB</span>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card shadow="never" class="resource-card fade-in" style="animation-delay: 0.3s">
-          <template #header>
-            <div class="card-header">
-              <el-icon :size="18"><Box /></el-icon>
-              <span>磁盘使用率</span>
-            </div>
-          </template>
-          <div v-loading="loading" class="disk-list">
-            <div v-for="disk in sysInfo.disks" :key="disk.name" class="disk-item">
-              <div class="disk-header">
-                <span class="disk-name">{{ disk.name }}</span>
-                <span class="disk-pct mono">{{ disk.used }} / {{ disk.total }} GB</span>
-              </div>
-              <el-progress
-                :percentage="disk.percentage"
-                :stroke-width="10"
-                :color="diskColor(disk.percentage)"
-              />
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <el-card shadow="never" class="network-card fade-in" style="animation-delay: 0.35s; margin-top: 16px">
-      <template #header>
-        <div class="card-header">
-          <el-icon :size="18"><Connection /></el-icon>
-          <span>网络信息</span>
+    <div class="stat-cards">
+      <div class="stat-card" v-for="(card, i) in statCards" :key="i" :style="{ animationDelay: i * 60 + 'ms' }">
+        <div class="stat-icon" :style="{ background: card.bg, color: card.color }">
+          <svg v-if="card.icon === 'coffee'" width="28" height="28" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+            <line x1="6" y1="1" x2="6" y2="4" />
+            <line x1="10" y1="1" x2="10" y2="4" />
+            <line x1="14" y1="1" x2="14" y2="4" />
+          </svg>
+          <svg v-if="card.icon === 'clock'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <svg v-if="card.icon === 'check'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          <svg v-if="card.icon === 'x'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+          <svg v-if="card.icon === 'cpu'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+            <line x1="6" y1="6" x2="6.01" y2="6" />
+            <line x1="6" y1="18" x2="6.01" y2="18" />
+          </svg>
         </div>
-      </template>
-      <div v-loading="loading" class="network-grid">
-        <div class="net-item" v-for="item in networkInfo" :key="item.label">
-          <span class="net-label">{{ item.label }}</span>
-          <span class="net-value mono">{{ item.value }}</span>
+        <div class="stat-info">
+          <div class="stat-value" :class="card.class" :style="card.valueStyle">{{ card.value }}</div>
+          <div class="stat-label">{{ card.label }}</div>
         </div>
       </div>
-    </el-card>
+    </div>
+
+    <div class="info-section">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </div>
+        <h3 class="section-title">系统信息</h3>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item" v-for="(item, i) in detailItems" :key="i" :style="{ animationDelay: i * 50 + 'ms' }">
+          <span class="detail-label">{{ item.label }}</span>
+          <span class="detail-value" :class="item.class">{{ item.value }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <div class="section-header">
+        <div class="section-icon section-icon-pink">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+        </div>
+        <h3 class="section-title">资源使用</h3>
+      </div>
+      <div class="ring-grid">
+        <div class="ring-card" v-for="(ring, i) in ringData" :key="i" :style="{ animationDelay: i * 80 + 'ms' }">
+          <div class="ring-wrap">
+            <svg class="ring-svg" viewBox="0 0 120 120">
+              <circle class="ring-bg" cx="60" cy="60" r="50" fill="none" stroke-width="8" />
+              <circle class="ring-progress" cx="60" cy="60" r="50" fill="none" stroke-width="8" stroke-linecap="round"
+                :stroke="ring.color" :stroke-dasharray="C" :stroke-dashoffset="ring.offset" />
+            </svg>
+            <div class="ring-center">
+              <div class="ring-pct" :style="{ color: ring.color }">{{ ring.pct }}%</div>
+              <div class="ring-label">{{ ring.label }}</div>
+            </div>
+          </div>
+          <div class="ring-detail" v-html="ring.detail"></div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="diskList.length" class="info-section">
+      <div class="section-header">
+        <div class="section-icon section-icon-green">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3" />
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+          </svg>
+        </div>
+        <h3 class="section-title">磁盘详情</h3>
+      </div>
+      <div class="disk-list">
+        <div class="disk-row" v-for="(d, i) in diskList" :key="d.mount" :style="{ animationDelay: i * 60 + 'ms' }">
+          <div class="disk-head">
+            <span class="disk-name">{{ d.name || '磁盘' }}</span>
+            <span class="disk-mount">{{ d.mount }}</span>
+            <span class="disk-type" v-if="d.type">{{ d.type }}</span>
+          </div>
+          <div class="disk-bar-wrap">
+            <div class="disk-bar-track">
+              <div class="disk-bar-fill" :style="{ width: diskPctVal(d) + '%', background: diskBarGrad(d) }"></div>
+            </div>
+            <span class="disk-bar-pct" :style="{ color: diskBarColor(d) }">{{ diskPctVal(d) }}%</span>
+          </div>
+          <div class="disk-info">
+            <span class="disk-info-item"><span class="disk-info-dot" style="background:#f44336"></span>已用 {{ d.used
+              }}GB</span>
+            <span class="disk-info-item"><span class="disk-info-dot" style="background:#4caf50"></span>可用 {{ d.free
+              }}GB</span>
+            <span class="disk-info-item"><span class="disk-info-dot" style="background:#909399"></span>总量 {{ d.total
+              }}GB</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { Monitor, Cpu, Coin, Box, Connection } from '@element-plus/icons-vue'
-import { getSystemInfo } from '@/api/system'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import { getSystemInfo } from '@/api/systemInfo'
 
-const loading = ref(false)
-const autoRefresh = ref(false)
-let timer = null
+const C = 2 * Math.PI * 50
+const info = reactive({
+  cpuCores: 0, javaVersion: '', javaVendor: '', jvmStartTime: '', jvmUptime: '',
+  heapUsed: 0, heapMax: 0, heapUsage: 0, nonHeapUsed: 0,
+  threadCount: 0, daemonThreadCount: 0, peakThreadCount: 0,
+  osName: '', osArch: '', systemCpuLoad: 0, processCpuLoad: 0,
+  systemLoadAverage: 0, systemTotalMemory: 0, systemFreeMemory: 0, systemUsedMemory: 0, systemMemoryUsage: 0,
+  diskInfoList: []
+})
+const loaded = ref(false)
+const refreshing = ref(false)
+const uptimeSeconds = ref(0)
+let uptimeTimer = null
+let refreshTimer = null
 
-const sysInfo = ref({
-  os: 'Windows 11',
-  arch: 'x64',
-  nodeVersion: 'v20.11.0',
-  uptime: '15天 8小时 32分钟',
-  pid: 18432,
-  cpuUsage: 34,
-  cpuCores: 8,
-  cpuThreads: 16,
-  memoryUsage: 62,
-  memoryUsed: 9.9,
-  memoryTotal: 16.0,
-  disks: [
-    { name: 'C:', used: 186, total: 256, percentage: 73 },
-    { name: 'D:', used: 312, total: 512, percentage: 61 }
-  ],
-  ips: ['192.168.1.100', '10.0.0.1'],
-  port: 3000,
-  domain: 'admin.video.com'
+const uptimeDisplay = computed(() => {
+  const s = uptimeSeconds.value
+  const d = Math.floor(s / 86400)
+  const h = Math.floor((s % 86400) / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  if (d > 0) return `${d}天 ${h}时 ${m}分 ${sec}秒`
+  return `${h}时 ${m}分 ${sec}秒`
 })
 
-const cpuColor = computed(() => {
-  const v = sysInfo.value.cpuUsage
-  if (v > 80) return '#f56c6c'
-  if (v > 50) return '#e6a23c'
-  return '#67c23a'
-})
-
-const memoryColors = [
-  { color: '#67c23a', percentage: 50 },
-  { color: '#e6a23c', percentage: 75 },
-  { color: '#f56c6c', percentage: 100 }
-]
-
-const diskColor = (pct) => {
-  if (pct > 85) return '#f56c6c'
-  if (pct > 70) return '#e6a23c'
-  return '#67c23a'
+function parseUptime(str) {
+  if (!str) return 0
+  const dm = str.match(/(\d+)\s*天/) || []
+  const hm = str.match(/(\d+)\s*小时/) || []
+  const mm = str.match(/(\d+)\s*分/) || []
+  const sm = str.match(/(\d+)\s*秒/) || []
+  return (parseInt(dm[1]) || 0) * 86400 + (parseInt(hm[1]) || 0) * 3600 + (parseInt(mm[1]) || 0) * 60 + (parseInt(sm[1]) || 0)
 }
 
-const serverInfo = computed(() => [
-  { label: '操作系统', value: sysInfo.value.os },
-  { label: '系统架构', value: sysInfo.value.arch },
-  { label: 'Node.js 版本', value: sysInfo.value.nodeVersion },
-  { label: '运行时间', value: sysInfo.value.uptime }
+const statusOk = computed(() => loaded.value)
+
+const statCards = computed(() => [
+  { icon: 'coffee', label: 'Java 版本', value: info.javaVersion || '-', bg: 'rgba(0,161,214,0.1)', color: '#00a1d6' },
+  { icon: 'clock', label: 'JVM 运行时长', value: uptimeDisplay.value, bg: 'rgba(251,114,153,0.1)', color: '#fb7299', class: 'uptime-val' },
+  {
+    icon: statusOk.value ? 'check' : 'x',
+    label: '系统状态',
+    value: statusOk.value ? '运行正常' : '系统异常',
+    bg: statusOk.value ? 'rgba(76,175,80,0.1)' : 'rgba(244,67,54,0.1)',
+    color: statusOk.value ? '#4caf50' : '#f44336',
+    valueStyle: { color: statusOk.value ? '#4caf50' : '#f44336' }
+  },
+  { icon: 'cpu', label: '活跃线程', value: info.threadCount || '-', bg: 'rgba(124,92,252,0.1)', color: '#7c5cfc' }
 ])
 
-const runtimeInfo = computed(() => [
-  { label: 'CPU 核心数', value: sysInfo.value.cpuCores },
-  { label: '线程数', value: sysInfo.value.cpuThreads },
-  { label: '进程 ID', value: sysInfo.value.pid },
-  { label: '内存使用', value: `${sysInfo.value.memoryUsed} / ${sysInfo.value.memoryTotal} GB` }
+const detailItems = computed(() => [
+  { label: '操作系统', value: info.osName || '-' },
+  { label: '系统架构', value: info.osArch || '-' },
+  { label: 'Java 供应商', value: info.javaVendor || '-' },
+  { label: 'JVM 启动时间', value: info.jvmStartTime || '-' },
+  { label: '线程信息', value: `${info.threadCount || 0} / 峰值 ${info.peakThreadCount || 0}`, class: 'mono' },
+  { label: '守护线程', value: info.daemonThreadCount || '-' }
 ])
 
-const networkInfo = computed(() => [
-  { label: 'IP 地址', value: sysInfo.value.ips.join(', ') },
-  { label: '端口', value: sysInfo.value.port },
-  { label: '域名', value: sysInfo.value.domain }
+const cpuPct = computed(() => info.systemCpuLoad.toFixed(1))
+const cpuColor = computed(() => cpuPct.value >= 90 ? '#f44336' : cpuPct.value >= 70 ? '#ff9800' : '#00a1d6')
+const cpuOffset = computed(() => C * (1 - info.systemCpuLoad / 100))
+
+const memPct = computed(() => info.systemMemoryUsage.toFixed(1))
+const memColor = computed(() => parseFloat(memPct.value) >= 90 ? '#f44336' : parseFloat(memPct.value) >= 70 ? '#ff9800' : '#fb7299')
+const memOffset = computed(() => C * (1 - info.systemMemoryUsage / 100))
+
+const heapPct = computed(() => info.heapUsage.toFixed(1))
+const heapColor = computed(() => parseFloat(heapPct.value) >= 90 ? '#f44336' : parseFloat(heapPct.value) >= 70 ? '#ff9800' : '#7c5cfc')
+const heapOffset = computed(() => C * (1 - info.heapUsage / 100))
+
+const diskList = computed(() => info.diskInfoList || [])
+const diskUsedGB = computed(() => diskList.value.reduce((s, d) => s + (d.used || 0), 0))
+const diskTotalGB = computed(() => diskList.value.reduce((s, d) => s + (d.total || 0), 0))
+const diskPct = computed(() => diskTotalGB.value ? ((diskUsedGB.value / diskTotalGB.value) * 100).toFixed(1) : '0.0')
+const diskColor = computed(() => parseFloat(diskPct.value) >= 90 ? '#f44336' : parseFloat(diskPct.value) >= 70 ? '#ff9800' : '#4caf50')
+const diskOffset = computed(() => C * (1 - parseFloat(diskPct.value) / 100))
+
+const ringData = computed(() => [
+  { label: 'CPU 负载', pct: cpuPct.value, color: cpuColor.value, offset: cpuOffset.value, detail: `系统 <b>${info.systemCpuLoad.toFixed(1)}%</b> / 进程 <b>${info.processCpuLoad.toFixed(1)}%</b> · ${info.cpuCores} 核` },
+  { label: '内存占用', pct: memPct.value, color: memColor.value, offset: memOffset.value, detail: `已用 <b>${info.systemUsedMemory}MB</b> / 总量 ${info.systemTotalMemory}MB` },
+  { label: 'JVM 堆内存', pct: heapPct.value, color: heapColor.value, offset: heapOffset.value, detail: `已用 <b>${info.heapUsed}MB</b> / 最大 ${info.heapMax}MB · 非堆 ${info.nonHeapUsed}MB` },
+  { label: '磁盘使用', pct: diskPct.value, color: diskColor.value, offset: diskOffset.value, detail: `<b>${diskUsedGB.value}GB</b> / ${diskTotalGB.value}GB` }
 ])
 
-const fetchInfo = async () => {
-  loading.value = true
+function diskPctVal(d) { return d.usage != null ? d.usage.toFixed(1) : (d.total ? ((d.used / d.total) * 100).toFixed(1) : 0) }
+function diskBarColor(d) { const p = parseFloat(diskPctVal(d)); return p >= 90 ? '#f44336' : p >= 70 ? '#ff9800' : '#4caf50' }
+function diskBarGrad(d) {
+  const p = parseFloat(diskPctVal(d))
+  if (p >= 90) return 'linear-gradient(90deg, #f44336, #ff5722)'
+  if (p >= 70) return 'linear-gradient(90deg, #ff9800, #ffc107)'
+  return 'linear-gradient(90deg, #4caf50, #8bc34a)'
+}
+
+async function fetchInfo() {
+  refreshing.value = true
   try {
     const res = await getSystemInfo()
-    if (res.data) {
-      Object.assign(sysInfo.value, res.data)
-    }
+    const d = res.data || {}
+    Object.keys(info).forEach(k => { if (d[k] !== undefined) info[k] = d[k] })
+    uptimeSeconds.value = parseUptime(d.jvmUptime)
+    loaded.value = true
+  } catch (e) {
+    console.error('获取系统信息失败', e)
+    loaded.value = false
   } finally {
-    loading.value = false
-  }
-}
-
-const handleAutoRefresh = (val) => {
-  if (val) {
-    timer = setInterval(fetchInfo, 5000)
-  } else {
-    clearInterval(timer)
-    timer = null
+    setTimeout(() => { refreshing.value = false }, 400)
   }
 }
 
 onMounted(() => {
   fetchInfo()
+  refreshTimer = setInterval(fetchInfo, 15000)
+  uptimeTimer = setInterval(() => { uptimeSeconds.value++ }, 1000)
 })
 
 onBeforeUnmount(() => {
-  clearInterval(timer)
+  clearInterval(refreshTimer)
+  clearInterval(uptimeTimer)
 })
 </script>
 
 <style lang="scss" scoped>
-.system-info {
+.page-container {
   padding: 0;
 }
 
-.status-bar {
+.page-header {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  animation: fadeSlideUp 0.5s ease both;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color, #f2f3f5);
 }
 
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #67c23a;
-
-  &.pulse {
-    animation: pulse 2s ease-in-out infinite;
-  }
-}
-
-.status-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: #67c23a;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(103, 194, 58, 0.4); }
-  50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(103, 194, 58, 0); }
-}
-
-.info-card, .resource-card, .network-card {
-  border-radius: 12px;
-  border: 1px solid #f2f3f5;
-
-  :deep(.el-card__header) {
-    padding: 14px 20px;
-    border-bottom: 1px solid #f2f3f5;
-  }
-
-  :deep(.el-card__body) {
-    padding: 20px;
-  }
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
-
-  .el-icon { color: #409eff; }
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.info-item {
+.header-left {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.info-label {
-  font-size: 12px;
-  color: #909399;
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary, #303133);
+  margin: 0;
 }
 
-.info-value {
-  font-size: 14px;
-  color: #303133;
+.page-sub {
+  font-size: 13px;
+  color: var(--text-secondary, #909399);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.refresh-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--bg-color, #f5f7fa);
+  font-size: 12px;
+  color: var(--text-secondary, #909399);
+  transition: all 0.3s ease;
+
+  &.active {
+    background: rgba(251, 114, 153, 0.08);
+    color: #fb7299;
+  }
+}
+
+.refresh-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4caf50;
+  flex-shrink: 0;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.refresh-indicator.active .refresh-dot {
+  background: #fb7299;
+  animation: pulse-dot 0.8s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--card-bg, #fff);
+  border-radius: 14px;
+  border: 1px solid var(--border-color, #e4e7ed);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #303133);
+  line-height: 1.2;
+}
+
+.uptime-val {
+  font-size: 15px;
+  letter-spacing: 0.3px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary, #909399);
+  margin-top: 4px;
+}
+
+.info-section {
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 161, 214, 0.1);
+  color: #00a1d6;
+  flex-shrink: 0;
+
+  &.section-icon-pink {
+    background: rgba(251, 114, 153, 0.1);
+    color: #fb7299;
+  }
+
+  &.section-icon-green {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+  }
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #303133);
+  margin: 0;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.detail-item {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.2s ease;
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+
+  &:hover {
+    background: var(--border-color, #ebedf0);
+    transform: translateY(-1px);
+  }
+}
+
+.detail-label {
+  font-size: 12px;
+  color: var(--text-secondary, #909399);
   font-weight: 500;
 }
 
-.mono {
-  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+.detail-value {
+  font-size: 14px;
+  color: var(--text-primary, #303133);
+  font-weight: 600;
 }
 
-.cpu-wrap {
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+}
+
+.ring-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.ring-card {
+  background: var(--card-bg, #fff);
+  border-radius: 14px;
+  border: 1px solid var(--border-color, #e4e7ed);
+  padding: 28px 20px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
 
-  :deep(.el-progress-circle__text) {
-    font-size: 28px !important;
-    font-weight: 700;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   }
 }
 
-.cpu-detail {
-  display: flex;
-  gap: 20px;
-  font-size: 13px;
-  color: #909399;
+.ring-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
 }
 
-.mem-wrap {
+.ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  stroke: var(--bg-color, #f2f3f5);
+}
+
+.ring-progress {
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.ring-center {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
 }
 
-.mem-text {
+.ring-pct {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ring-label {
+  font-size: 12px;
+  color: var(--text-secondary, #909399);
+  margin-top: 4px;
+}
+
+.ring-detail {
+  font-size: 12px;
+  color: var(--text-secondary, #909399);
   text-align: center;
-  font-size: 14px;
-}
+  line-height: 1.6;
 
-.mem-used {
-  font-weight: 700;
-  color: #303133;
-}
-
-.mem-total {
-  color: #909399;
+  :deep(b) {
+    color: var(--text-primary, #303133);
+    font-weight: 600;
+  }
 }
 
 .disk-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
-.disk-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.disk-row {
+  background: var(--card-bg, #fff);
+  border-radius: 14px;
+  border: 1px solid var(--border-color, #e4e7ed);
+  padding: 18px 22px;
+  transition: all 0.2s ease;
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+
+  &:hover {
+    border-color: var(--color-primary, #fb7299);
+    box-shadow: 0 2px 12px rgba(251, 114, 153, 0.08);
+  }
 }
 
-.disk-header {
+.disk-head {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .disk-name {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary, #303133);
 }
 
-.disk-pct {
+.disk-mount {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary, #909399);
+  background: var(--bg-color, #f5f7fa);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
-.network-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.net-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.net-label {
-  font-size: 12px;
-  color: #909399;
-}
-
-.net-value {
-  font-size: 15px;
-  color: #303133;
+.disk-type {
+  font-size: 11px;
+  color: #fb7299;
+  background: rgba(251, 114, 153, 0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
   font-weight: 500;
 }
 
-@keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+.disk-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.disk-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--bg-color, #f2f3f5);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.disk-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.disk-bar-pct {
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 48px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.disk-info {
+  display: flex;
+  gap: 20px;
+}
+
+.disk-info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #909399);
+}
+
+.disk-info-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+html.dark-mode {
+  .page-header {
+    border-color: var(--border-color);
+  }
+
+  .stat-card,
+  .ring-card,
+  .disk-row {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+  }
+
+  .detail-item {
+    background: var(--bg-color);
+
+    &:hover {
+      background: var(--border-color);
+    }
+  }
+
+  .ring-bg {
+    stroke: var(--border-color);
+  }
+
+  .disk-bar-track {
+    background: var(--border-color);
+  }
+
+  .disk-mount {
+    background: var(--bg-color);
+  }
 }
 </style>
