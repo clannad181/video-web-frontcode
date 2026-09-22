@@ -596,7 +596,7 @@ const onPageSizeChange = () => { pagination.page = 1; fetchData() }
 
 const handleDelete = (row) => {
   ElMessageBox.confirm(`确定要删除视频「${row.title}」吗？`, '删除确认', { type: 'warning' })
-    .then(async () => { await deleteVideo(row.id); ElMessage.success('删除成功'); fetchData() }).catch(() => { })
+    .then(async () => { await deleteVideo(row.id); ElMessage.success('删除成功'); window.dispatchEvent(new Event('review-updated')); fetchData() }).catch(() => { })
 }
 
 const detailVisible = ref(false)
@@ -791,7 +791,7 @@ const onSave = async (videoStatus) => {
   try {
     if (isEditing.value) { await updateVideo(payload); ElMessage.success('更新成功') }
     else { await createVideo(payload); ElMessage.success(videoStatus === 0 ? '视频已暂存' : '视频保存成功') }
-    closeEdit(); fetchData()
+    closeEdit(); window.dispatchEvent(new Event('review-updated')); fetchData()
   } catch (e) { ElMessage.error(e.message || '保存失败') } finally { saving.value = false }
 }
 
@@ -832,7 +832,7 @@ const onSaveEpisodes = async () => {
       videoId: episodeVideo.value.id,
       episodes: episodeList.value.map((e, i) => ({ id: e.id, episodeNumber: e.episodeNumber, title: e.title, duration: e.duration, playUrl: e.playUrl, sort: i }))
     })
-    ElMessage.success('剧集保存成功'); episodeVisible.value = false; fetchData()
+    ElMessage.success('剧集保存成功'); episodeVisible.value = false; window.dispatchEvent(new Event('review-updated')); fetchData()
   } catch (e) { ElMessage.error(e.message || '保存失败') }
 }
 

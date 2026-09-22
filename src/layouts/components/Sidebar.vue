@@ -49,6 +49,10 @@
                   <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
                 </span>
                 <span class="menu-text">{{ item.menuName || item.name }}</span>
+                <Transition name="fade">
+                  <span v-if="getBadge(item.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(item.id) }}</span>
+                </Transition>
+                <span v-if="getBadge(item.id) && appStore.sidebar.collapsed" class="nav-badge-dot"></span>
                 <!-- 箭头图标，展开时旋转 -->
                 <span class="submenu-arrow" :class="{ rotated: expandedMenuIds.has(item.id) }">
                   <el-icon><ArrowDown /></el-icon>
@@ -67,6 +71,10 @@
                     <el-icon :size="14"><component :is="resolveIcon(child.icon)" /></el-icon>
                   </span>
                   <span class="menu-text">{{ child.menuName || child.name }}</span>
+                  <Transition name="fade">
+                    <span v-if="getBadge(child.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(child.id) }}</span>
+                  </Transition>
+                  <span v-if="getBadge(child.id) && appStore.sidebar.collapsed" class="nav-badge-dot"></span>
                 </div>
               </div>
             </div>
@@ -81,6 +89,10 @@
                 <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
               </span>
               <span class="menu-text">{{ item.menuName || item.name }}</span>
+              <Transition name="fade">
+                <span v-if="getBadge(item.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(item.id) }}</span>
+              </Transition>
+              <span v-if="getBadge(item.id) && appStore.sidebar.collapsed" class="nav-badge-dot"></span>
             </div>
             </template>
           </TransitionGroup>
@@ -101,6 +113,10 @@
                   <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
                 </span>
                 <span class="menu-text">{{ item.menuName || item.name }}</span>
+                <Transition name="fade">
+                  <span v-if="getBadge(item.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(item.id) }}</span>
+                </Transition>
+                <span v-if="getBadge(item.id) && appStore.sidebar.collapsed" class="nav-badge-dot"></span>
                 <span class="submenu-arrow" :class="{ rotated: expandedMenuIds.has(item.id) }">
                   <el-icon><ArrowDown /></el-icon>
                 </span>
@@ -117,6 +133,10 @@
                     <el-icon :size="14"><component :is="resolveIcon(child.icon)" /></el-icon>
                   </span>
                   <span class="menu-text">{{ child.menuName || child.name }}</span>
+                  <Transition name="fade">
+                    <span v-if="getBadge(child.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(child.id) }}</span>
+                  </Transition>
+                  <span v-if="getBadge(child.id) && appStore.sidebar.collapsed" class="nav-badge-dot"></span>
                 </div>
               </div>
             </div>
@@ -130,6 +150,10 @@
                 <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
               </span>
               <span class="menu-text">{{ item.menuName || item.name }}</span>
+              <Transition name="fade">
+                <span v-if="getBadge(item.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(item.id) }}</span>
+              </Transition>
+              <span v-if="getBadge(item.id) && appStore.sidebar.collapsed" class="nav-badge-dot"></span>
             </div>
             </template>
           </TransitionGroup>
@@ -198,6 +222,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import { constantRoutes } from '@/router'
+import { getVideoReviewStats, getCommentStatusStats } from '@/api/review'
 import { SwitchButton, Fold, Expand, ArrowDown, Document, Monitor, Edit, ChatDotRound, ChatLineSquare, VideoCamera, Comment, User, DataAnalysis, Bell, Setting, Menu, Tickets, Key, List, Reading, Star, Wallet, Connection, Picture, Film, Histogram, Grid, Stamp, Finished, Cpu, Flag, HomeFilled, Odometer, TrendCharts, UserFilled, Avatar, Lock, Search, Delete, Plus, Refresh, Download, Upload, Folder, FolderOpened, Aim, Location, Message, Trophy, Notebook, Calendar, Clock, Mic, VideoPlay, Headset } from '@element-plus/icons-vue'
 
 // 路由和状态管理
@@ -223,8 +248,70 @@ function onMenuUpdated() {
   })
 }
 window.addEventListener('menu-updated', onMenuUpdated)
+
+// Badge 逻辑：初始化 + 取数 + 匹配写入
+const badgeMap = ref({})
+
+function walkMenus(items, fn) {
+  for (const item of items) {
+    fn(item)
+    if (item.children?.length) walkMenus(item.children, fn)
+  }
+}
+
+function initAndFetchBadges() {
+  const allMenus = [...mainMenus.value, ...otherMenus.value]
+  console.log('[Badge] initAndFetchBadges, menuList length:', allMenus.length, 'sample item:', allMenus[0])
+  console.log('[Badge] all menu paths:')
+  allMenus.forEach(m => console.log('  id=' + m.id, 'name=' + (m.menuName||''), 'ident=' + (m.menuIdentification||''), '→ path=' + JSON.stringify(m.path), m.children?.length ? 'children: ' + m.children.map(c => JSON.stringify(c.path)).join(', ') : ''))
+  const map = {}
+  walkMenus(allMenus, item => { map[item.id] = 0 })
+  badgeMap.value = map
+  console.log('[Badge] badgeMap initialized:', JSON.stringify(map))
+  fetchBadges()
+}
+
+function normalizeBadgePath(p) { return p?.replace(/\/+$/, '') || '' }
+
+async function fetchBadges() {
+  try {
+    const [videoRes, commentRes] = await Promise.allSettled([
+      getVideoReviewStats(),
+      getCommentStatusStats()
+    ])
+    const videoStats = videoRes.status === 'fulfilled' ? (videoRes.value?.data || {}) : {}
+    const commentStats = commentRes.status === 'fulfilled' ? (commentRes.value?.data || {}) : {}
+    console.log('[Badge] videoStats:', videoStats, 'commentStats:', commentStats)
+    const e = (videoStats.pendingCount || 0) + (videoStats.partialCount || 0) + (videoStats.pendingPublishCount || 0)
+    const t = commentStats.pendingReviewCount || 0
+    const n = e + t
+    console.log('[Badge] values: /review=' + n, '/video-manage=' + e, '/comment-manage=' + t)
+    const values = { '/review': n, '/video-manage': e, '/comment-manage': t }
+    const map = { ...badgeMap.value }
+    const allMenus = [...mainMenus.value, ...otherMenus.value]
+    walkMenus(allMenus, item => {
+      const val = values[normalizeBadgePath(item.path)]
+      if (val !== undefined) {
+        map[item.id] = val
+        console.log('[Badge] matched:', item.path, '→ id:', item.id, 'val:', val)
+      }
+    })
+    console.log('[Badge] final badgeMap:', JSON.stringify(map))
+    badgeMap.value = map
+  } catch (err) { console.error('[Badge] fetch error:', err) }
+}
+
+function getBadge(id) { return badgeMap.value[id] || 0 }
+
+// 监听审核事件刷新 badge + 每分钟轮询
+function onReviewUpdated() { fetchBadges() }
+window.addEventListener('review-updated', onReviewUpdated)
+const badgeTimer = setInterval(fetchBadges, 60 * 1000)
+
 onUnmounted(() => {
   window.removeEventListener('menu-updated', onMenuUpdated)
+  window.removeEventListener('review-updated', onReviewUpdated)
+  clearInterval(badgeTimer)
 })
 
 // 当前激活的菜单路径
@@ -321,6 +408,8 @@ const menuList = computed(() => {
   const tree = Array.isArray(raw) ? raw : []
   return tree.map(item => processMenuItem(item)).sort((a, b) => (a.descSort || 0) - (b.descSort || 0))
 })
+
+watch(menuList, () => { nextTick(initAndFetchBadges) }, { immediate: true })
 
 /**
  * 处理菜单项，解析路径并递归处理子菜单
@@ -557,6 +646,8 @@ async function handleLogout() {
     .logout-btn { color: #909399; &:hover { color: #f44336; background: rgba(244, 67, 54, 0.1); } }
     .collapse-btn { color: #909399; border-top: 1px solid rgba(0, 0, 0, 0.06); &:hover { color: var(--color-primary); } }
     .logo-title { background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .nav-badge { box-shadow: 0 0 0 2px #fff; }
+    .nav-badge-dot { box-shadow: 0 0 0 1.5px rgba(29, 28, 44, 0.95); }
   }
 }
 
@@ -726,33 +817,39 @@ async function handleLogout() {
 }
 
 // ========== 徽标 ==========
-.menu-badge {
+.nav-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9px;
+  min-width: 20px;
+  height: 20px;
+  padding: 2px 6px;
+  border-radius: 10px;
   background: var(--color-primary);
   color: #ffffff;
   font-size: 11px;
-  font-weight: 600;
-  margin-left: 8px;
+  font-weight: 700;
+  margin-left: auto;
+  box-shadow: 0 0 0 2px var(--sidebar-bg, rgba(29, 28, 44, 0.95));
   animation: badgePulse 2s ease-in-out infinite;
-
-  // 折叠状态下的徽标样式
-  .collapsed & {
-    min-width: 8px;
-    height: 8px;
-    padding: 0;
-    border-radius: 50%;
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    font-size: 0;
-  }
+  flex-shrink: 0;
 }
+
+.nav-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  box-shadow: 0 0 0 1.5px #fff;
+  animation: badgePulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
 @keyframes badgePulse {
   0%, 100% { transform: scale(1); }
