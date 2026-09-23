@@ -69,6 +69,13 @@
           </div>
           <div class="setting-item">
             <div class="setting-info">
+              <div class="setting-title">默认密码</div>
+              <div class="setting-desc">新建用户或重置密码时的初始密码</div>
+            </div>
+            <input v-model="form.default_password" type="text" class="pwd-input" placeholder="请输入默认密码" maxlength="32" />
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
               <div class="setting-title">登录通知</div>
               <div class="setting-desc">新设备登录时发送邮件通知</div>
             </div>
@@ -180,7 +187,7 @@
           <div class="setting-item">
             <div class="setting-info">
               <div class="setting-title">视频审核</div>
-              <div class="setting-desc">开启后视频需审核后才能展示</div>
+              <div class="setting-desc">新上传的视频需要审核后才能发布</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.video_review }" @click="form.video_review = !form.video_review">
               <span class="toggle-thumb"></span>
@@ -189,7 +196,7 @@
           <div class="setting-item">
             <div class="setting-info">
               <div class="setting-title">评论审核</div>
-              <div class="setting-desc">开启后评论需审核后才能展示</div>
+              <div class="setting-desc">新发布的评论需要审核后才能显示</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.comment_review }" @click="form.comment_review = !form.comment_review">
               <span class="toggle-thumb"></span>
@@ -198,7 +205,7 @@
           <div class="setting-item">
             <div class="setting-info">
               <div class="setting-title">敏感词过滤</div>
-              <div class="setting-desc">开启后自动过滤敏感词</div>
+              <div class="setting-desc">自动过滤包含敏感词的内容</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.sensitive_word_filter }" @click="form.sensitive_word_filter = !form.sensitive_word_filter">
               <span class="toggle-thumb"></span>
@@ -208,31 +215,59 @@
 
         <div class="panel-body" v-if="activeNav === 'appearance'">
           <div class="form-group">
-            <label class="form-label">主题色</label>
-            <div class="color-row">
-              <div class="color-preview" :style="{ background: form.primaryColor }"></div>
-              <input v-model="form.primaryColor" class="form-input" placeholder="#fb7299" style="flex:1" />
+            <h3 class="form-label">主题色</h3>
+            <div class="color-palette">
+              <div v-for="c in presetColors" :key="c.value" class="color-option"
+                :class="{ active: form.primaryColor === c.value }"
+                :style="{ background: c.value }" :title="c.name"
+                @click="form.primaryColor = c.value">
+                <svg v-if="form.primaryColor === c.value" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
             </div>
+            <transition name="fade-slide">
+              <div v-if="serverPrimaryColor && serverPrimaryColor !== form.primaryColor" class="persist-palette">
+                <div class="persist-label">主题色-持久化</div>
+                <div class="color-palette">
+                  <div v-for="c in presetColors" :key="c.value" class="color-option"
+                    :class="{ active: serverPrimaryColor === c.value }"
+                    :style="{ background: c.value }" :title="c.name"
+                    @click="form.primaryColor = c.value">
+                    <svg v-if="serverPrimaryColor === c.value" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  </div>
+                </div>
+              </div>
+            </transition>
           </div>
-          <div class="form-group">
-            <label class="form-label">深色模式</label>
-            <div class="toggle-switch" :class="{ on: form.darkMode }" @click="toggleDarkMode">
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-title">深色模式</div>
+              <div class="setting-desc">切换深色/浅色主题</div>
+            </div>
+            <div class="toggle-switch" :class="{ on: form.darkMode }" @click="form.darkMode = !form.darkMode">
               <span class="toggle-thumb"></span>
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">紧凑模式</label>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-title">紧凑模式</div>
+              <div class="setting-desc">减少界面间距以显示更多内容</div>
+            </div>
             <div class="toggle-switch" :class="{ on: form.compactMode }" @click="form.compactMode = !form.compactMode">
               <span class="toggle-thumb"></span>
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">侧边栏风格</label>
-            <div class="select-wrap">
-              <select v-model="form.sidebarStyle" class="form-select">
-                <option value="dark">深色</option>
-                <option value="light">浅色</option>
-              </select>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-title">侧边栏样式</div>
+              <div class="setting-desc">切换侧边栏深浅皮肤</div>
+            </div>
+            <div class="radio-group">
+              <div class="radio-item" :class="{ active: form.sidebarStyle === 'dark' }" @click="form.sidebarStyle = 'dark'">
+                <span class="radio-dot"></span>深色
+              </div>
+              <div class="radio-item" :class="{ active: form.sidebarStyle === 'light' }" @click="form.sidebarStyle = 'light'">
+                <span class="radio-dot"></span>浅色
+              </div>
             </div>
           </div>
         </div>
@@ -263,7 +298,34 @@
         <div class="panel-divider"></div>
         <div class="settings-footer">
           <button class="btn btn-outline" @click="resetToDefault">重置默认</button>
-          <button class="btn btn-primary" @click="saveSettings" :disabled="saving">
+          <div v-if="activeNav === 'appearance'" class="save-btn-group">
+            <button class="btn btn-primary save-main" @click="saveSettings('global')" :disabled="saving">
+              <svg v-if="saving" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              {{ saving ? '保存中...' : '保存' }}
+            </button>
+            <button class="btn btn-primary save-arrow" @click.stop="showSaveMenu = !showSaveMenu">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <transition name="fade-slide">
+              <div v-if="showSaveMenu" class="save-dropdown" @click.stop>
+                <div class="save-dropdown-item" @click="saveSettings('local')">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <div class="save-dropdown-text">
+                    <div class="save-dropdown-label">本地生效</div>
+                    <div class="save-dropdown-desc">仅保存到浏览器</div>
+                  </div>
+                </div>
+                <div class="save-dropdown-item" @click="saveSettings('global')">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  <div class="save-dropdown-text">
+                    <div class="save-dropdown-label">全局生效</div>
+                    <div class="save-dropdown-desc">同步到服务器</div>
+                  </div>
+                </div>
+              </div>
+            </transition>
+          </div>
+          <button v-else class="btn btn-primary" @click="saveSettings('global')" :disabled="saving">
             <svg v-if="saving" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
             {{ saving ? '保存中...' : '保存' }}
           </button>
@@ -318,7 +380,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useAppStore } from '@/stores/app'
 import { getSettingsList, updateSettings, resetSettings, changePassword, getCaptcha } from '@/api/settings'
 import { getRoleList } from '@/api/role'
 import { getEnabledCategories } from '@/api/category'
@@ -326,6 +389,7 @@ import sparkMD5 from 'spark-md5'
 import { ElMessage } from 'element-plus'
 
 const activeNav = ref('basic')
+const appStore = useAppStore()
 const saving = ref(false)
 const showPasswordModal = ref(false)
 const passwordSaving = ref(false)
@@ -359,7 +423,7 @@ const defaults = {
   language: 'zh-CN', timezone: 'Asia/Shanghai',
   primaryColor: '#fb7299', darkMode: false, compactMode: false, sidebarStyle: 'dark',
   video_review: false, comment_review: false, sensitive_word_filter: false,
-  loginNotify: true, sessionTimeout: 30,
+  loginNotify: true, sessionTimeout: 30, default_password: '123456',
   front_access_token_expiry: 30, front_refresh_token_expiry: 7,
   backend_access_token_expiry: 15, backend_refresh_token_expiry: 7,
   videoReviewNotify: true, commentNotify: true, reportNotify: true, emailNotify: true,
@@ -371,7 +435,7 @@ const apiToForm = {
   language: 'language', timezone: 'timezone',
   primaryColor: 'primaryColor', darkMode: 'darkMode', compactMode: 'compactMode', sidebarStyle: 'sidebarStyle',
   video_review: 'video_review', comment_review: 'comment_review', sensitive_word_filter: 'sensitive_word_filter',
-  loginNotify: 'loginNotify', sessionTimeout: 'sessionTimeout',
+  loginNotify: 'loginNotify', sessionTimeout: 'sessionTimeout', default_password: 'default_password',
   front_access_token_expiry: 'front_access_token_expiry', front_refresh_token_expiry: 'front_refresh_token_expiry',
   backend_access_token_expiry: 'backend_access_token_expiry', backend_refresh_token_expiry: 'backend_refresh_token_expiry',
   videoReviewNotify: 'videoReviewNotify', commentNotify: 'commentNotify', reportNotify: 'reportNotify', emailNotify: 'emailNotify',
@@ -391,21 +455,35 @@ const form = reactive({ ...defaults })
 const settingsData = ref([])
 const roleList = ref([])
 const categoryList = ref([])
+const serverPrimaryColor = ref('')
+const showSaveMenu = ref(false)
+
+const presetColors = [
+  { name: '品牌粉', value: '#fb7299' },
+  { name: '科技蓝', value: '#00a1d6' },
+  { name: '优雅紫', value: '#7c5cfc' },
+  { name: '活力橙', value: '#ff8c42' },
+  { name: '成功绿', value: '#4caf50' }
+]
 
 const passwordForm = reactive({ oldPassword: '', newPassword: '', confirmPassword: '', captcha: '' })
 const canSubmitPassword = computed(() => passwordForm.oldPassword && passwordForm.newPassword && passwordForm.newPassword === passwordForm.confirmPassword && passwordForm.captcha)
-
-function toggleDarkMode() {
-  form.darkMode = !form.darkMode
-  document.documentElement.classList.toggle('dark-mode', form.darkMode)
-}
 
 watch(() => form.primaryColor, (v) => {
   document.documentElement.style.setProperty('--color-primary', v)
 }, { immediate: true })
 
 watch(() => form.darkMode, (v) => {
-  document.documentElement.classList.toggle('dark-mode', v)
+  if (v === appStore.darkMode) return
+  appStore.setDarkMode(v)
+})
+
+watch(() => form.compactMode, (v) => {
+  document.documentElement.classList.toggle('compact-mode', v)
+})
+
+watch(() => form.sidebarStyle, (v) => {
+  appStore.setSidebarStyle(v)
 })
 
 async function loadSettings() {
@@ -416,16 +494,29 @@ async function loadSettings() {
     list.forEach(item => {
       const formKey = apiToForm[item.key]
       if (formKey && defaults[formKey] !== undefined) {
-        let val = parseApiValue(item.value)
+        let val = item.key === 'default_password' ? String(item.value ?? '') : parseApiValue(item.value)
         if (item.key === 'front_access_token_expiry' || item.key === 'backend_access_token_expiry') {
           val = Math.round(val / 60000)
         } else if (item.key === 'front_refresh_token_expiry' || item.key === 'backend_refresh_token_expiry') {
           val = Math.round(val / 86400000)
         }
         form[formKey] = val
+        if (item.key === 'primaryColor') serverPrimaryColor.value = val
       }
     })
+    applyLocalSettings()
   } catch (e) { console.error('加载设置失败', e) }
+}
+
+function applyLocalSettings() {
+  try {
+    const raw = localStorage.getItem('app_settings')
+    if (!raw) return
+    const local = JSON.parse(raw)
+    Object.keys(defaults).forEach(k => {
+      if (local[k] !== undefined) form[k] = local[k]
+    })
+  } catch (e) { console.error('读取本地设置失败', e) }
 }
 
 async function loadOptions() {
@@ -449,14 +540,20 @@ const categoryMap = {
   siteName: 'basic', siteDesc: 'basic', siteUrl: 'basic', language: 'basic', timezone: 'basic',
   primaryColor: 'display', darkMode: 'display', compactMode: 'display', sidebarStyle: 'display',
   video_review: 'review', comment_review: 'review', sensitive_word_filter: 'review',
-  loginNotify: 'security', sessionTimeout: 'security',
+  loginNotify: 'security', sessionTimeout: 'security', default_password: 'security',
   front_access_token_expiry: 'token_security', front_refresh_token_expiry: 'token_security',
   backend_access_token_expiry: 'token_security', backend_refresh_token_expiry: 'token_security',
   videoReviewNotify: 'notification', commentNotify: 'notification', reportNotify: 'notification', emailNotify: 'notification',
   default_role: 'default', default_category: 'default'
 }
 
-async function saveSettings() {
+async function saveSettings(scope = 'global') {
+  showSaveMenu.value = false
+  if (scope === 'local') {
+    localStorage.setItem('app_settings', JSON.stringify({ ...form }))
+    ElMessage.success('已保存到本地浏览器')
+    return
+  }
   saving.value = true
   try {
     const settings = []
@@ -477,7 +574,9 @@ async function saveSettings() {
     })
     await updateSettings(settings)
     localStorage.setItem('app_settings', JSON.stringify({ ...form }))
+    serverPrimaryColor.value = form.primaryColor
     document.dispatchEvent(new CustomEvent('settings-updated'))
+    ElMessage.success('设置保存成功')
   } catch (e) {
     console.error(e)
   } finally { saving.value = false }
@@ -485,8 +584,6 @@ async function saveSettings() {
 
 function resetToDefault() {
   Object.assign(form, { ...defaults })
-  document.documentElement.style.setProperty('--color-primary', defaults.primaryColor)
-  document.documentElement.classList.toggle('dark-mode', defaults.darkMode)
 }
 
 async function refreshCaptcha() {
@@ -526,7 +623,17 @@ async function submitPassword() {
 
 watch(showPasswordModal, (v) => { if (v) refreshCaptcha() })
 
-onMounted(() => { loadSettings(); loadOptions() })
+function closeSaveMenu() { showSaveMenu.value = false }
+
+onMounted(() => {
+  loadSettings()
+  loadOptions()
+  document.addEventListener('click', closeSaveMenu)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeSaveMenu)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -547,7 +654,7 @@ onMounted(() => { loadSettings(); loadOptions() })
   &:hover { background: var(--bg-color, #f5f7fa); color: var(--text-primary, #303133); }
   &.active {
     background: rgba(251,114,153,0.08); color: #fb7299; font-weight: 600;
-    .nav-indicator { opacity: 1; transform: scaleY(1); }
+    .nav-indicator { opacity: 1; transform: translateY(-50%) scaleY(1); }
   }
 }
 .nav-indicator {
@@ -616,6 +723,12 @@ onMounted(() => { loadSettings(); loadOptions() })
   &:focus { border-color: #fb7299; box-shadow: 0 0 0 2px rgba(251,114,153,0.15); }
 }
 .suffix-text { font-size: 13px; color: var(--text-secondary, #909399); }
+.pwd-input {
+  width: 160px; height: 36px; border-radius: 8px; border: 1px solid var(--border-color, #dcdfe6);
+  padding: 0 12px; font-size: 13px; background: var(--card-bg, #fff);
+  color: var(--text-primary, #303133); outline: none; transition: all 0.2s ease;
+  &:focus { border-color: #fb7299; box-shadow: 0 0 0 2px rgba(251,114,153,0.15); }
+}
 .section-block { margin-bottom: 24px; }
 .section-title-bar {
   font-size: 15px; font-weight: 600; color: var(--text-primary, #303133);
@@ -637,8 +750,59 @@ onMounted(() => { loadSettings(); loadOptions() })
   .on & { transform: translateX(22px); }
 }
 
-.color-row { display: flex; align-items: center; gap: 12px; }
-.color-preview { width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--border-color, #e4e7ed); flex-shrink: 0; }
+.color-palette { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.color-option {
+  width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+  border: 3px solid transparent; transition: all 0.25s ease;
+  display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+  &:hover { transform: scale(1.1); }
+  &.active { border-color: var(--color-primary, #fb7299); box-shadow: 0 0 0 2px var(--card-bg, #fff), 0 2px 8px rgba(0,0,0,0.15); }
+}
+.persist-palette {
+  margin-top: 16px; padding: 14px 16px; border-radius: 10px;
+  background: var(--bg-color, #f6f7f9); border: 1px dashed var(--border-color, #dcdfe6);
+}
+.persist-label { font-size: 12px; font-weight: 600; color: var(--text-secondary, #909399); margin-bottom: 10px; }
+
+.fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.3s ease; }
+.fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(-8px); }
+
+.radio-group { display: flex; gap: 20px; align-items: center; }
+.radio-item {
+  display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;
+  color: var(--text-primary, #303133); transition: color 0.2s ease;
+  &:hover { color: #fb7299; }
+  &.active { color: #fb7299; }
+}
+.radio-dot {
+  width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-color, #dcdfe6);
+  position: relative; transition: all 0.2s ease; box-sizing: border-box; flex-shrink: 0;
+  .active & { border-color: #fb7299; }
+  .active &::after {
+    content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #fb7299;
+  }
+}
+
+.save-btn-group { position: relative; display: flex; }
+.save-main { border-radius: 10px 0 0 10px !important; padding: 0 20px !important; }
+.save-arrow {
+  border-radius: 0 10px 10px 0 !important; padding: 0 12px !important;
+  border-left: 1px solid rgba(255,255,255,0.25) !important;
+}
+.save-dropdown {
+  position: absolute; bottom: calc(100% + 8px); right: 0; width: 220px; z-index: 20;
+  background: var(--card-bg, #fff); border: 1px solid var(--border-color, #ebeef5);
+  border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); padding: 6px; box-sizing: border-box;
+}
+.save-dropdown-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+  cursor: pointer; color: var(--text-primary, #303133); transition: background 0.2s ease;
+  svg { flex-shrink: 0; color: var(--text-secondary, #909399); }
+  &:hover { background: rgba(251,114,153,0.06); }
+  &:hover svg { color: #fb7299; }
+}
+.save-dropdown-label { font-size: 13px; font-weight: 600; }
+.save-dropdown-desc { font-size: 12px; color: var(--text-secondary, #909399); margin-top: 1px; }
 
 .settings-footer {
   display: flex; justify-content: flex-end; gap: 12px; padding: 16px 28px;

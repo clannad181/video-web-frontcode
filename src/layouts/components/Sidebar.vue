@@ -3,7 +3,7 @@
   <div
     class="sidebar"
     :class="{ collapsed: appStore.sidebar.collapsed }"
-    :data-sidebar="appStore.darkMode ? 'dark' : 'light'"
+    :data-sidebar="appStore.darkMode ? 'dark' : appStore.sidebarStyle"
   >
     <!-- 背景光晕效果 -->
     <div class="glow-orb" />

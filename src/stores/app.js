@@ -24,6 +24,8 @@ export const useAppStore = defineStore('app', {
     language: localStorage.getItem('language') || 'zh-cn',
     // 深色模式开关
     darkMode: localStorage.getItem('darkMode') === 'true',
+    // 侧边栏样式（dark/light）
+    sidebarStyle: localStorage.getItem('sidebarStyle') || 'dark',
     // 全局字体
     fontFamily: localStorage.getItem('fontFamily') || '默认',
     // 字体大小
@@ -68,29 +70,55 @@ export const useAppStore = defineStore('app', {
     /**
      * 设置深色模式
      * @param {Boolean} dark - 是否启用深色模式
+     * @param {Boolean} animate - 是否播放切换动画（初始化时传 false）
      */
-    setDarkMode(dark) {
+    setDarkMode(dark, animate = true) {
       this.darkMode = dark
       localStorage.setItem('darkMode', String(dark))
-      this.applyDarkModeClass()
+      this.applyDarkModeClass(animate)
+    },
+
+    /**
+     * 设置侧边栏样式
+     * @param {String} style - 样式（dark/light）
+     */
+    setSidebarStyle(style) {
+      this.sidebarStyle = style
+      localStorage.setItem('sidebarStyle', style)
     },
 
     /**
      * 应用深色模式CSS类到HTML元素
-     * 通过临时过渡类统一所有元素的主题切换动画，动画结束后移除
+     * 优先使用 View Transitions API 做整屏快照交叉淡化（所有元素严格同步）；
+     * 不支持的浏览器降级为临时过渡类方案
+     * @param {Boolean} animate - 是否播放切换动画（初始化时传 false）
      */
-    applyDarkModeClass() {
+    applyDarkModeClass(animate = true) {
       const root = document.documentElement
-      // 先加临时过渡类
+      const apply = () => {
+        if (this.darkMode) {
+          root.classList.add('dark-mode')
+        } else {
+          root.classList.remove('dark-mode')
+        }
+      }
+
+      if (!animate) {
+        apply()
+        return
+      }
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (document.startViewTransition && !reduceMotion) {
+        document.startViewTransition(apply)
+        return
+      }
+
+      // 降级方案：先加临时过渡类
       root.classList.add('theme-transition')
       // 强制浏览器同步重排，让 transition 属性先生效，再切换颜色才能触发动画
       void root.offsetHeight
-
-      if (this.darkMode) {
-        root.classList.add('dark-mode')
-      } else {
-        root.classList.remove('dark-mode')
-      }
+      apply()
 
       // 过渡结束后移除临时类，恢复正常交互（hover 等）
       clearTimeout(themeTransitionTimer)

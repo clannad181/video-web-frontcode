@@ -75,17 +75,27 @@ html.dark-mode {
 // 全局主题切换过渡 - 通过临时类 .theme-transition 统一控制
 // 说明：平时不加全局 transition，避免覆盖各组件 hover 等交互效果；
 // 切换主题时由 app.js 临时添加 .theme-transition 类，强制所有元素统一动画。
+// 注意：必须用 #app（ID 选择器）抬升优先级，否则组件内 scoped 的
+// transition !important（.x[data-v] 优先级 0-2-0）会压过本规则（0-1-1），
+// 导致各元素按各自时长/延迟切换，出现"卡片先变、背景后变"的割裂。
 html.theme-transition,
 html.theme-transition body,
-html.theme-transition *,
-html.theme-transition *::before,
-html.theme-transition *::after {
-  transition: background-color var(--theme-transition),
-              color var(--theme-transition),
-              border-color var(--theme-transition),
-              box-shadow var(--theme-transition),
-              fill var(--theme-transition),
-              stroke var(--theme-transition) !important;
+html.theme-transition #app,
+html.theme-transition #app *,
+html.theme-transition #app *::before,
+html.theme-transition #app *::after {
+  transition-property: background-color, color, border-color, box-shadow, fill, stroke !important;
+  transition-duration: 0.32s !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0s !important;
+}
+
+// 主题切换 View Transition：整屏快照交叉淡化，所有元素严格同步切换
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.4s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  mix-blend-mode: normal;
 }
 
 html {
