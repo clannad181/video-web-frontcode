@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useSessionTimeout } from '@/composables/useSessionTimeout'
 import SessionWarning from '@/components/SessionWarning.vue'
@@ -22,9 +22,14 @@ const sessionWarning = useSessionTimeout()
 onMounted(() => {
   appStore.applyDarkModeClass(false)
   applyLocalAppearance()
+  document.addEventListener('settings-updated', applyLocalAppearance)
 })
 
-// 本地保存的外观设置优先生效（本地保存 > 接口默认）
+onUnmounted(() => {
+  document.removeEventListener('settings-updated', applyLocalAppearance)
+})
+
+// 本地保存的外观/基础设置优先生效（本地保存 > 接口默认）
 function applyLocalAppearance() {
   try {
     const raw = localStorage.getItem('app_settings')
@@ -34,6 +39,7 @@ function applyLocalAppearance() {
     if (s.darkMode !== undefined) appStore.setDarkMode(!!s.darkMode, false)
     if (s.compactMode !== undefined) document.documentElement.classList.toggle('compact-mode', !!s.compactMode)
     if (s.sidebarStyle) appStore.setSidebarStyle(s.sidebarStyle)
+    if (s.siteName) appStore.setSiteName(s.siteName)
   } catch { /* ignore */ }
 }
 </script>

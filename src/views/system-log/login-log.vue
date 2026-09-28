@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">登录日志</h2>
-      <span class="page-sub">查看系统用户登录记录和安全审计</span>
+      <h2 class="page-title">{{ pageTitle }}</h2>
+      <span class="page-sub">{{ pageSub }}</span>
     </div>
 
     <div class="filter-card">
@@ -150,7 +150,16 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { getLoginLogList } from '@/api/loginLog'
+
+const route = useRoute()
+const pageTitle = computed(() => route.meta?.title || '登录日志')
+const pageSub = computed(() =>
+  route.path === '/system-log'
+    ? '查看系统运行与登录安全审计记录'
+    : '查看系统用户登录记录和安全审计'
+)
 
 const loading = ref(false)
 const list = ref([])

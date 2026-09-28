@@ -26,6 +26,8 @@ export const useAppStore = defineStore('app', {
     darkMode: localStorage.getItem('darkMode') === 'true',
     // 侧边栏样式（dark/light）
     sidebarStyle: localStorage.getItem('sidebarStyle') || 'dark',
+    // 网站名称
+    siteName: localStorage.getItem('siteName') || 'VideoHub',
     // 全局字体
     fontFamily: localStorage.getItem('fontFamily') || '默认',
     // 字体大小
@@ -85,6 +87,17 @@ export const useAppStore = defineStore('app', {
     setSidebarStyle(style) {
       this.sidebarStyle = style
       localStorage.setItem('sidebarStyle', style)
+    },
+
+    /**
+     * 设置网站名称（同时更新侧栏 logo 与浏览器标签页标题）
+     * @param {String} name - 网站名称
+     */
+    setSiteName(name) {
+      if (!name) return
+      this.siteName = name
+      localStorage.setItem('siteName', name)
+      document.title = name
     },
 
     /**

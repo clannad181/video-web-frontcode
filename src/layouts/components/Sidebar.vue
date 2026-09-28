@@ -25,7 +25,7 @@
       </div>
       <!-- Logo文字，收缩时隐藏 -->
       <transition name="fade-text">
-        <span v-show="!appStore.sidebar.collapsed" class="logo-title">VideoHub</span>
+        <span v-show="!appStore.sidebar.collapsed" class="logo-title">{{ appStore.siteName }}</span>
       </transition>
     </div>
 
@@ -223,7 +223,8 @@ import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import { constantRoutes } from '@/router'
 import { getVideoReviewStats, getCommentStatusStats } from '@/api/review'
-import { SwitchButton, Fold, Expand, ArrowDown, Document, Monitor, Edit, ChatDotRound, ChatLineSquare, VideoCamera, Comment, User, DataAnalysis, Bell, Setting, Menu, Tickets, Key, List, Reading, Star, Wallet, Connection, Picture, Film, Histogram, Grid, Stamp, Finished, Cpu, Flag, HomeFilled, Odometer, TrendCharts, UserFilled, Avatar, Lock, Search, Delete, Plus, Refresh, Download, Upload, Folder, FolderOpened, Aim, Location, Message, Trophy, Notebook, Calendar, Clock, Mic, VideoPlay, Headset } from '@element-plus/icons-vue'
+import { SwitchButton, Fold, Expand, ArrowDown, Document } from '@element-plus/icons-vue'
+import * as ElementPlusIcons from '@element-plus/icons-vue'
 
 // 路由和状态管理
 const route = useRoute()
@@ -320,7 +321,7 @@ function flattenRoutes(routes, parentPath = '') {
     if (r.children) {
       result.push(...flattenRoutes(r.children, fullPath))
     } else {
-      result.push({ path: fullPath === '//' ? '/' : fullPath, name: r.name, title: r.meta?.title || '', icon: r.meta?.icon || '' })
+      result.push({ path: normalizePath(fullPath), name: r.name, title: r.meta?.title || '', icon: r.meta?.icon || '' })
     }
   }
   return result
@@ -330,55 +331,52 @@ function flattenRoutes(routes, parentPath = '') {
 const flatRoutes = flattenRoutes(constantRoutes)
 
 /**
- * 根据菜单名称、标识符或图标解析对应的路由路径
+ * 根据菜单记录解析目标路由路径（严格模式，避免误跳）
+ * 优先级：路由 name > 路由 path > 路由标题
+ * 解析不到返回空字符串（菜单为死点击），不再按图标模糊匹配
  * @param {String} menuName - 菜单名称
- * @param {String} menuIdentification - 菜单标识符
- * @param {String} menuIcon - 菜单图标
+ * @param {String} menuIdentification - 菜单标识符（推荐存路由 name）
+ * @param {String} menuIcon - 菜单图标（仅用于展示，不参与解析）
  * @returns {String} 匹配的路由路径
  */
 function resolveMenuPath(menuName, menuIdentification, menuIcon) {
-  // 优先通过菜单标识符匹配
-  if (menuIdentification) {
-    const s = String(menuIdentification)
-    if (s.startsWith('/')) {
-      const exists = flatRoutes.some(r => r.path === s)
-      if (exists) return s
-      const matched = flatRoutes.find(r => r.title === menuName || r.icon === menuIcon)
-      if (matched) return matched.path
-      if (s === '/') {
-        const root = constantRoutes.find(r => r.path === '/')
-        if (root?.redirect) return root.redirect
-      }
-    }
+  const ident = menuIdentification == null ? '' : String(menuIdentification).trim()
+
+  if (ident) {
+    const byName = flatRoutes.find(r => r.name && r.name.toLowerCase() === ident.toLowerCase())
+    if (byName) return byName.path
+
+    const target = normalizePath(ident)
+    const byPath = flatRoutes.find(r => normalizePath(r.path) === target)
+    if (byPath) return byPath.path
   }
-  // 通过菜单名称匹配
+
   if (menuName) {
-    const found = flatRoutes.find(r => r.title === menuName)
-    if (found) return found.path
+    const byTitle = flatRoutes.find(r => r.title === menuName)
+    if (byTitle) return byTitle.path
   }
-  // 通过图标匹配
-  if (menuIcon) {
-    const found = flatRoutes.find(r => r.icon === menuIcon)
-    if (found) return found.path
+
+  if (ident === '/') {
+    const root = constantRoutes.find(r => r.path === '/')
+    if (root?.redirect) return root.redirect
   }
-  // 通过标识符名称匹配
-  if (menuIdentification) {
-    const s = String(menuIdentification).toLowerCase()
-    const found = flatRoutes.find(r => r.name?.toLowerCase() === s)
-    if (found) return found.path
+
+  if (ident || menuName) {
+    console.warn(`[menu] 菜单解析失败，已跳过：menuName="${menuName}" menuIdentification="${ident}"`)
   }
   return ''
 }
 
 /**
- * 标准化路径，确保以/开头
+ * 标准化路径：确保以/开头，并去除尾部斜杠
  * @param {String} p - 原始路径
  * @returns {String} 标准化后的路径
  */
 function normalizePath(p) {
   if (p == null || p === '') return ''
   const s = String(p)
-  return s.startsWith('/') ? s : '/' + s
+  const withSlash = s.startsWith('/') ? s : '/' + s
+  return withSlash.replace(/\/+$/, '') || '/'
 }
 
 /**
@@ -389,7 +387,7 @@ function normalizePath(p) {
  */
 function isPathMatch(menuPath, routePath) {
   if (!menuPath) return false
-  return normalizePath(menuPath).toLowerCase() === (routePath || '').toLowerCase()
+  return normalizePath(menuPath).toLowerCase() === normalizePath(routePath).toLowerCase()
 }
 
 // 菜单列表（从用户信息中获取并处理）
@@ -438,17 +436,7 @@ const iconCache = {}
 function resolveIcon(name) {
   if (!name) return markRaw(Document)
   if (iconCache[name]) return iconCache[name]
-  const icons = {
-    Monitor, Edit, ChatDotRound, ChatLineSquare, VideoCamera, Comment,
-    User, DataAnalysis, Bell, Setting, Document, Menu, Tickets, Key,
-    List, Reading, Star, Wallet, Connection, Picture, Film, Histogram,
-    Grid, Stamp, Finished, Cpu, Flag, ArrowDown, HomeFilled, Odometer,
-    TrendCharts, UserFilled, Avatar, Lock, Search, Delete, Plus, Refresh,
-    Download, Upload, Folder, FolderOpened, Aim, Location, Message,
-    Trophy, Notebook, Calendar, Clock, Mic, VideoPlay, Headset,
-    Fold, Expand, SwitchButton
-  }
-  iconCache[name] = markRaw(icons[name] || Document)
+  iconCache[name] = markRaw(ElementPlusIcons[name] || Document)
   return iconCache[name]
 }
 

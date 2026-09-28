@@ -145,8 +145,9 @@
                 </div>
               </div>
               <div class="fg">
-                <label class="fl">路由路径</label>
-                <input class="fi fi-readonly" :value="editForm.menuIdentification" readonly />
+                <label class="fl">路由标识</label>
+                <input v-model="editForm.menuIdentification" class="fi" placeholder="建议填路由 name，如 ReviewManage" />
+                <span class="fh">填路由 name（推荐）或 /path，改路由/图标/名称都不影响跳转</span>
               </div>
               <div class="fg">
                 <label class="fl">排序 <span class="req">*</span></label>
@@ -986,10 +987,12 @@ onMounted(fetchData)
   }
 }
 
-.fi-readonly {
-  background: var(--bg-color, #f5f7fa) !important;
-  color: var(--text-secondary, #909399) !important;
-  cursor: not-allowed;
+.fh {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary, #909399);
 }
 
 .icon-select-trigger {

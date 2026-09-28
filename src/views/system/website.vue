@@ -147,15 +147,6 @@
         <div class="panel-body" v-if="activeNav === 'notification'">
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">邮件通知</div>
-              <div class="setting-desc">通过邮件接收系统通知</div>
-            </div>
-            <div class="toggle-switch" :class="{ on: form.emailNotify }" @click="form.emailNotify = !form.emailNotify">
-              <span class="toggle-thumb"></span>
-            </div>
-          </div>
-          <div class="setting-item">
-            <div class="setting-info">
               <div class="setting-title">审核通知</div>
               <div class="setting-desc">视频审核完成时通知</div>
             </div>
@@ -426,7 +417,7 @@ const defaults = {
   loginNotify: true, sessionTimeout: 30, default_password: '123456',
   front_access_token_expiry: 30, front_refresh_token_expiry: 7,
   backend_access_token_expiry: 15, backend_refresh_token_expiry: 7,
-  videoReviewNotify: true, commentNotify: true, reportNotify: true, emailNotify: true,
+  videoReviewNotify: true, commentNotify: true, reportNotify: true,
   default_role: '', default_category: ''
 }
 
@@ -438,7 +429,7 @@ const apiToForm = {
   loginNotify: 'loginNotify', sessionTimeout: 'sessionTimeout', default_password: 'default_password',
   front_access_token_expiry: 'front_access_token_expiry', front_refresh_token_expiry: 'front_refresh_token_expiry',
   backend_access_token_expiry: 'backend_access_token_expiry', backend_refresh_token_expiry: 'backend_refresh_token_expiry',
-  videoReviewNotify: 'videoReviewNotify', commentNotify: 'commentNotify', reportNotify: 'reportNotify', emailNotify: 'emailNotify',
+  videoReviewNotify: 'videoReviewNotify', commentNotify: 'commentNotify', reportNotify: 'reportNotify',
   default_role: 'default_role', default_category: 'default_category'
 }
 
@@ -505,6 +496,7 @@ async function loadSettings() {
       }
     })
     applyLocalSettings()
+    appStore.setSiteName(form.siteName)
   } catch (e) { console.error('加载设置失败', e) }
 }
 
@@ -543,7 +535,7 @@ const categoryMap = {
   loginNotify: 'security', sessionTimeout: 'security', default_password: 'security',
   front_access_token_expiry: 'token_security', front_refresh_token_expiry: 'token_security',
   backend_access_token_expiry: 'token_security', backend_refresh_token_expiry: 'token_security',
-  videoReviewNotify: 'notification', commentNotify: 'notification', reportNotify: 'notification', emailNotify: 'notification',
+  videoReviewNotify: 'notification', commentNotify: 'notification', reportNotify: 'notification',
   default_role: 'default', default_category: 'default'
 }
 
@@ -551,6 +543,8 @@ async function saveSettings(scope = 'global') {
   showSaveMenu.value = false
   if (scope === 'local') {
     localStorage.setItem('app_settings', JSON.stringify({ ...form }))
+    appStore.setSiteName(form.siteName)
+    document.dispatchEvent(new CustomEvent('settings-updated'))
     ElMessage.success('已保存到本地浏览器')
     return
   }
@@ -575,6 +569,7 @@ async function saveSettings(scope = 'global') {
     await updateSettings(settings)
     localStorage.setItem('app_settings', JSON.stringify({ ...form }))
     serverPrimaryColor.value = form.primaryColor
+    appStore.setSiteName(form.siteName)
     document.dispatchEvent(new CustomEvent('settings-updated'))
     ElMessage.success('设置保存成功')
   } catch (e) {

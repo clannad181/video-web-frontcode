@@ -111,6 +111,12 @@ export const constantRoutes = [
         name: 'ReviewManage',
         component: () => import('@/views/review/index.vue'),
         meta: { title: '内容审核', icon: 'CircleCheck', requiresAuth: true }
+      },
+      {
+        path: 'complaint',
+        name: 'ReviewComplaint',
+        component: () => import('@/views/review/complaint.vue'),
+        meta: { title: '稿件投诉', icon: 'Warning', requiresAuth: true }
       }
     ]
   },
