@@ -332,14 +332,16 @@ const flatRoutes = flattenRoutes(constantRoutes)
 
 /**
  * 根据菜单记录解析目标路由路径（严格模式，避免误跳）
- * 优先级：路由 name > 路由 path > 路由标题
- * 解析不到返回空字符串（菜单为死点击），不再按图标模糊匹配
+ * 优先级：menuIdentification > 菜单表 path > 路由标题
+ * 解析不到返回空字符串（菜单为死点击），不按图标模糊匹配
  * @param {String} menuName - 菜单名称
  * @param {String} menuIdentification - 菜单标识符（推荐存路由 name）
  * @param {String} menuIcon - 菜单图标（仅用于展示，不参与解析）
+ * @param {String} menuPath - 菜单表自带的目标路径（menu.path）
+ * @param {Boolean} warnIfFail - 解析失败时是否输出告警（仅叶子菜单告警，父菜单无需跳转）
  * @returns {String} 匹配的路由路径
  */
-function resolveMenuPath(menuName, menuIdentification, menuIcon) {
+function resolveMenuPath(menuName, menuIdentification, menuIcon, menuPath, warnIfFail = true) {
   const ident = menuIdentification == null ? '' : String(menuIdentification).trim()
 
   if (ident) {
@@ -349,6 +351,12 @@ function resolveMenuPath(menuName, menuIdentification, menuIcon) {
     const target = normalizePath(ident)
     const byPath = flatRoutes.find(r => normalizePath(r.path) === target)
     if (byPath) return byPath.path
+  }
+
+  if (menuPath) {
+    const target = normalizePath(menuPath)
+    const byMenuPath = flatRoutes.find(r => normalizePath(r.path) === target)
+    if (byMenuPath) return byMenuPath.path
   }
 
   if (menuName) {
@@ -361,8 +369,8 @@ function resolveMenuPath(menuName, menuIdentification, menuIcon) {
     if (root?.redirect) return root.redirect
   }
 
-  if (ident || menuName) {
-    console.warn(`[menu] 菜单解析失败，已跳过：menuName="${menuName}" menuIdentification="${ident}"`)
+  if (warnIfFail && (ident || menuName)) {
+    console.warn(`[menu] 菜单解析失败，已跳过：menuName="${menuName}" menuIdentification="${ident}" menuPath="${menuPath == null ? '' : menuPath}"`)
   }
   return ''
 }
@@ -405,7 +413,8 @@ watch(menuList, () => { nextTick(initAndFetchBadges) }, { immediate: true })
  * @returns {Object} 处理后的菜单项
  */
 function processMenuItem(item) {
-  const resolvedPath = resolveMenuPath(item.menuName, item.menuIdentification, item.icon)
+  const hasChildren = Array.isArray(item.children) && item.children.length > 0
+  const resolvedPath = resolveMenuPath(item.menuName, item.menuIdentification, item.icon, item.path, !hasChildren)
   return {
     ...item,
     path: resolvedPath,

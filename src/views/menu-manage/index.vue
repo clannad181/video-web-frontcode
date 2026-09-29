@@ -49,7 +49,7 @@
               <th class="col-index">#</th>
               <th>菜单名称</th>
               <th>图标</th>
-              <th>路由路径</th>
+              <th>路由标识</th>
               <th>排序</th>
               <th>状态</th>
               <th class="sticky-col">操作</th>
