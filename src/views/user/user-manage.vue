@@ -33,8 +33,7 @@
           <div class="select-wrap" :class="{ open: statusOpen }">
             <select v-model="filter.status" class="filter-select" @mousedown="statusOpen = true" @blur="statusOpen = false">
               <option value="">全部</option>
-              <option value="0">启用</option>
-              <option value="1">禁用</option>
+              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
             </select>
           </div>
         </div>
@@ -316,10 +315,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, WarningFilled } from '@element-plus/icons-vue'
 import { getUserList, addUser, updateUser, deleteUser, resetPassword, getRoleList } from '@/api/user'
+import { getEnabledDictData } from '@/api/dict'
 import { uploadFile } from '@/api/file'
 
 const loading = ref(false)
@@ -340,12 +340,24 @@ const goPage = (p) => { if (p >= 1 && p <= totalPages.value) { pagination.value.
 const onPageSizeChange = () => { pagination.value.page = 1; fetchData() }
 
 const roleOptions = ref([])
+const statusOptions = ref([])
 const currentUser = ref(null)
 
 onMounted(() => {
   try { currentUser.value = JSON.parse(localStorage.getItem('user')) } catch { }
   fetchRoles()
+  fetchStatusOptions()
   fetchData()
+})
+
+// keep-alive 复用实例，每次重新进入页面都重新拉取最新字典，不使用旧数据
+const isInitialActivation = ref(true)
+onActivated(() => {
+  if (isInitialActivation.value) {
+    isInitialActivation.value = false // 首次进入已由 onMounted 拉取
+    return
+  }
+  fetchStatusOptions()
 })
 
 const fetchRoles = async () => {
@@ -354,6 +366,18 @@ const fetchRoles = async () => {
     const d = res.data
     roleOptions.value = Array.isArray(d) ? d : (d?.records || d?.list || [])
   } catch { console.error('加载角色选项失败') }
+}
+
+/** 状态下拉：GET /admin/dict/data/enabled/user_status（启用中的字典数据） */
+const fetchStatusOptions = async () => {
+  try {
+    const res = await getEnabledDictData('user_status')
+    const d = res?.data
+    statusOptions.value = (Array.isArray(d) ? d : []).filter(item => item && item.value !== undefined && item.value !== null)
+  } catch (e) {
+    statusOptions.value = []
+    console.warn('[user-manage] 加载 user_status 字典失败：', e?.message || e)
+  }
 }
 
 const canOperate = (row) => {

@@ -29,10 +29,7 @@
           <div class="select-wrap" :class="{ open: videoStatusOpen }">
             <select v-model="filter.videoStatus" class="filter-select" @mousedown="videoStatusOpen = true" @blur="videoStatusOpen = false">
               <option value="">全部</option>
-              <option :value="0">草稿</option>
-              <option :value="1">待发布</option>
-              <option :value="2">已发布</option>
-              <option :value="3">已下架</option>
+              <option v-for="d in videoStatusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
             </select>
           </div>
         </div>
@@ -49,8 +46,7 @@
           <div class="select-wrap" :class="{ open: serialStatusOpen }">
             <select v-model="filter.serialStatus" class="filter-select" @mousedown="serialStatusOpen = true" @blur="serialStatusOpen = false">
               <option value="">全部</option>
-              <option :value="1">连载中</option>
-              <option :value="0">已完结</option>
+              <option v-for="d in serialStatusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
             </select>
           </div>
         </div>
@@ -502,13 +498,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { VideoPlay, Plus, Upload } from '@element-plus/icons-vue'
 import { formatDuration, formatNumber } from '@/utils/format'
 import { getVideoList, getVideoDetail, createVideo, updateVideo, deleteVideo, saveEpisodes } from '@/api/video'
 import { getCategoryList } from '@/api/category'
+import { getEnabledDictData } from '@/api/dict'
 import { uploadFile } from '@/utils/upload'
 import DPlayer from '@/components/DPlayer.vue'
 
@@ -521,6 +518,8 @@ const videoStatusOpen = ref(false)
 const serialStatusOpen = ref(false)
 
 const filter = reactive({ id: '', title: '', categoryId: '', videoStatus: '', username: '', userId: '', serialStatus: '' })
+const videoStatusOptions = ref([])
+const serialStatusOptions = ref([])
 const sortField = ref('')
 const sortOrder = ref('')
 const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
@@ -554,9 +553,12 @@ const buildParams = () => {
   if (filter.videoStatus !== '') p.videoStatus = filter.videoStatus
   if (filter.username) p.nickName = filter.username
   if (filter.userId) p.uid = filter.userId
-  if (filter.serialStatus !== '') p.isOngoing = filter.serialStatus === 1
+  // 字典值为 "true"/"false"（也可能出现 "1"/"0"），统一解析成布尔
+  if (filter.serialStatus !== '') {
+    const s = String(filter.serialStatus).toLowerCase()
+    p.isOngoing = s === 'true' || s === '1'
+  }
   if (sortField.value) { p.field = fieldMap[sortField.value]; p.descOrAsc = sortOrder.value }
-  if (route.query.videoId) p.videoId = route.query.videoId
   return p
 }
 
@@ -854,10 +856,57 @@ const hideTitleTip = () => {
   titleTipTimer = setTimeout(() => { titleTip.visible = false }, 100)
 }
 
+/** 视频状态下拉：GET /admin/dict/data/enabled/video_status（启用中的字典数据） */
+const fetchVideoStatusOptions = async () => {
+  try {
+    const res = await getEnabledDictData('video_status')
+    const d = res?.data
+    videoStatusOptions.value = (Array.isArray(d) ? d : []).filter(item => item && item.value !== undefined && item.value !== null)
+  } catch (e) {
+    videoStatusOptions.value = []
+    console.warn('[video-manage] 加载 video_status 字典失败：', e?.message || e)
+  }
+}
+
+/** 连载状态下拉：GET /admin/dict/data/enabled/video_serialization_status */
+const fetchSerialStatusOptions = async () => {
+  try {
+    const res = await getEnabledDictData('video_serialization_status')
+    const d = res?.data
+    serialStatusOptions.value = (Array.isArray(d) ? d : []).filter(item => item && item.value !== undefined && item.value !== null)
+  } catch (e) {
+    serialStatusOptions.value = []
+    console.warn('[video-manage] 加载 video_serialization_status 字典失败：', e?.message || e)
+  }
+}
+
+/** 每次进入页面都重新拉取字典下拉数据，不复用缓存 */
+const refreshDictOptions = () => {
+  fetchVideoStatusOptions()
+  fetchSerialStatusOptions()
+}
+
 onMounted(async () => {
+  refreshDictOptions()
   try { const res = await getCategoryList({ page: 1, size: 200 }); categories.value = res.data.records || [] } catch (e) { console.error('分类加载失败', e) }
   if (route.query.videoId) filter.id = route.query.videoId
   fetchData()
+})
+
+// keep-alive 复用实例，每次重新进入页面都重新拉取最新字典，不使用旧数据
+const isInitialActivation = ref(true)
+onActivated(() => {
+  if (isInitialActivation.value) {
+    isInitialActivation.value = false // 首次进入已由 onMounted 拉取
+    return
+  }
+  // 从投诉/评论页带 videoId 跳转过来时：回填 avid 并只查该视频（keep-alive 下 onMounted 不会再触发）
+  if (route.query.videoId) {
+    filter.id = route.query.videoId
+    pagination.page = 1
+    fetchData()
+  }
+  refreshDictOptions()
 })
 </script>
 

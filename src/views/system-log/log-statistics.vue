@@ -125,15 +125,48 @@ const operationStats = ref([
 
 function rankCls(i) { return i === 0 ? 'rank-gold' : i === 1 ? 'rank-silver' : i === 2 ? 'rank-bronze' : '' }
 
-function baseChartOption(data, series) {
+function toArr(res, fallback) {
+  const d = res && res.status === 'fulfilled' ? res.value?.data : null
+  return Array.isArray(d) ? d : fallback
+}
+
+function baseChartOption(data, series, yAxis) {
   const dates = data.map(d => d.date || d.label)
   return {
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(0,0,0,0.04)' } } },
     legend: { bottom: 0, textStyle: { fontSize: 12, color: '#666' } },
-    grid: { left: '3%', right: '4%', bottom: '15%', top: '5%', containLabel: true },
+    grid: { left: '3%', right: '5%', bottom: '16%', top: '8%', containLabel: true },
     xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 12 }, axisTick: { show: false }, axisLine: { lineStyle: { color: '#e5e7eb' } } },
-    yAxis: { type: 'value', axisLabel: { fontSize: 12 }, splitLine: { lineStyle: { color: '#f2f3f5' } } },
+    yAxis: yAxis || { type: 'value', axisLabel: { fontSize: 12 }, splitLine: { lineStyle: { color: '#f2f3f5' } } },
     series
+  }
+}
+
+// 大数量级走左轴柱状，小数量级（异常/失败）走右轴折线，避免被压成一条看不见的细线
+function dualAxis(leftName, rightName) {
+  return [
+    {
+      type: 'value', name: leftName, position: 'left',
+      axisLabel: { fontSize: 11 },
+      nameTextStyle: { fontSize: 11, color: '#909399' },
+      splitLine: { lineStyle: { color: '#f2f3f5' } }
+    },
+    {
+      type: 'value', name: rightName, position: 'right', minInterval: 1,
+      axisLabel: { fontSize: 11 },
+      nameTextStyle: { fontSize: 11, color: '#909399' },
+      splitLine: { show: false }
+    }
+  ]
+}
+
+function lineSeries(name, color, data) {
+  return {
+    name, type: 'line', yAxisIndex: 1, data, smooth: true,
+    symbol: 'circle', symbolSize: 6, showSymbol: true,
+    itemStyle: { color },
+    lineStyle: { color, width: 2 },
+    emphasis: { focus: 'series' }
   }
 }
 
@@ -141,17 +174,17 @@ function initCharts() {
   if (loginChartRef.value) {
     loginChart = echarts.init(loginChartRef.value)
     loginChart.setOption(baseChartOption(loginTrend.value, [
-      { name: '失败', type: 'bar', stack: 'total', data: loginTrend.value.map(d => d.failureCount || 0), itemStyle: { color: '#f56c6c', borderRadius: [0, 0, 0, 0] } },
-      { name: '成功', type: 'bar', stack: 'total', data: loginTrend.value.map(d => d.successCount || 0), itemStyle: { color: '#4caf50', borderRadius: [4, 4, 0, 0] } }
-    ]))
+      { name: '成功', type: 'bar', yAxisIndex: 0, data: loginTrend.value.map(d => d.loginSuccess || 0), itemStyle: { color: '#4caf50', borderRadius: [4, 4, 0, 0] }, emphasis: { focus: 'series' } },
+      lineSeries('失败', '#f56c6c', loginTrend.value.map(d => d.loginFailure || 0))
+    ], dualAxis('成功次数', '失败次数')))
   }
   if (operationChartRef.value) {
     operationChart = echarts.init(operationChartRef.value)
     operationChart.setOption(baseChartOption(operationTrend.value, [
-      { name: '正常', type: 'bar', stack: 'total', data: operationTrend.value.map(d => d.successCount || 0), itemStyle: { color: '#4caf50' } },
-      { name: '业务异常', type: 'bar', stack: 'total', data: operationTrend.value.map(d => d.businessException || 0), itemStyle: { color: '#e6a23c' } },
-      { name: '系统异常', type: 'bar', stack: 'total', data: operationTrend.value.map(d => d.systemException || 0), itemStyle: { color: '#f56c6c', borderRadius: [4, 4, 0, 0] } }
-    ]))
+      { name: '正常', type: 'bar', yAxisIndex: 0, data: operationTrend.value.map(d => d.normalCount || 0), itemStyle: { color: '#4caf50', borderRadius: [4, 4, 0, 0] }, emphasis: { focus: 'series' } },
+      lineSeries('业务异常', '#e6a23c', operationTrend.value.map(d => d.businessException || 0)),
+      lineSeries('系统异常', '#f56c6c', operationTrend.value.map(d => d.systemException || 0))
+    ], dualAxis('正常次数', '异常次数')))
   }
 }
 
@@ -182,10 +215,10 @@ onMounted(async () => {
     operationStats.value[1].value = overview.businessException
     operationStats.value[2].value = overview.systemException
 
-    loginTrend.value = loginTrendRes.status === 'fulfilled' ? (loginTrendRes.value?.data || []) : []
-    operationTrend.value = opTrendRes.status === 'fulfilled' ? (opTrendRes.value?.data || []) : []
-    accountRank.value = accountRes.status === 'fulfilled' ? (accountRes.value?.data || []) : []
-    ipRank.value = ipRes.status === 'fulfilled' ? (ipRes.value?.data || []) : []
+    loginTrend.value = toArr(loginTrendRes, [])
+    operationTrend.value = toArr(opTrendRes, [])
+    accountRank.value = toArr(accountRes, [])
+    ipRank.value = toArr(ipRes, [])
   } catch (e) { console.error('获取统计数据失败', e) }
 
   await nextTick()

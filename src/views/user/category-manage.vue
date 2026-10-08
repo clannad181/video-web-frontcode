@@ -16,8 +16,7 @@
           <div class="select-wrap" :class="{ open: statusOpen }">
             <select v-model="query.status" class="filter-select" @mousedown="statusOpen = true" @blur="statusOpen = false">
               <option value="">全部</option>
-              <option :value="true">启用</option>
-              <option :value="false">禁用</option>
+              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
             </select>
           </div>
         </div>
@@ -179,9 +178,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCategoryList, addCategory, updateCategory, deleteCategory } from '@/api/category'
+import { getEnabledDictData } from '@/api/dict'
 
 const loading = ref(false)
 const records = ref([])
@@ -190,6 +190,7 @@ const statusOpen = ref(false)
 const showOpen = ref(false)
 
 const query = reactive({ name: '', status: '', isShow: '', page: 1, size: 10 })
+const statusOptions = ref([])
 const sortField = ref('')
 const sortDir = ref('')
 
@@ -354,7 +355,32 @@ async function confirmDelete(row) {
   }
 }
 
-onMounted(fetchData)
+/** 状态下拉：GET /admin/dict/data/enabled/category_status（启用中的字典数据） */
+const fetchStatusOptions = async () => {
+  try {
+    const res = await getEnabledDictData('category_status')
+    const d = res?.data
+    statusOptions.value = (Array.isArray(d) ? d : []).filter(item => item && item.value !== undefined && item.value !== null)
+  } catch (e) {
+    statusOptions.value = []
+    console.warn('[category-manage] 加载 category_status 字典失败：', e?.message || e)
+  }
+}
+
+onMounted(() => {
+  fetchStatusOptions()
+  fetchData()
+})
+
+// keep-alive 复用实例，每次重新进入页面都重新拉取最新字典，不使用旧数据
+const isInitialActivation = ref(true)
+onActivated(() => {
+  if (isInitialActivation.value) {
+    isInitialActivation.value = false // 首次进入已由 onMounted 拉取
+    return
+  }
+  fetchStatusOptions()
+})
 </script>
 
 <style lang="scss" scoped>

@@ -24,10 +24,7 @@
           <div class="select-wrap" :class="{ open: statusOpen }">
             <select v-model="query.status" class="filter-select" @mousedown="statusOpen = true" @blur="statusOpen = false">
               <option value="">全部</option>
-              <option :value="0">正常</option>
-              <option :value="1">用户删除</option>
-              <option :value="2">运营屏蔽</option>
-              <option :value="3">待审核</option>
+              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
             </select>
           </div>
         </div>
@@ -241,10 +238,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCommentList, getCommentDetail, batchDeleteComments, toggleCommentStatus, getVideoDetail } from '@/api/comment'
+import { getEnabledDictData } from '@/api/dict'
 
 const router = useRouter()
 const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
@@ -263,6 +261,7 @@ const query = reactive({
   keyword: '', nickName: '', videoId: '', status: '',
   startTime: '', endTime: '', page: 1, size: 10
 })
+const statusOptions = ref([])
 
 // --- 状态映射 ---
 function statusClass(s) {
@@ -456,7 +455,32 @@ function goToVideoManage() {
   router.push(`/video-manage?videoId=${id}`)
 }
 
-onMounted(fetchData)
+/** 状态下拉：GET /admin/dict/data/enabled/comments_status（启用中的字典数据） */
+const fetchStatusOptions = async () => {
+  try {
+    const res = await getEnabledDictData('comments_status')
+    const d = res?.data
+    statusOptions.value = (Array.isArray(d) ? d : []).filter(item => item && item.value !== undefined && item.value !== null)
+  } catch (e) {
+    statusOptions.value = []
+    console.warn('[comment-manage] 加载 comments_status 字典失败：', e?.message || e)
+  }
+}
+
+onMounted(() => {
+  fetchStatusOptions()
+  fetchData()
+})
+
+// keep-alive 复用实例，每次重新进入页面都重新拉取最新字典，不使用旧数据
+const isInitialActivation = ref(true)
+onActivated(() => {
+  if (isInitialActivation.value) {
+    isInitialActivation.value = false // 首次进入已由 onMounted 拉取
+    return
+  }
+  fetchStatusOptions()
+})
 </script>
 
 <style lang="scss" scoped>

@@ -16,8 +16,7 @@
           <div class="select-wrap" :class="{ open: statusOpen }">
             <select v-model="query.status" class="filter-select" @mousedown="statusOpen = true" @blur="statusOpen = false">
               <option value="">全部</option>
-              <option :value="true">启用</option>
-              <option :value="false">禁用</option>
+              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
             </select>
           </div>
         </div>
@@ -227,18 +226,20 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUser } from '@/utils/auth'
 import {
   getRoleList, addRole, updateRole, deleteRole,
   toggleMenu, getBindMenuIds, getMenuOptions
 } from '@/api/role'
+import { getEnabledDictData } from '@/api/dict'
 
 const roles = ref([])
 const total = ref(0)
 const loading = ref(false)
 const query = reactive({ name: '', status: '', createUserName: '', page: 1, size: 10 })
+const statusOptions = ref([])
 const currentUser = getUser()
 
 const totalPages = computed(() => Math.ceil(total.value / query.size) || 1)
@@ -491,7 +492,32 @@ async function submitMenu() {
   }
 }
 
-onMounted(() => { loadRoles() })
+/** 状态下拉：GET /admin/dict/data/enabled/role_status（启用中的字典数据） */
+const fetchStatusOptions = async () => {
+  try {
+    const res = await getEnabledDictData('role_status')
+    const d = res?.data
+    statusOptions.value = (Array.isArray(d) ? d : []).filter(item => item && item.value !== undefined && item.value !== null)
+  } catch (e) {
+    statusOptions.value = []
+    console.warn('[role-manage] 加载 role_status 字典失败：', e?.message || e)
+  }
+}
+
+onMounted(() => {
+  fetchStatusOptions()
+  loadRoles()
+})
+
+// keep-alive 复用实例，每次重新进入页面都重新拉取最新字典，不使用旧数据
+const isInitialActivation = ref(true)
+onActivated(() => {
+  if (isInitialActivation.value) {
+    isInitialActivation.value = false // 首次进入已由 onMounted 拉取
+    return
+  }
+  fetchStatusOptions()
+})
 </script>
 
 <style lang="scss" scoped>

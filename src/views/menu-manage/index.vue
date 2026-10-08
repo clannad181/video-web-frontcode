@@ -17,8 +17,7 @@
             <select v-model="query.status" class="filter-select" @mousedown="statusOpen = true"
               @blur="statusOpen = false">
               <option value="">全部</option>
-              <option :value="true">启用</option>
-              <option :value="false">禁用</option>
+              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
             </select>
           </div>
         </div>
@@ -187,9 +186,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getMenuList, updateMenu, deleteMenu } from '@/api/menu'
+import { getEnabledDictData } from '@/api/dict'
 import IconPicker from '@/components/IconPicker.vue'
 
 const loading = ref(false)
@@ -200,9 +200,29 @@ const parentOpen = ref(false)
 
 const query = reactive({ menuName: '', status: '' })
 const appliedFilter = reactive({ menuName: '', status: '' })
+const statusOptions = ref([])
 
 // --- 树构建 ---
 const expandedIds = ref(new Set())
+const userToggled = ref(false)
+
+// 后端 /admin/menu/list 仅分页一级菜单，子菜单嵌套在 children 里；
+// buildTree 依赖平铺数组 + parentId 重新挂载，因此先把嵌套结构摊平。
+function flattenServerTree(list) {
+  const out = []
+  const seen = new Set()
+  const walk = (nodes, parent) => {
+    if (!Array.isArray(nodes)) return
+    nodes.forEach(n => {
+      if (!n || n.id == null || seen.has(n.id)) return
+      seen.add(n.id)
+      out.push({ ...n, parentId: n.parentId ?? parent ?? null })
+      if (Array.isArray(n.children) && n.children.length) walk(n.children, n.id)
+    })
+  }
+  walk(list, null)
+  return out
+}
 
 function buildTree(list) {
   const map = {}
@@ -238,12 +258,23 @@ function flattenTree(nodes, level = 0) {
 const treeData = computed(() => buildTree(rawList.value))
 const flatTree = computed(() => flattenTree(treeData.value))
 
-const filteredData = computed(() => {
-  return flatTree.value.filter(row => {
-    if (appliedFilter.menuName && !row.menuName.toLowerCase().includes(appliedFilter.menuName.toLowerCase())) return false
-    if (appliedFilter.status !== '' && row.status !== appliedFilter.status) return false
-    return true
+// 子节点命中时保留其祖先，避免搜索结果里出现没有父行的孤儿节点
+function filterTree(nodes, cond) {
+  const out = []
+  nodes.forEach(n => {
+    const kids = filterTree(Array.isArray(n.children) ? n.children : [], cond)
+    if (cond(n) || kids.length) out.push({ ...n, children: kids })
   })
+  return out
+}
+
+const filteredData = computed(() => {
+  const mn = appliedFilter.menuName.trim().toLowerCase()
+  const st = appliedFilter.status
+  if (!mn && st === '') return flatTree.value
+  return flattenTree(filterTree(treeData.value, n =>
+    (!mn || String(n.menuName || '').toLowerCase().includes(mn)) && (st === '' || n.status === st)
+  ))
 })
 
 const totalFiltered = computed(() => total.value)
@@ -256,6 +287,7 @@ watch(pageSize, () => { currentPage.value = 1; fetchData() })
 const pagedData = computed(() => filteredData.value)
 
 function toggleExpand(id) {
+  userToggled.value = true
   const s = new Set(expandedIds.value)
   if (s.has(id)) s.delete(id); else s.add(id)
   expandedIds.value = s
@@ -296,7 +328,9 @@ function goPage(p) {
 }
 function search() {
   appliedFilter.menuName = query.menuName
-  appliedFilter.status = query.status
+  // 字典值是 "true"/"false" 字符串，这里归一成布尔，保证下面 `n.status === st` 的全等比较成立
+  const s = String(query.status).toLowerCase()
+  appliedFilter.status = query.status === '' ? '' : (s === 'true' || s === '1')
   currentPage.value = 1
   fetchData()
 }
@@ -380,8 +414,12 @@ async function fetchData() {
     if (appliedFilter.menuName) params.menuName = appliedFilter.menuName
     if (appliedFilter.status !== '') params.status = appliedFilter.status
     const res = await getMenuList(params)
-    rawList.value = res.data?.records || res.data || []
-    total.value = res.data?.total ?? rawList.value.length
+    const list = flattenServerTree(res.data?.records || res.data || [])
+    rawList.value = list
+    total.value = res.data?.total ?? list.length
+    if (!userToggled.value) {
+      expandedIds.value = new Set(list.filter(i => i.children && i.children.length).map(i => i.id))
+    }
   } catch (e) {
     console.error('加载菜单失败', e)
   } finally {
@@ -389,7 +427,32 @@ async function fetchData() {
   }
 }
 
-onMounted(fetchData)
+/** 状态下拉：GET /admin/dict/data/enabled/menu_status（启用中的字典数据） */
+const fetchStatusOptions = async () => {
+  try {
+    const res = await getEnabledDictData('menu_status')
+    const d = res?.data
+    statusOptions.value = (Array.isArray(d) ? d : []).filter(item => item && item.value !== undefined && item.value !== null)
+  } catch (e) {
+    statusOptions.value = []
+    console.warn('[menu-manage] 加载 menu_status 字典失败：', e?.message || e)
+  }
+}
+
+onMounted(() => {
+  fetchStatusOptions()
+  fetchData()
+})
+
+// keep-alive 复用实例，每次重新进入页面都重新拉取最新字典，不使用旧数据
+const isInitialActivation = ref(true)
+onActivated(() => {
+  if (isInitialActivation.value) {
+    isInitialActivation.value = false // 首次进入已由 onMounted 拉取
+    return
+  }
+  fetchStatusOptions()
+})
 </script>
 
 <style lang="scss" scoped>

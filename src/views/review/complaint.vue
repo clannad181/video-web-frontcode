@@ -21,7 +21,9 @@
             <select v-model="filter.reportType" class="filter-select" @mousedown="typeOpen = true"
               @blur="typeOpen = false">
               <option value="">全部</option>
-              <option v-for="(label, val) in TYPE_MAP" :key="val" :value="val">{{ label }}</option>
+              <optgroup v-for="g in reportTypeGroups" :key="g.typeCode" :label="g.typeName">
+                <option v-for="d in g.items" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
+              </optgroup>
             </select>
           </div>
         </div>
@@ -363,7 +365,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { VideoCamera, Loading } from '@element-plus/icons-vue'
 import { getReportList, handleReport } from '@/api/report'
@@ -371,17 +373,44 @@ import { getVideoDetail } from '@/api/video'
 import DPlayer from '@/components/DPlayer.vue'
 import { formatDuration } from '@/utils/format'
 import { ElMessage } from 'element-plus'
+import { getEnabledDictData, getDictTypeList } from '@/api/dict'
 
 const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
 
-const TYPE_MAP = {
-  1: '色情低俗',
-  2: '政治敏感',
-  3: '暴恐血腥',
-  4: '虚假信息',
-  5: '侵权抄袭',
-  6: '恶意引战',
-  7: '其他'
+// 举报类型来自两个字典：report_type_equity（合法权益）、report_type_rule（社区规则）
+const REPORT_TYPE_CODES = ['report_type_equity', 'report_type_rule']
+const FALLBACK_TYPE_NAMES = { report_type_equity: '合法权益', report_type_rule: '社区规则' }
+
+const reportTypeGroups = ref([])   // [{ typeCode, typeName, items }]
+const reportTypeLabelMap = ref({}) // 字典值 -> 标签
+
+/** 每次进入页面都重新拉取举报类型字典，不走缓存 */
+const fetchReportTypes = async () => {
+  try {
+    // 分组标题取字典类型名称，保证与字典管理里改名后同步
+    let typeNames = {}
+    try {
+      const res = await getDictTypeList({ page: 1, size: 100 })
+      const rows = Array.isArray(res?.data?.records) ? res.data.records : (Array.isArray(res?.data) ? res.data : [])
+      rows.forEach(t => { if (t && t.typeCode) typeNames[t.typeCode] = t.typeName })
+    } catch { /* 拿不到类型名时走下面的兜底名 */ }
+
+    const results = await Promise.all(REPORT_TYPE_CODES.map(code => getEnabledDictData(code)))
+    const groups = []
+    const labelMap = {}
+    REPORT_TYPE_CODES.forEach((code, i) => {
+      const items = (Array.isArray(results[i]?.data) ? results[i].data : [])
+        .filter(it => it && it.value !== undefined && it.value !== null)
+      items.forEach(it => { labelMap[String(it.value)] = it.label })
+      groups.push({ typeCode: code, typeName: typeNames[code] || FALLBACK_TYPE_NAMES[code] || code, items })
+    })
+    reportTypeGroups.value = groups
+    reportTypeLabelMap.value = labelMap
+  } catch (e) {
+    reportTypeGroups.value = []
+    reportTypeLabelMap.value = {}
+    console.warn('[complaint] 加载举报类型字典失败：', e?.message || e)
+  }
 }
 
 const STATUS_MAP = { 0: '待处理', 1: '已受理', 2: '已驳回' }
@@ -423,7 +452,7 @@ function coverUrl(u) {
   return fileBaseUrl + (u.startsWith('/') ? u : '/' + u)
 }
 
-function typeLabel(t) { return TYPE_MAP[t] || '其他' }
+function typeLabel(t) { return reportTypeLabelMap.value[String(t)] || '其他' }
 function statusLabel(s) { return STATUS_MAP[s] ?? '待处理' }
 function statusCls(s) { return s === 0 ? 'badge-amber' : s === 1 ? 'badge-blue' : 'badge-gray' }
 function videoStatusLabel(s) { return VIDEO_STATUS_MAP[s] ?? '-' }
@@ -552,11 +581,25 @@ function closePreview() {
 
 function goVideo(row) {
   if (!row?.videoId) return
-  visible.value = false
-  router.push(`/video-manage?videoId=${row.videoId}`)
+  visible.value = false // 关闭稿件详情弹窗
+  closePreview()        // 关闭播放预览弹窗
+  router.push(`/video-manage?videoId=${row.videoAvid}`)
 }
 
-onMounted(loadData)
+onMounted(() => {
+  fetchReportTypes()
+  loadData()
+})
+
+// keep-alive 复用实例，每次重新进入页面都重新拉取最新字典，不使用旧数据
+const isInitialActivation = ref(true)
+onActivated(() => {
+  if (isInitialActivation.value) {
+    isInitialActivation.value = false // 首次进入已由 onMounted 拉取
+    return
+  }
+  fetchReportTypes()
+})
 </script>
 
 <style lang="scss" scoped>

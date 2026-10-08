@@ -91,6 +91,18 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/dict',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'DictManage',
+        component: () => import('@/views/dict/index.vue'),
+        meta: { title: '字典管理', icon: 'Collection', requiresAuth: true }
+      }
+    ]
+  },
+  {
     path: '/comment-manage',
     component: Layout,
     children: [
