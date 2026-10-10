@@ -219,7 +219,7 @@ export const constantRoutes = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('@/views/login/index.vue'),
+    component: () => import('@/views/error-page/index.vue'),
     meta: { title: '404' }
   }
 ]

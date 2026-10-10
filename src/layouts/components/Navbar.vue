@@ -20,13 +20,119 @@
       <div class="search-box" :class="{ focused: searchFocused }">
         <el-icon class="search-icon" :class="{ active: searchFocused }"><Search /></el-icon>
         <input
+          ref="searchInputRef"
           v-model="searchQuery"
           class="search-input"
-          :placeholder="$t('common.searchPlaceholder') || '搜索视频、用户、评论...'"
+          :placeholder="$t('common.searchPlaceholder')"
           @focus="searchFocused = true"
           @blur="searchFocused = false"
+          @input="onSearchInput"
+          @keydown="onSearchKeydown"
         />
+        <span v-if="searchLoading" class="search-spinner" aria-hidden="true" />
         <kbd v-show="!searchFocused" class="search-shortcut">Ctrl+K</kbd>
+
+        <!-- 全局搜索结果面板（GET /admin/search） -->
+        <transition name="dropdown">
+          <div v-if="searchVisible" class="search-panel" @mousedown.prevent>
+            <div v-if="searchLoading && !hasSearchResults" class="sp-state">
+              <span class="sp-spinner" aria-hidden="true" />{{ $t('搜索中...') }}
+            </div>
+            <div v-else-if="searchError" class="sp-state sp-state-error">{{ $t('搜索失败，请重试') }}</div>
+            <div v-else-if="!hasSearchResults" class="sp-state">{{ $t('未找到相关内容') }}</div>
+            <template v-else>
+              <!-- 视频结果 -->
+              <section v-if="searchResults.videos.length" class="sp-section">
+                <div class="sp-head">{{ $t('视频') }}<span class="sp-count">{{ searchResults.videos.length }}</span></div>
+                <div
+                  v-for="(v, i) in searchResults.videos"
+                  :key="'sv' + v.id"
+                  class="sp-item"
+                  :class="{ active: itemIndex('video', i) === activeIndex }"
+                  @mouseenter="activeIndex = itemIndex('video', i)"
+                  @click="goSearchResult('video', v)"
+                >
+                  <div class="sp-cover">
+                    <img v-if="resUrl(v.coverUrl)" :src="resUrl(v.coverUrl)" alt="" />
+                    <span v-else class="sp-cover-fb">▶</span>
+                  </div>
+                  <div class="sp-main">
+                    <div class="sp-title">{{ v.title }}</div>
+                    <div class="sp-meta">
+                      <span v-if="v.avid" class="sp-mono">{{ v.avid }}</span>
+                      <span v-if="v.categoryName">{{ v.categoryName }}</span>
+                      <span v-if="v.nickName">{{ $t('UP主') }} · {{ v.nickName }}</span>
+                    </div>
+                  </div>
+                  <div class="sp-side">
+                    <span class="sp-stat">▶ {{ fmtCount(v.playCount) }}</span>
+                    <span class="sp-tag" :class="videoStatusClass(v.videoStatus)">{{ $t(videoStatusText(v.videoStatus)) }}</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 用户结果 -->
+              <section v-if="searchResults.users.length" class="sp-section">
+                <div class="sp-head">{{ $t('用户') }}<span class="sp-count">{{ searchResults.users.length }}</span></div>
+                <div
+                  v-for="(u, i) in searchResults.users"
+                  :key="'su' + u.id"
+                  class="sp-item"
+                  :class="{ active: itemIndex('user', i) === activeIndex }"
+                  @mouseenter="activeIndex = itemIndex('user', i)"
+                  @click="goSearchResult('user', u)"
+                >
+                  <div class="sp-avatar">
+                    <img v-if="resUrl(u.avatar)" :src="resUrl(u.avatar)" alt="" />
+                    <span v-else class="sp-avatar-fb">{{ (u.userName || '?')[0].toUpperCase() }}</span>
+                  </div>
+                  <div class="sp-main">
+                    <div class="sp-title">{{ u.nikeName || u.userName }}<span class="sp-sub">{{ u.userName }}</span></div>
+                    <div class="sp-meta">
+                      <span v-if="u.email">{{ u.email }}</span>
+                      <span v-if="u.uid" class="sp-mono">UID {{ u.uid }}</span>
+                    </div>
+                  </div>
+                  <div class="sp-side">
+                    <span v-if="u.roleName" class="sp-role">{{ $t(u.roleName) }}</span>
+                    <span class="sp-tag" :class="u.status === 0 ? 'ok' : 'bad'">{{ u.status === 0 ? $t('启用') : $t('禁用') }}</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 评论结果 -->
+              <section v-if="searchResults.comments.length" class="sp-section">
+                <div class="sp-head">{{ $t('评论') }}<span class="sp-count">{{ searchResults.comments.length }}</span></div>
+                <div
+                  v-for="(c, i) in searchResults.comments"
+                  :key="'sc' + c.id"
+                  class="sp-item sp-item-comment"
+                  :class="{ active: itemIndex('comment', i) === activeIndex }"
+                  @mouseenter="activeIndex = itemIndex('comment', i)"
+                  @click="goSearchResult('comment', c)"
+                >
+                  <div class="sp-avatar">
+                    <img v-if="resUrl(c.avatar)" :src="resUrl(c.avatar)" alt="" />
+                    <span v-else class="sp-avatar-fb">{{ (c.nickName || '?')[0].toUpperCase() }}</span>
+                  </div>
+                  <div class="sp-main">
+                    <div class="sp-line1">
+                      <span class="sp-name">{{ c.nickName }}</span>
+                      <span v-if="c.createTime" class="sp-time">{{ c.createTime }}</span>
+                    </div>
+                    <div class="sp-content">{{ c.content }}</div>
+                    <div v-if="c.videoTitle" class="sp-meta"><span class="sp-video">{{ c.videoTitle }}</span></div>
+                  </div>
+                  <span class="sp-tag" :class="commentStatusClass(c.status)">{{ $t(commentStatusText(c.status)) }}</span>
+                </div>
+              </section>
+            </template>
+            <div v-if="hasSearchResults" class="sp-foot">
+              <span class="sp-foot-note">{{ $t('最多显示10条') }}</span>
+              <span class="sp-foot-keys">{{ $t('↑↓ 选择 · Enter 打开 · Esc 关闭') }}</span>
+            </div>
+          </div>
+        </transition>
       </div>
     </div>
 
@@ -239,6 +345,7 @@ import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import { logout as logoutApi, getUserInfo as getUserInfoApi, sendEmailCode } from '@/api/auth'
+import { globalSearch } from '@/api/search'
 import { clearAuth, setUserInfo } from '@/utils/auth'
 
 const { t } = useI18n()
@@ -253,6 +360,140 @@ const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
 // 搜索相关状态
 const searchQuery = ref('')
 const searchFocused = ref(false)
+const searchInputRef = ref(null)
+const searchLoading = ref(false)
+const searchError = ref(false)
+const searchResults = ref({ videos: [], users: [], comments: [] })
+const activeIndex = ref(0)
+let searchTimer = null
+let searchSeq = 0
+
+// 面板仅在聚焦且关键词非空时展示
+const searchVisible = computed(() => searchFocused.value && !!searchQuery.value.trim())
+const hasSearchResults = computed(() => {
+  const r = searchResults.value
+  return r.videos.length + r.users.length + r.comments.length > 0
+})
+// 扁平化结果用于 ↑↓ 键盘导航
+const flatSearchItems = computed(() => {
+  const r = searchResults.value
+  return [
+    ...r.videos.map((data) => ({ type: 'video', data })),
+    ...r.users.map((data) => ({ type: 'user', data })),
+    ...r.comments.map((data) => ({ type: 'comment', data }))
+  ]
+})
+const itemIndex = (type, i) => {
+  const r = searchResults.value
+  if (type === 'video') return i
+  if (type === 'user') return r.videos.length + i
+  return r.videos.length + r.users.length + i
+}
+
+// 状态文案与配色（后端固定中文枚举，渲染处包 $t()）
+const VIDEO_STATUS_TEXT = { 0: '草稿', 1: '待发布', 2: '已发布', 3: '已下架' } // i18n-key
+const COMMENT_STATUS_TEXT = { 0: '正常', 1: '用户删除', 2: '运营屏蔽', 3: '待审核' } // i18n-key
+const videoStatusText = (s) => VIDEO_STATUS_TEXT[s] || '未知' // i18n-key
+const commentStatusText = (s) => COMMENT_STATUS_TEXT[s] || '未知' // i18n-key
+const videoStatusClass = (s) => ({ 0: 'muted', 1: 'warn', 2: 'ok', 3: 'bad' }[s] || 'muted')
+const commentStatusClass = (s) => ({ 0: 'ok', 1: 'muted', 2: 'bad', 3: 'warn' }[s] || 'muted')
+
+// 资源地址：绝对地址原样返回，相对路径拼接文件服务前缀
+const resUrl = (u) => {
+  if (!u) return ''
+  return /^https?:\/\//i.test(u) ? u : fileBaseUrl + u
+}
+const fmtCount = (n) => Number(n || 0).toLocaleString('en-US')
+
+/** 防抖 300ms 调用全局搜索，带序号防串号 */
+async function doGlobalSearch(keyword) {
+  const seq = ++searchSeq
+  searchLoading.value = true
+  searchError.value = false
+  try {
+    const res = await globalSearch({ keyword, limit: 10 })
+    if (seq !== searchSeq) return
+    const d = res?.data || {}
+    searchResults.value = { videos: d.videos || [], users: d.users || [], comments: d.comments || [] }
+    activeIndex.value = 0
+  } catch (e) {
+    if (seq !== searchSeq) return
+    searchResults.value = { videos: [], users: [], comments: [] }
+    searchError.value = true
+    console.warn('[navbar] 全局搜索失败：', e?.message || e)
+  } finally {
+    if (seq === searchSeq) searchLoading.value = false
+  }
+}
+
+function onSearchInput() {
+  activeIndex.value = 0
+  searchError.value = false
+  if (searchTimer) clearTimeout(searchTimer)
+  const keyword = searchQuery.value.trim()
+  if (!keyword) {
+    searchSeq++ // 作废进行中的请求
+    searchLoading.value = false
+    searchResults.value = { videos: [], users: [], comments: [] }
+    return
+  }
+  searchLoading.value = true // 防抖等待期间也显示 loading，避免闪「无结果」
+  searchTimer = setTimeout(() => doGlobalSearch(keyword), 300)
+}
+
+function moveActive(delta) {
+  const total = flatSearchItems.value.length
+  if (!total) return
+  activeIndex.value = (activeIndex.value + delta + total) % total
+}
+
+function openActive() {
+  const item = flatSearchItems.value[activeIndex.value] || flatSearchItems.value[0]
+  if (item) goSearchResult(item.type, item.data)
+}
+
+function onSearchKeydown(e) {
+  if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(1) }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1) }
+  else if (e.key === 'Enter') { e.preventDefault(); openActive() }
+  else if (e.key === 'Escape') { e.preventDefault(); closeSearch() }
+}
+
+function closeSearch() {
+  searchFocused.value = false
+  searchInputRef.value?.blur()
+}
+
+function resetSearch() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchSeq++
+  searchQuery.value = ''
+  searchLoading.value = false
+  searchError.value = false
+  searchResults.value = { videos: [], users: [], comments: [] }
+  activeIndex.value = 0
+}
+
+/** 点击/回车打开结果：视频→视频管理、用户→用户管理、评论→评论管理（带 query 回填） */
+function goSearchResult(type, data) {
+  if (!data) return
+  let target = null
+  if (type === 'video') target = { path: '/video-manage', query: { videoId: data.avid } }
+  else if (type === 'user') target = { path: '/users', query: { userName: data.userName } }
+  else if (type === 'comment') target = { path: '/comment-manage', query: { keyword: data.content } }
+  if (!target) return
+  resetSearch()
+  closeSearch()
+  router.push(target)
+}
+
+// Ctrl+K / Cmd+K 全局聚焦搜索框
+function handleGlobalKeydown(e) {
+  if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 'k') {
+    e.preventDefault()
+    searchInputRef.value?.focus()
+  }
+}
 
 // 下拉菜单状态
 const showDropdown = ref(false)
@@ -643,6 +884,7 @@ function handleAvatarMouseLeave() {
 // 组件挂载时添加点击外部关闭下拉菜单的事件监听
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  document.addEventListener('keydown', handleGlobalKeydown)
   // 初始化字体设置
   appStore.applyFontFamily()
   appStore.applyFontSize()
@@ -651,6 +893,8 @@ onMounted(() => {
 // 组件卸载时清理事件监听和计时器
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('keydown', handleGlobalKeydown)
+  if (searchTimer) clearTimeout(searchTimer)
   if (codeTimer) clearInterval(codeTimer)
   if (avatarHoverTimer) clearTimeout(avatarHoverTimer)
 })
@@ -723,6 +967,7 @@ onUnmounted(() => {
 }
 
 .search-box {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -769,6 +1014,223 @@ onUnmounted(() => {
   font-family: monospace;
   flex-shrink: 0;
 }
+
+// 搜索 loading 转圈
+.search-spinner,
+.sp-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(251, 114, 153, 0.25);
+  border-top-color: #fb7299;
+  animation: search-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes search-spin {
+  to { transform: rotate(360deg); }
+}
+
+// ========== 全局搜索结果面板 ==========
+.search-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #f0f2f5);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+  z-index: 1001;
+  max-height: min(460px, 62vh);
+  overflow-y: auto;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sp-state {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary, #909399);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.sp-state-error { color: #f56c6c; }
+
+.sp-section {
+  padding: 2px 0;
+  &:not(:last-of-type) {
+    border-bottom: 1px solid var(--border-color, #f0f2f5);
+  }
+}
+
+.sp-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #909399);
+}
+.sp-count {
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: rgba(251, 114, 153, 0.12);
+  color: #fb7299;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sp-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  &:hover,
+  &.active {
+    background: rgba(251, 114, 153, 0.07);
+  }
+}
+
+.sp-cover {
+  width: 56px;
+  height: 36px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-color, #f5f7fa);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+.sp-cover-fb { color: #c0c4cc; font-size: 12px; }
+
+.sp-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #fb7299, #7c5cfc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+.sp-avatar-fb { color: #fff; font-size: 13px; font-weight: 700; }
+
+.sp-main { flex: 1; min-width: 0; }
+
+.sp-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #303133);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sp-sub {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #909399;
+}
+.sp-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #909399;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sp-mono { font-family: monospace; }
+
+.sp-line1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sp-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #303133);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sp-time { font-size: 11px; color: #c0c4cc; flex-shrink: 0; }
+.sp-content {
+  font-size: 12px;
+  color: var(--text-secondary, #606266);
+  margin-top: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-all;
+}
+.sp-video { color: #fb7299; }
+
+.sp-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.sp-stat { font-size: 11px; color: #909399; }
+.sp-role {
+  font-size: 10px;
+  font-weight: 600;
+  color: #7c5cfc;
+  background: rgba(124, 92, 252, 0.1);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.sp-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  &.ok { color: #67c23a; background: rgba(103, 194, 58, 0.12); }
+  &.warn { color: #e6a23c; background: rgba(230, 162, 60, 0.12); }
+  &.bad { color: #f56c6c; background: rgba(245, 108, 108, 0.12); }
+  &.muted { color: #909399; background: rgba(144, 147, 153, 0.12); }
+}
+
+.sp-foot {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  padding: 6px 14px;
+  font-size: 11px;
+  color: #c0c4cc;
+  background: var(--card-bg, #fff);
+  border-top: 1px solid var(--border-color, #f0f2f5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sp-foot-note { flex-shrink: 0; }
+.sp-foot-keys { text-align: right; }
 
 // 右侧功能区
 .topbar-right {

@@ -489,8 +489,73 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0a0a1a;
+
+  /* ---- 主题 token：默认暗色；系统浅色偏好时整体跟随 ---- */
+  color-scheme: dark;
+  --lp-fg: #cbd5e1;
+  --lp-bg: #0a0a1a;
+  --lp-grid: rgba(255, 255, 255, 0.02);
+  --lp-particle: rgba(255, 255, 255, 0.5);
+  --lp-orb-1: rgba(99, 102, 241, 0.3);
+  --lp-orb-2: rgba(168, 85, 247, 0.25);
+  --lp-orb-3: rgba(236, 72, 153, 0.2);
+  --lp-card-bg: rgba(15, 23, 42, 0.85);
+  --lp-card-border: rgba(255, 255, 255, 0.08);
+  --lp-card-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 25px 50px rgba(0, 0, 0, 0.5);
+  --lp-title: #f1f5f9;
+  --lp-tabbar-bg: rgba(255, 255, 255, 0.05);
+  --lp-field-bg: rgba(255, 255, 255, 0.05);
+  --lp-field-bg-focus: rgba(255, 255, 255, 0.08);
+  --lp-field-border: rgba(255, 255, 255, 0.08);
+  --lp-field-border-hover: rgba(99, 102, 241, 0.4);
+  --lp-input-text: #f1f5f9;
+  --lp-spinner-track: rgba(255, 255, 255, 0.1);
+  --lp-sendcode-bg: rgba(99, 102, 241, 0.2);
+  --lp-sendcode-bg-hover: rgba(99, 102, 241, 0.3);
+  --lp-sendcode-text: #a5b4fc;
+  --lp-sendcode-text-hover: #c7d2fe;
+  --lp-loader-track: rgba(165, 180, 252, 0.3);
+  --lp-loader-top: #a5b4fc;
+  --lp-check-border: rgba(255, 255, 255, 0.2);
+  --lp-link-hover: #a5b4fc;
+  --lp-error: #f87171;
+
+  background: var(--lp-bg);
+  color: var(--lp-fg);
   overflow: hidden;
+}
+
+@media (prefers-color-scheme: light) {
+  .login-wrapper {
+    color-scheme: light;
+    --lp-fg: #334155;
+    --lp-bg: #edf0f6;
+    --lp-grid: rgba(20, 28, 50, 0.05);
+    --lp-particle: rgba(60, 70, 110, 0.35);
+    --lp-orb-1: rgba(99, 102, 241, 0.22);
+    --lp-orb-2: rgba(168, 85, 247, 0.16);
+    --lp-orb-3: rgba(236, 72, 153, 0.14);
+    --lp-card-bg: rgba(255, 255, 255, 0.92);
+    --lp-card-border: rgba(20, 28, 50, 0.08);
+    --lp-card-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6), 0 25px 50px rgba(30, 41, 80, 0.14);
+    --lp-title: #1e293b;
+    --lp-tabbar-bg: rgba(20, 28, 50, 0.05);
+    --lp-field-bg: rgba(241, 245, 249, 0.9);
+    --lp-field-bg-focus: #ffffff;
+    --lp-field-border: rgba(20, 28, 50, 0.1);
+    --lp-field-border-hover: rgba(99, 102, 241, 0.55);
+    --lp-input-text: #1e293b;
+    --lp-spinner-track: rgba(20, 28, 50, 0.12);
+    --lp-sendcode-bg: rgba(99, 102, 241, 0.12);
+    --lp-sendcode-bg-hover: rgba(99, 102, 241, 0.2);
+    --lp-sendcode-text: #4f46e5;
+    --lp-sendcode-text-hover: #4338ca;
+    --lp-loader-track: rgba(99, 102, 241, 0.3);
+    --lp-loader-top: #4f46e5;
+    --lp-check-border: rgba(20, 28, 50, 0.3);
+    --lp-link-hover: #4f46e5;
+    --lp-error: #dc2626;
+  }
 }
 
 .login-bg {
@@ -509,7 +574,7 @@ onMounted(() => {
 .bg-orb-1 {
   width: 500px;
   height: 500px;
-  background: rgba(99, 102, 241, 0.3);
+  background: var(--lp-orb-1);
   top: -150px;
   left: -100px;
 }
@@ -517,7 +582,7 @@ onMounted(() => {
 .bg-orb-2 {
   width: 400px;
   height: 400px;
-  background: rgba(168, 85, 247, 0.25);
+  background: var(--lp-orb-2);
   bottom: -100px;
   right: -50px;
   animation-delay: -7s;
@@ -526,7 +591,7 @@ onMounted(() => {
 .bg-orb-3 {
   width: 300px;
   height: 300px;
-  background: rgba(236, 72, 153, 0.2);
+  background: var(--lp-orb-3);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -544,8 +609,8 @@ onMounted(() => {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(var(--lp-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--lp-grid) 1px, transparent 1px);
   background-size: 50px 50px;
 }
 
@@ -559,7 +624,7 @@ onMounted(() => {
   position: absolute;
   width: 3px;
   height: 3px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--lp-particle);
   border-radius: 50%;
   animation: particleFloat linear infinite;
 }
@@ -575,13 +640,11 @@ onMounted(() => {
   position: relative;
   width: 400px;
   padding: 40px 36px 32px;
-  background: rgba(15, 23, 42, 0.85);
+  background: var(--lp-card-bg);
   backdrop-filter: blur(20px);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 25px 50px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--lp-card-border);
+  box-shadow: var(--lp-card-shadow);
   z-index: 10;
   opacity: 0;
   transform: translateY(30px) scale(0.95);
@@ -622,7 +685,7 @@ onMounted(() => {
 .login-title {
   font-size: 28px;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--lp-title);
   margin: 0 0 8px 0;
   letter-spacing: -0.5px;
 }
@@ -637,7 +700,7 @@ onMounted(() => {
 .tab-bar {
   display: flex;
   position: relative;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--lp-tabbar-bg);
   border-radius: 10px;
   padding: 4px;
   margin-bottom: 28px;
@@ -682,8 +745,8 @@ onMounted(() => {
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--lp-field-bg);
+  border: 1px solid var(--lp-field-border);
   border-radius: 12px;
   margin-bottom: 20px;
   transition: all 0.3s;
@@ -692,7 +755,7 @@ onMounted(() => {
 .input-group:focus-within {
   border-color: rgba(99, 102, 241, 0.5);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--lp-field-bg-focus);
 }
 
 .input-icon {
@@ -714,7 +777,7 @@ onMounted(() => {
   height: 48px;
   background: transparent;
   border: none;
-  color: #f1f5f9;
+  color: var(--lp-input-text);
   font-size: 14px;
   outline: none;
 }
@@ -743,7 +806,7 @@ onMounted(() => {
 }
 
 .error-text {
-  color: #f87171;
+  color: var(--lp-error);
   font-size: 12px;
   margin-top: -14px;
   margin-bottom: 16px;
@@ -769,18 +832,18 @@ onMounted(() => {
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--lp-field-border);
   transition: all 0.3s;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--lp-field-bg);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .captcha-box:hover {
-  border-color: rgba(99, 102, 241, 0.4);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--lp-field-border-hover);
+  background: var(--lp-field-bg-focus);
 }
 
 .captcha-img {
@@ -798,7 +861,7 @@ onMounted(() => {
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid var(--lp-spinner-track);
   border-top-color: #6366f1;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -816,18 +879,18 @@ onMounted(() => {
   flex-shrink: 0;
   height: 48px;
   padding: 0 16px;
-  background: rgba(99, 102, 241, 0.2);
+  background: var(--lp-sendcode-bg);
   border: none;
   border-radius: 0 12px 12px 0;
-  color: #a5b4fc;
+  color: var(--lp-sendcode-text);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .send-code-btn:hover:not(:disabled) {
-  background: rgba(99, 102, 241, 0.3);
-  color: #c7d2fe;
+  background: var(--lp-sendcode-bg-hover);
+  color: var(--lp-sendcode-text-hover);
 }
 
 .send-code-btn:disabled {
@@ -839,8 +902,8 @@ onMounted(() => {
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(165, 180, 252, 0.3);
-  border-top-color: #a5b4fc;
+  border: 2px solid var(--lp-loader-track);
+  border-top-color: var(--lp-loader-top);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -866,7 +929,7 @@ onMounted(() => {
 .checkbox-custom {
   width: 16px;
   height: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--lp-check-border);
   border-radius: 4px;
   position: relative;
   transition: all 0.2s;
@@ -902,7 +965,7 @@ onMounted(() => {
 }
 
 .forgot-link:hover {
-  color: #a5b4fc;
+  color: var(--lp-link-hover);
 }
 
 .login-btn {

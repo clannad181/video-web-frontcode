@@ -239,7 +239,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onActivated, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCommentList, getCommentDetail, batchDeleteComments, toggleCommentStatus, getVideoDetail } from '@/api/comment'
@@ -247,6 +247,7 @@ import { getEnabledDictData } from '@/api/dict'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
 
 const loading = ref(false)
@@ -264,6 +265,19 @@ const query = reactive({
   startTime: '', endTime: '', page: 1, size: 10
 })
 const statusOptions = ref([])
+
+// 从全局搜索跳转（/comment-manage?keyword=xxx）：回填关键词并只查匹配评论（同页换参数由 watch 兜底）
+let appliedKeyword = ''
+const applyKeywordQuery = () => {
+  const v = route.query.keyword ? String(route.query.keyword) : ''
+  if (!v) { appliedKeyword = ''; return }
+  if (v === appliedKeyword) return
+  appliedKeyword = v
+  query.keyword = v
+  query.page = 1
+  fetchData()
+}
+watch(() => route.query.keyword, applyKeywordQuery)
 
 // --- 状态映射 ---
 function statusClass(s) {
@@ -451,10 +465,10 @@ async function openVideoDetail(row) {
 }
 
 function goToVideoManage() {
-  const id = videoInfo.value.id
+  const avid = videoInfo.value.avid
   showVideoModal.value = false
   showDetailModal.value = false
-  router.push(`/video-manage?videoId=${id}`)
+  router.push(`/video-manage?videoId=${avid}`)
 }
 
 /** 状态下拉：GET /admin/dict/data/enabled/comments_status（启用中的字典数据） */
@@ -471,6 +485,10 @@ const fetchStatusOptions = async () => {
 
 onMounted(() => {
   fetchStatusOptions()
+  if (route.query.keyword) {
+    query.keyword = String(route.query.keyword)
+    appliedKeyword = query.keyword
+  }
   fetchData()
 })
 

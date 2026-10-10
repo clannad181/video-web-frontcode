@@ -315,7 +315,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onActivated } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus, WarningFilled } from '@element-plus/icons-vue'
 import { getUserList, addUser, updateUser, deleteUser, resetPassword, getRoleList } from '@/api/user'
@@ -331,6 +332,20 @@ const roleOpen = ref(false)
 const list = ref([])
 const activeTab = ref('admin')
 const filter = reactive({ userName: '', nikeName: '', email: '', status: '', roleId: '' })
+
+// 从全局搜索跳转（/users?userName=xxx）：回填用户名并只查该用户（同页换参数由 watch 兜底）
+const route = useRoute()
+let appliedUserName = ''
+const applyUserNameQuery = () => {
+  const v = route.query.userName ? String(route.query.userName) : ''
+  if (!v) { appliedUserName = ''; return }
+  if (v === appliedUserName) return
+  appliedUserName = v
+  filter.userName = v
+  pagination.value.page = 1
+  fetchData()
+}
+watch(() => route.query.userName, applyUserNameQuery)
 const pagination = ref({ page: 1, size: 10, total: 0 })
 const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.size) || 1)
 const visiblePages = computed(() => {
@@ -350,6 +365,10 @@ onMounted(() => {
   try { currentUser.value = JSON.parse(localStorage.getItem('user')) } catch { }
   fetchRoles()
   fetchStatusOptions()
+  if (route.query.userName) {
+    filter.userName = String(route.query.userName)
+    appliedUserName = filter.userName
+  }
   fetchData()
 })
 

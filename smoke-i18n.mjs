@@ -63,7 +63,8 @@ const ROUTES = [
   ['/login-log', '登录日志', 'Login Logs'],
   ['/operation-log', '运行日志', 'Operation Logs'],
   ['/log-statistics', '日志统计', 'Log Stats'],
-  ['/profile', '个人中心', 'Profile']
+  ['/profile', '个人中心', 'Profile'],
+  ['/this-page-does-not-exist', '页面不存在', 'Page not found']
 ]
 
 // 英文界面里不允许出现的中文 UI 文案

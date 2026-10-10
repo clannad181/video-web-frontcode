@@ -499,7 +499,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onActivated, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -889,10 +889,26 @@ const refreshDictOptions = () => {
   fetchSerialStatusOptions()
 }
 
+// 从投诉/评论/全局搜索带 videoId 跳转：回填并只查该视频；同页换 videoId 由 watch 兜底（带守卫防双拉）
+let appliedVideoId = ''
+const applyVideoIdQuery = () => {
+  const v = route.query.videoId ? String(route.query.videoId) : ''
+  if (!v) { appliedVideoId = ''; return }
+  if (v === appliedVideoId) return
+  appliedVideoId = v
+  filter.id = v
+  pagination.page = 1
+  fetchData()
+}
+watch(() => route.query.videoId, applyVideoIdQuery)
+
 onMounted(async () => {
   refreshDictOptions()
   try { const res = await getCategoryList({ page: 1, size: 200 }); categories.value = res.data.records || [] } catch (e) { console.error('分类加载失败', e) }
-  if (route.query.videoId) filter.id = route.query.videoId
+  if (route.query.videoId) {
+    filter.id = route.query.videoId
+    appliedVideoId = String(route.query.videoId)
+  }
   fetchData()
 })
 
@@ -903,12 +919,7 @@ onActivated(() => {
     isInitialActivation.value = false // 首次进入已由 onMounted 拉取
     return
   }
-  // 从投诉/评论页带 videoId 跳转过来时：回填 avid 并只查该视频（keep-alive 下 onMounted 不会再触发）
-  if (route.query.videoId) {
-    filter.id = route.query.videoId
-    pagination.page = 1
-    fetchData()
-  }
+  applyVideoIdQuery()
   refreshDictOptions()
 })
 </script>
