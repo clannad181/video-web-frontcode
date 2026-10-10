@@ -3,31 +3,31 @@
     <el-card shadow="never" class="notice-card fade-in">
       <template #header>
         <div class="card-header">
-          <span class="header-title">通知中心</span>
+          <span class="header-title">{{ $t('通知中心') }}</span>
           <el-button text type="primary" @click="handleReadAll" :icon="Check">
-            全部已读
+            {{ $t('全部已读') }}
           </el-button>
         </div>
       </template>
 
       <el-tabs v-model="activeTab" class="notice-tabs" @tab-change="fetchData">
-        <el-tab-pane label="全部" name="all" />
+        <el-tab-pane :label="$t('全部')" name="all" />
         <el-tab-pane name="unread">
           <template #label>
             <span class="tab-label">
-              未读
+              {{ $t('未读') }}
               <el-badge v-if="unreadCount > 0" :value="unreadCount" :max="99" class="unread-badge" />
             </span>
           </template>
         </el-tab-pane>
-        <el-tab-pane label="系统通知" name="system" />
-        <el-tab-pane label="审核通知" name="audit" />
-        <el-tab-pane label="互动通知" name="interaction" />
+        <el-tab-pane :label="$t('系统通知')" name="system" />
+        <el-tab-pane :label="$t('审核通知')" name="audit" />
+        <el-tab-pane :label="$t('互动通知')" name="interaction" />
       </el-tabs>
 
       <div v-loading="loading" class="notice-list">
         <div v-if="!tableData.length" class="empty-state">
-          <el-empty description="暂无通知" :image-size="100" />
+          <el-empty :description="$t('暂无通知')" :image-size="100" />
         </div>
         <div
           v-for="(item, idx) in tableData"
@@ -60,16 +60,16 @@
               size="small"
               @click="handleRead(item)"
             >
-              标为已读
+              {{ $t('标为已读') }}
             </el-button>
             <el-popconfirm
-              title="确定删除此通知？"
-              confirm-button-text="确定"
-              cancel-button-text="取消"
+              :title="$t('确定删除此通知？')"
+              :confirm-button-text="$t('确定')"
+              :cancel-button-text="$t('取消')"
               @confirm="handleDelete(item.id)"
             >
               <template #reference>
-                <el-button type="danger" link size="small">删除</el-button>
+                <el-button type="danger" link size="small">{{ $t('删除') }}</el-button>
               </template>
             </el-popconfirm>
           </div>
@@ -90,7 +90,7 @@
 
     <el-drawer
       v-model="detailVisible"
-      title="通知详情"
+      :title="$t('通知详情')"
       size="480px"
       class="detail-drawer"
     >
@@ -111,14 +111,14 @@
             type="primary"
             @click="handleRead(detailData)"
           >
-            标为已读
+            {{ $t('标为已读') }}
           </el-button>
           <el-popconfirm
-            title="确定删除此通知？"
+            :title="$t('确定删除此通知？')"
             @confirm="handleDelete(detailData.id)"
           >
             <template #reference>
-              <el-button type="danger" plain>删除</el-button>
+              <el-button type="danger" plain>{{ $t('删除') }}</el-button>
             </template>
           </el-popconfirm>
         </div>
@@ -129,9 +129,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Check, Monitor, CircleCheckFilled, ChatDotRound } from '@element-plus/icons-vue'
 import { getNoticeList, readNotice, readAllNotices, deleteNotice } from '@/api/notice'
+
+const { t } = useI18n()
 
 const loading = ref(false)
 const tableData = ref([])
@@ -163,18 +166,18 @@ const fetchData = async () => {
 const handleRead = async (item) => {
   await readNotice(item.id)
   item.isRead = true
-  ElMessage.success('已标为已读')
+  ElMessage.success(t('已标为已读'))
 }
 
 const handleReadAll = async () => {
   await readAllNotices()
   tableData.value.forEach(r => r.isRead = true)
-  ElMessage.success('全部已读')
+  ElMessage.success(t('全部已读'))
 }
 
 const handleDelete = async (id) => {
   await deleteNotice(id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('删除成功'))
   fetchData()
 }
 

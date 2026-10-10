@@ -10,13 +10,13 @@
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
           </div>
-          <h3 class="warning-title">会话即将过期</h3>
+          <h3 class="warning-title">{{ $t('会话即将过期') }}</h3>
           <p class="warning-text">
-            您已长时间未操作，将在 <span class="countdown">{{ countdown }}</span> 秒后自动登出
+            {{ $t('您已长时间未操作，将在') }} <span class="countdown">{{ countdown }}</span> {{ $t('秒后自动登出') }}
           </p>
           <div class="warning-actions">
-            <button class="btn-continue" @click="$emit('continue')">继续使用</button>
-            <button class="btn-logout" @click="$emit('logout')">立即登出</button>
+            <button class="btn-continue" @click="$emit('continue')">{{ $t('继续使用') }}</button>
+            <button class="btn-logout" @click="$emit('logout')">{{ $t('立即登出') }}</button>
           </div>
         </div>
       </div>

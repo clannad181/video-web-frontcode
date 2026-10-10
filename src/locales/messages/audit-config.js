@@ -1,0 +1,25 @@
+// 审核设置 src/views/system/audit-config.vue
+export default {
+  '审核设置': 'Audit Settings',
+  '配置内容审核策略和敏感词过滤规则': 'Configure content review rules and sensitive word filtering',
+  '内容审核': 'Content Review',
+  '视频审核': 'Video Review',
+  '评论审核': 'Comment Review',
+  '自动驳回违规内容': 'Auto-reject violations',
+  '敏感词过滤': 'Sensitive Word Filter',
+  '敏感词列表': 'Sensitive Word List',
+  '审核完成通知上传者': 'Notify uploader when review completes',
+  '审核通知': 'Review Notifications',
+  '启用': 'Enabled',
+  '禁用': 'Disabled',
+  '开启后，新发布的视频需审核通过后才会公开显示；关闭则视频发布无需审核': 'When on, newly published videos must pass review before going public; when off, they publish without review',
+  '开启后，新发布的评论需审核通过后才会显示；关闭则评论发布无需审核': 'When on, newly posted comments must pass review before showing; when off, they post without review',
+  '开启后，包含违规内容的提交将被自动驳回': 'When on, submissions containing violations are rejected automatically',
+  '开启后，系统将自动检测并过滤内容中的敏感词': 'When on, the system automatically detects and filters sensitive words',
+  '审核完成后向视频上传者发送通知': 'Send a notification to the uploader after review',
+  '输入敏感词后按 Enter 添加': 'Type a sensitive word and press Enter to add',
+  '输入敏感词后按 Enter 键添加，点击标签上的 X 可删除': 'Press Enter to add; click the X on a tag to remove',
+  '添加': 'Add',
+  '保存设置': 'Save Settings',
+  '审核设置已保存': 'Audit settings saved'
+}

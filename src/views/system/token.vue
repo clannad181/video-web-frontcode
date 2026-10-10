@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">令牌安全</h2>
-      <p class="page-desc">配置前台和后台的令牌策略与安全选项</p>
+      <h2 class="page-title">{{ $t('令牌安全') }}</h2>
+      <p class="page-desc">{{ $t('配置前台和后台的令牌策略与安全选项') }}</p>
     </div>
 
     <div class="token-layout">
@@ -15,9 +15,9 @@
             label-position="left"
           >
             <div class="form-section">
-              <h3 class="section-title">前台令牌</h3>
+              <h3 class="section-title">{{ $t('前台令牌') }}</h3>
               <el-divider />
-              <el-form-item label="Access Token 有效期">
+              <el-form-item :label="$t('Access Token 有效期')">
                 <div class="token-config">
                   <el-slider
                     v-model="form.frontAccessTokenValue"
@@ -29,12 +29,12 @@
                   />
                   <el-input-number v-model="form.frontAccessTokenValue" :min="1" :max="72" :step="1" />
                   <el-select v-model="form.frontAccessTokenUnit" style="width: 100px; margin-left: 8px">
-                    <el-option label="分钟" value="minutes" />
-                    <el-option label="小时" value="hours" />
+                    <el-option :label="$t('分钟')" value="minutes" />
+                    <el-option :label="$t('小时')" value="hours" />
                   </el-select>
                 </div>
               </el-form-item>
-              <el-form-item label="Refresh Token 有效期">
+              <el-form-item :label="$t('Refresh Token 有效期')">
                 <div class="token-config">
                   <el-slider
                     v-model="form.frontRefreshTokenValue"
@@ -46,17 +46,17 @@
                   />
                   <el-input-number v-model="form.frontRefreshTokenValue" :min="1" :max="90" :step="1" />
                   <el-select v-model="form.frontRefreshTokenUnit" style="width: 100px; margin-left: 8px">
-                    <el-option label="天" value="days" />
-                    <el-option label="小时" value="hours" />
+                    <el-option :label="$t('天')" value="days" />
+                    <el-option :label="$t('小时')" value="hours" />
                   </el-select>
                 </div>
               </el-form-item>
             </div>
 
             <div class="form-section">
-              <h3 class="section-title">后台令牌</h3>
+              <h3 class="section-title">{{ $t('后台令牌') }}</h3>
               <el-divider />
-              <el-form-item label="Access Token 有效期">
+              <el-form-item :label="$t('Access Token 有效期')">
                 <div class="token-config">
                   <el-slider
                     v-model="form.backAccessTokenValue"
@@ -68,12 +68,12 @@
                   />
                   <el-input-number v-model="form.backAccessTokenValue" :min="1" :max="24" :step="1" />
                   <el-select v-model="form.backAccessTokenUnit" style="width: 100px; margin-left: 8px">
-                    <el-option label="小时" value="hours" />
-                    <el-option label="分钟" value="minutes" />
+                    <el-option :label="$t('小时')" value="hours" />
+                    <el-option :label="$t('分钟')" value="minutes" />
                   </el-select>
                 </div>
               </el-form-item>
-              <el-form-item label="Refresh Token 有效期">
+              <el-form-item :label="$t('Refresh Token 有效期')">
                 <div class="token-config">
                   <el-slider
                     v-model="form.backRefreshTokenValue"
@@ -85,20 +85,20 @@
                   />
                   <el-input-number v-model="form.backRefreshTokenValue" :min="1" :max="30" :step="1" />
                   <el-select v-model="form.backRefreshTokenUnit" style="width: 100px; margin-left: 8px">
-                    <el-option label="天" value="days" />
-                    <el-option label="小时" value="hours" />
+                    <el-option :label="$t('天')" value="days" />
+                    <el-option :label="$t('小时')" value="hours" />
                   </el-select>
                 </div>
               </el-form-item>
             </div>
 
             <div class="form-section">
-              <h3 class="section-title">续签策略</h3>
+              <h3 class="section-title">{{ $t('续签策略') }}</h3>
               <el-divider />
-              <el-form-item label="Token 自动续签">
+              <el-form-item :label="$t('Token 自动续签')">
                 <div class="switch-with-desc">
-                  <el-switch v-model="form.autoRenew" active-text="启用" inactive-text="禁用" />
-                  <span class="field-desc">Access Token 过期后自动使用 Refresh Token 续签</span>
+                  <el-switch v-model="form.autoRenew" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+                  <span class="field-desc">{{ $t('Access Token 过期后自动使用 Refresh Token 续签') }}</span>
                 </div>
               </el-form-item>
             </div>
@@ -106,7 +106,7 @@
             <div class="form-actions">
               <el-button type="primary" :loading="saving" @click="handleSave">
                 <el-icon v-if="!saving"><Check /></el-icon>
-                保存设置
+                {{ $t('保存设置') }}
               </el-button>
             </div>
           </el-form>
@@ -116,19 +116,19 @@
       <div class="token-diagram-area">
         <el-card class="diagram-card">
           <template #header>
-            <span class="diagram-title">Token 工作流程</span>
+            <span class="diagram-title">{{ $t('Token 工作流程') }}</span>
           </template>
           <div class="token-flow">
             <div class="flow-step client">
               <div class="step-icon">
                 <el-icon :size="24"><Monitor /></el-icon>
               </div>
-              <div class="step-label">客户端</div>
+              <div class="step-label">{{ $t('客户端') }}</div>
             </div>
 
             <div class="flow-arrow">
               <div class="arrow-line"></div>
-              <div class="arrow-label">发送凭证</div>
+              <div class="arrow-label">{{ $t('发送凭证') }}</div>
               <div class="arrow-head">&#x25B6;</div>
             </div>
 
@@ -136,12 +136,12 @@
               <div class="step-icon">
                 <el-icon :size="24"><Connection /></el-icon>
               </div>
-              <div class="step-label">认证服务器</div>
+              <div class="step-label">{{ $t('认证服务器') }}</div>
             </div>
 
             <div class="flow-arrow reverse">
               <div class="arrow-line"></div>
-              <div class="arrow-label">签发 Token</div>
+              <div class="arrow-label">{{ $t('签发 Token') }}</div>
               <div class="arrow-head">&#x25C0;</div>
             </div>
 
@@ -151,14 +151,14 @@
                   <div class="token-badge">AT</div>
                   <div class="token-info">
                     <span class="token-name">Access Token</span>
-                    <span class="token-expire">有效期较短</span>
+                    <span class="token-expire">{{ $t('有效期较短') }}</span>
                   </div>
                 </div>
                 <div class="token-item refresh">
                   <div class="token-badge">RT</div>
                   <div class="token-info">
                     <span class="token-name">Refresh Token</span>
-                    <span class="token-expire">有效期较长</span>
+                    <span class="token-expire">{{ $t('有效期较长') }}</span>
                   </div>
                 </div>
               </div>
@@ -166,7 +166,7 @@
 
             <div class="flow-renew" v-if="form.autoRenew">
               <div class="renew-arrow">&#x21BB;</div>
-              <div class="renew-label">自动续签</div>
+              <div class="renew-label">{{ $t('自动续签') }}</div>
             </div>
           </div>
 
@@ -175,15 +175,15 @@
           <div class="token-stats">
             <div class="stat-item">
               <span class="stat-value">{{ form.issuedTokens || 0 }}</span>
-              <span class="stat-label">已发放</span>
+              <span class="stat-label">{{ $t('已发放') }}</span>
             </div>
             <div class="stat-item">
               <span class="stat-value">{{ form.activeTokens || 0 }}</span>
-              <span class="stat-label">活跃中</span>
+              <span class="stat-label">{{ $t('活跃中') }}</span>
             </div>
             <div class="stat-item">
               <span class="stat-value">{{ form.algorithm || 'HS256' }}</span>
-              <span class="stat-label">签名算法</span>
+              <span class="stat-label">{{ $t('签名算法') }}</span>
             </div>
           </div>
         </el-card>
@@ -197,6 +197,9 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Check, Monitor, Connection } from '@element-plus/icons-vue'
 import { getTokenSettings, updateTokenSettings } from '@/api/system'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const formRef = ref(null)
 const loading = ref(false)
@@ -233,7 +236,7 @@ const handleSave = async () => {
   saving.value = true
   try {
     await updateTokenSettings(form.value)
-    ElMessage.success('令牌设置已保存')
+    ElMessage.success(t('令牌设置已保存'))
   } finally {
     saving.value = false
   }

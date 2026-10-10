@@ -58,8 +58,11 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { VideoPlay, VideoPause, Mute, Microphone, Loading } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
+
+const { t } = useI18n()
 
 const props = defineProps({
   src: { type: String, required: true },
@@ -114,12 +117,12 @@ function showStatus(text, icon = VideoPlay) {
 }
 
 function onPlay() {
-  showStatus('播放', VideoPlay)
+  showStatus(t('播放'), VideoPlay)
   emit('play')
 }
 
 function onPause() {
-  showStatus('暂停', VideoPause)
+  showStatus(t('暂停'), VideoPause)
   emit('pause')
 }
 
@@ -136,11 +139,11 @@ function onCanplay() {
 }
 
 function onWaiting() {
-  showStatus('缓冲中...', Loading)
+  showStatus(t('缓冲中...'), Loading)
 }
 
 function onPlaying() {
-  showStatus('播放中', VideoPlay)
+  showStatus(t('播放中'), VideoPlay)
 }
 
 function onLoadedmetadata(e) {
@@ -151,29 +154,29 @@ function onVolumechange(e) {
   const vol = e.target.volume
   const muted = e.target.muted
   if (muted || vol === 0) {
-    showStatus('静音', Mute)
+    showStatus(t('静音'), Mute)
   } else {
-    showStatus(`音量 ${Math.round(vol * 100)}%`, Microphone)
+    showStatus(t('音量 {volume}%', { volume: Math.round(vol * 100) }), Microphone)
   }
 }
 
 function onRatechange(e) {
   const rate = e.target.playbackRate
-  showStatus(`倍速 ${rate}x`)
+  showStatus(t('倍速 {rate}x', { rate }))
 }
 
 function onMirrorChange(val) {
   mirror.value = val
-  showStatus(val ? '镜像开启' : '镜像关闭')
+  showStatus(val ? t('镜像开启') : t('镜像关闭'))
 }
 
 function onLoopChange(val) {
-  showStatus(val ? '循环开启' : '循环关闭')
+  showStatus(val ? t('循环开启') : t('循环关闭'))
 }
 
 function onLightOffChange(val) {
   lightOff.value = val
-  showStatus(val ? '关灯模式' : '开灯模式')
+  showStatus(val ? t('关灯模式') : t('开灯模式'))
 }
 
 function updateClock() {

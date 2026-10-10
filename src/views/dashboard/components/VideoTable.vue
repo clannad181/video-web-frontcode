@@ -1,7 +1,7 @@
 <template>
   <div class="video-table-card">
     <div class="table-header">
-      <span class="table-title">视频管理</span>
+      <span class="table-title">{{ $t('视频管理') }}</span>
       <div class="filter-capsules">
         <button
           v-for="f in filters"
@@ -10,7 +10,7 @@
           :class="{ active: currentFilter === f.value }"
           @click="currentFilter = f.value"
         >
-          {{ f.label }}
+          {{ $t(f.label) }}
         </button>
       </div>
     </div>
@@ -18,14 +18,14 @@
       <table class="video-table">
         <thead>
           <tr>
-            <th>视频</th>
-            <th>UP 主</th>
-            <th>分类</th>
-            <th>播放量</th>
-            <th>收藏数</th>
-            <th>集数</th>
-            <th>状态</th>
-            <th>上传时间</th>
+            <th>{{ $t('视频') }}</th>
+            <th>{{ $t('UP 主') }}</th>
+            <th>{{ $t('分类') }}</th>
+            <th>{{ $t('播放量') }}</th>
+            <th>{{ $t('收藏数') }}</th>
+            <th>{{ $t('集数') }}</th>
+            <th>{{ $t('状态') }}</th>
+            <th>{{ $t('上传时间') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -59,19 +59,19 @@
             <td>{{ row.episodeCount || '-' }}</td>
             <td>
               <span class="status-badge" :class="statusClass(row.videoStatus)">
-                {{ statusText(row.videoStatus) }}
+                {{ $t(statusText(row.videoStatus)) }}
               </span>
             </td>
             <td class="cell-time">{{ formatTime(row.createTime) }}</td>
           </tr>
           <tr v-if="!list.length">
-            <td colspan="8" class="cell-empty">暂无数据</td>
+            <td colspan="8" class="cell-empty">{{ $t('暂无数据') }}</td>
           </tr>
         </tbody>
       </table>
     </div>
     <div class="table-footer">
-      <span class="total-text">共 {{ total }} 个视频</span>
+      <span class="total-text">{{ $t('共 {total} 个视频', { total }) }}</span>
       <div class="pagination">
         <button class="page-btn" :disabled="page <= 1" @click="changePage(page - 1)">«</button>
         <button
@@ -89,6 +89,9 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
 
 const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
 
@@ -101,10 +104,10 @@ const props = defineProps({
 const emit = defineEmits(['page-change', 'filter-change'])
 
 const filters = [
-  { label: '全部', value: '' },
-  { label: '已发布', value: 2 },
-  { label: '审核中', value: 1 },
-  { label: '草稿', value: 0 }
+  { label: '全部', value: '' }, // i18n-key
+  { label: '已发布', value: 2 }, // i18n-key
+  { label: '审核中', value: 1 }, // i18n-key
+  { label: '草稿', value: 0 } // i18n-key
 ]
 
 const currentFilter = ref('')
@@ -133,18 +136,20 @@ function changePage(p) {
 
 function formatNum(n) {
   if (n === undefined || n === null) return '0'
-  if (n >= 10000) return (n / 10000).toFixed(1) + '万'
+  if (n >= 10000) {
+    return locale.value === 'zh-cn' ? (n / 10000).toFixed(1) + t('万') : Math.round(n / 1000) + 'K'
+  }
   return n.toLocaleString()
 }
 
-function formatTime(t) {
-  if (!t) return '-'
-  const d = new Date(t)
+function formatTime(time) {
+  if (!time) return '-'
+  const d = new Date(time)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 function statusText(s) {
-  return { 2: '已发布', 1: '审核中', 0: '草稿', 3: '已下架' }[s] || '未知'
+  return { 2: '已发布', 1: '审核中', 0: '草稿', 3: '已下架' }[s] || '未知' // i18n-key
 }
 
 function statusClass(s) {

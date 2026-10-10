@@ -1,44 +1,44 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h1 class="page-title">角色管理</h1>
-      <p class="page-subtitle">管理系统角色和权限配置</p>
+      <h1 class="page-title">{{ $t('角色管理') }}</h1>
+      <p class="page-subtitle">{{ $t('管理系统角色和权限配置') }}</p>
     </div>
 
     <div class="filter-card">
       <div class="filter-grid">
         <div class="filter-item">
-          <label class="filter-label">角色名称</label>
-          <input v-model="query.name" class="filter-input" placeholder="请输入角色名称" @keyup.enter="search" />
+          <label class="filter-label">{{ $t('角色名称') }}</label>
+          <input v-model="query.name" class="filter-input" :placeholder="$t('请输入角色名称')" @keyup.enter="search" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">状态</label>
+          <label class="filter-label">{{ $t('状态') }}</label>
           <div class="select-wrap" :class="{ open: statusOpen }">
             <select v-model="query.status" class="filter-select" @mousedown="statusOpen = true" @blur="statusOpen = false">
-              <option value="">全部</option>
+              <option value="">{{ $t('全部') }}</option>
               <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">创建人</label>
-          <input v-model="query.createUserName" class="filter-input" placeholder="请输入创建人" @keyup.enter="search" />
+          <label class="filter-label">{{ $t('创建人') }}</label>
+          <input v-model="query.createUserName" class="filter-input" :placeholder="$t('请输入创建人')" @keyup.enter="search" />
         </div>
       </div>
       <div class="filter-actions">
         <button class="btn btn-secondary" @click="resetQuery">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
-          重置
+          {{ $t('重置') }}
         </button>
         <button class="btn btn-primary" @click="search">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-          搜索
+          {{ $t('搜索') }}
         </button>
       </div>
       <div class="filter-bottom">
         <button class="btn btn-add" @click="openAddModal">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
-          新增角色
+          {{ $t('新增角色') }}
         </button>
       </div>
     </div>
@@ -49,19 +49,19 @@
           <thead>
             <tr>
               <th class="col-index">#</th>
-              <th>角色名称</th>
-              <th>描述</th>
-              <th>等级</th>
-              <th>状态</th>
-              <th>系统保留</th>
-              <th>创建人</th>
-              <th>创建时间</th>
-              <th class="sticky-col">操作</th>
+              <th>{{ $t('角色名称') }}</th>
+              <th>{{ $t('描述') }}</th>
+              <th>{{ $t('等级') }}</th>
+              <th>{{ $t('状态') }}</th>
+              <th>{{ $t('系统保留') }}</th>
+              <th>{{ $t('创建人') }}</th>
+              <th>{{ $t('创建时间') }}</th>
+              <th class="sticky-col">{{ $t('操作') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="roles.length === 0 && !loading">
-              <td colspan="9" class="empty-row">暂无数据</td>
+              <td colspan="9" class="empty-row">{{ $t('暂无数据') }}</td>
             </tr>
             <tr v-for="(row, idx) in roles" :key="row.id" class="table-row">
               <td class="col-index">{{ (query.page - 1) * query.size + idx + 1 }}</td>
@@ -70,12 +70,12 @@
               <td>{{ row.level ?? '-' }}</td>
               <td>
                 <span class="status-badge" :class="row.status ? 'active' : 'inactive'">
-                  {{ row.status ? '启用' : '禁用' }}
+                  {{ row.status ? $t('启用') : $t('禁用') }}
                 </span>
               </td>
               <td>
                 <span class="status-badge" :class="row.sysDef ? 'active' : 'inactive'">
-                  {{ row.sysDef ? '是' : '否' }}
+                  {{ row.sysDef ? $t('是') : $t('否') }}
                 </span>
               </td>
               <td>
@@ -91,9 +91,9 @@
               <td class="cell-muted">{{ row.createTime }}</td>
               <td class="sticky-col">
                 <div v-if="canOperate(row)" class="action-group">
-                  <button class="btn-action btn-edit" @click="openEditModal(row)">编辑</button>
-                  <button class="btn-action btn-bind" @click="openMenuModal(row)">绑定菜单</button>
-                  <button v-if="!row.sysDef" class="btn-action btn-delete" @click="confirmDelete(row)">删除</button>
+                  <button class="btn-action btn-edit" @click="openEditModal(row)">{{ $t('编辑') }}</button>
+                  <button class="btn-action btn-bind" @click="openMenuModal(row)">{{ $t('绑定菜单') }}</button>
+                  <button v-if="!row.sysDef" class="btn-action btn-delete" @click="confirmDelete(row)">{{ $t('删除') }}</button>
                 </div>
               </td>
             </tr>
@@ -102,7 +102,7 @@
       </div>
 
       <div v-if="total > 0" class="pagination-wrap">
-        <div class="page-info">共 {{ total }} 条</div>
+        <div class="page-info">{{ $t('共 {total} 条', { total }) }}</div>
         <div class="page-btns">
           <button class="pg-btn" :disabled="query.page <= 1" @click="goPage(query.page - 1)">&#8249;</button>
           <template v-for="p in pageNumbers" :key="p">
@@ -112,10 +112,10 @@
           <button class="pg-btn" :disabled="query.page >= totalPages" @click="goPage(query.page + 1)">&#8250;</button>
         </div>
         <select v-model.number="query.size" class="page-size-sel" @change="onPageSizeChange">
-          <option :value="10">10 条/页</option>
-          <option :value="20">20 条/页</option>
-          <option :value="50">50 条/页</option>
-          <option :value="100">100 条/页</option>
+          <option :value="10">{{ $t('10 条/页') }}</option>
+          <option :value="20">{{ $t('20 条/页') }}</option>
+          <option :value="50">{{ $t('50 条/页') }}</option>
+          <option :value="100">{{ $t('100 条/页') }}</option>
         </select>
       </div>
     </div>
@@ -126,42 +126,42 @@
         <div v-if="showRoleModal" class="modal-overlay" @click.self="showRoleModal = false">
           <div class="modal-card modal-std" @click.stop>
             <div class="modal-header">
-              <h3>{{ editingRole ? '编辑角色' : '新增角色' }}</h3>
+              <h3>{{ editingRole ? $t('编辑角色') : $t('新增角色') }}</h3>
               <button class="modal-close" @click="showRoleModal = false">&times;</button>
             </div>
             <div class="modal-body">
               <div class="form-section">
-                <div class="section-title">基础信息</div>
+                <div class="section-title">{{ $t('基础信息') }}</div>
                 <div class="fg">
-                  <label class="fl">角色名称 <span class="req">*</span></label>
-                  <input v-model="form.name" class="fi" placeholder="请输入角色名称" />
+                  <label class="fl">{{ $t('角色名称') }} <span class="req">*</span></label>
+                  <input v-model="form.name" class="fi" :placeholder="$t('请输入角色名称')" />
                 </div>
                 <div class="fg">
-                  <label class="fl">描述</label>
-                  <input v-model="form.description" class="fi" placeholder="请输入描述" />
+                  <label class="fl">{{ $t('描述') }}</label>
+                  <input v-model="form.description" class="fi" :placeholder="$t('请输入描述')" />
                 </div>
                 <div class="form-row">
                   <div class="fg half">
-                    <label class="fl">角色等级</label>
-                    <input v-model.number="form.level" type="number" class="fi" placeholder="请输入角色等级" />
+                    <label class="fl">{{ $t('角色等级') }}</label>
+                    <input v-model.number="form.level" type="number" class="fi" :placeholder="$t('请输入角色等级')" />
                   </div>
                   <div class="fg half">
-                    <label class="fl">状态</label>
+                    <label class="fl">{{ $t('状态') }}</label>
                     <div class="toggle-wrap" @click="form.status = !form.status">
                       <button class="toggle-btn" :class="{ on: form.status }">
                         <span class="toggle-knob"></span>
                       </button>
-                      <span class="toggle-label">{{ form.status ? '启用' : '禁用' }}</span>
+                      <span class="toggle-label">{{ form.status ? $t('启用') : $t('禁用') }}</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="showRoleModal = false" :disabled="saving">取消</button>
+              <button class="btn btn-secondary" @click="showRoleModal = false" :disabled="saving">{{ $t('取消') }}</button>
               <button class="btn btn-primary" @click="submitRole" :disabled="saving">
                 <span v-if="saving" class="btn-loading"></span>
-                {{ saving ? '保存中...' : '确认' }}
+                {{ saving ? $t('保存中...') : $t('确认') }}
               </button>
             </div>
           </div>
@@ -175,11 +175,11 @@
         <div v-if="showMenuModal" class="modal-overlay" @click.self="showMenuModal = false">
           <div class="modal-card modal-wide" @click.stop>
             <div class="modal-header">
-              <h3>绑定菜单 - {{ currentMenuRole?.name }}</h3>
+              <h3>{{ $t('绑定菜单') }} - {{ currentMenuRole?.name }}</h3>
               <button class="modal-close" @click="showMenuModal = false">&times;</button>
             </div>
             <div class="modal-body">
-              <div v-if="menuLoading" class="menu-loading">加载中...</div>
+              <div v-if="menuLoading" class="menu-loading">{{ $t('加载中...') }}</div>
               <div v-else class="menu-tree-wrap">
                 <div v-for="menu in menuOptions" :key="menu.id" class="menu-node">
                   <div class="menu-check menu-check-parent">
@@ -203,14 +203,14 @@
                     </div>
                   </div>
                 </div>
-                <div v-if="menuOptions.length === 0" class="empty-row">暂无菜单数据</div>
+                <div v-if="menuOptions.length === 0" class="empty-row">{{ $t('暂无菜单数据') }}</div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="showMenuModal = false" :disabled="saving">取消</button>
+              <button class="btn btn-secondary" @click="showMenuModal = false" :disabled="saving">{{ $t('取消') }}</button>
               <button class="btn btn-primary" @click="submitMenu" :disabled="saving">
                 <span v-if="saving" class="btn-loading"></span>
-                {{ saving ? '保存中...' : '确认' }}
+                {{ saving ? $t('保存中...') : $t('确认') }}
               </button>
             </div>
           </div>
@@ -227,6 +227,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onActivated, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUser } from '@/utils/auth'
 import {
@@ -234,6 +235,8 @@ import {
   toggleMenu, getBindMenuIds, getMenuOptions
 } from '@/api/role'
 import { getEnabledDictData } from '@/api/dict'
+
+const { t } = useI18n()
 
 const roles = ref([])
 const total = ref(0)
@@ -244,14 +247,14 @@ const currentUser = getUser()
 
 const totalPages = computed(() => Math.ceil(total.value / query.size) || 1)
 const pageNumbers = computed(() => {
-  const t = totalPages.value
+  const tp = totalPages.value
   const c = query.page
-  if (t <= 7) return Array.from({ length: t }, (_, i) => i + 1)
+  if (tp <= 7) return Array.from({ length: tp }, (_, i) => i + 1)
   const pages = [1]
   if (c > 3) pages.push('...')
-  for (let i = Math.max(2, c - 1); i <= Math.min(t - 1, c + 1); i++) pages.push(i)
-  if (c < t - 2) pages.push('...')
-  pages.push(t)
+  for (let i = Math.max(2, c - 1); i <= Math.min(tp - 1, c + 1); i++) pages.push(i)
+  if (c < tp - 2) pages.push('...')
+  pages.push(tp)
   return pages
 })
 
@@ -348,7 +351,7 @@ function openEditModal(role) {
 
 async function submitRole() {
   if (!form.name || !form.name.trim()) {
-    ElMessage.warning('请填写必填项')
+    ElMessage.warning(t('请填写必填项'))
     return
   }
   if (saving.value) return
@@ -356,11 +359,11 @@ async function submitRole() {
   try {
     if (editingRole.value) {
       await updateRole({ id: editingRole.value.id, name: form.name, description: form.description || undefined, level: form.level, status: form.status })
-      ElMessage.success('角色更新成功')
+      ElMessage.success(t('角色更新成功'))
     } else {
       const user = getUser()
       await addRole({ name: form.name, description: form.description || undefined, level: form.level, status: form.status, createUser: user?.id })
-      ElMessage.success('角色创建成功')
+      ElMessage.success(t('角色创建成功'))
     }
     showRoleModal.value = false
     loadRoles()
@@ -372,10 +375,10 @@ async function submitRole() {
 }
 
 function confirmDelete(role) {
-  ElMessageBox.confirm(`确定要删除角色「${role.name}」吗？`, '删除确认', { type: 'warning' })
+  ElMessageBox.confirm(t('确定要删除角色「{name}」吗？', { name: role.name }), t('删除确认'), { type: 'warning' })
     .then(async () => {
       await deleteRole(role.id)
-      ElMessage.success('角色删除成功')
+      ElMessage.success(t('角色删除成功'))
       loadRoles()
     }).catch(() => {})
 }
@@ -481,7 +484,7 @@ async function submitMenu() {
       }
     })
     await toggleMenu(currentMenuRole.value.id, menuIds)
-    ElMessage.success('菜单绑定成功')
+    ElMessage.success(t('菜单绑定成功'))
     showMenuModal.value = false
     loadRoles()
     window.dispatchEvent(new Event('menu-updated'))

@@ -11,7 +11,7 @@
       <div class="breadcrumb">
         <span class="bc-home">🏠</span>
         <span class="bc-sep">/</span>
-        <span class="bc-current">{{ route.meta?.title || $t('common.dashboard') }}</span>
+        <span class="bc-current">{{ $t(route.meta?.title || '') || $t('common.dashboard') }}</span>
       </div>
     </div>
 
@@ -41,7 +41,7 @@
         <div class="lang-icon-wrapper">
           <transition name="lang-icon" mode="out-in">
             <span class="lang-text" :key="appStore.language">
-              {{ appStore.language === 'zh-cn' ? '中文' : 'EN' }}
+              {{ appStore.language === 'zh-cn' ? $t('中文') : 'EN' }}
             </span>
           </transition>
         </div>
@@ -71,32 +71,23 @@
       <!-- 字体设置弹出框 -->
       <transition name="dropdown">
         <div v-if="showFontPopover" class="font-popover" ref="fontPopoverRef">
-          <div class="font-popover-title">字体设置</div>
+          <div class="font-popover-title">{{ $t('字体设置') }}</div>
           <div class="font-option-group">
-            <div class="font-option-label">字体</div>
-            <el-select v-model="currentFont" placeholder="选择字体" @change="handleFontChange" style="width: 100%">
-              <el-option label="默认" value="默认" />
-              <el-option label="微软雅黑" value="微软雅黑" />
-              <el-option label="宋体" value="宋体" />
-              <el-option label="黑体" value="黑体" />
-              <el-option label="楷体" value="楷体" />
-              <el-option label="仿宋" value="仿宋" />
-              <el-option label="思源黑体" value="思源黑体" />
-              <el-option label="思源宋体" value="思源宋体" />
-              <el-option label="苹方" value="苹方" />
-              <el-option label="等线" value="等线" />
+            <div class="font-option-label">{{ $t('字体') }}</div>
+            <el-select v-model="currentFont" :placeholder="$t('选择字体')" @change="handleFontChange" style="width: 100%">
+              <el-option v-for="font in fontOptions" :key="font" :label="$t(font)" :value="font" />
             </el-select>
           </div>
           <div class="font-option-group">
-            <div class="font-option-label">字号</div>
+            <div class="font-option-label">{{ $t('字号') }}</div>
             <el-slider v-model="currentFontSize" :min="12" :max="20" :step="1" show-stops @input="handleFontSizeInput" @change="handleFontSizeChange" />
             <div class="font-size-labels">
-              <span>小</span>
-              <span>大</span>
+              <span>{{ $t('小') }}</span>
+              <span>{{ $t('大') }}</span>
             </div>
           </div>
           <div class="font-preview" :style="{ fontFamily: getFontFamily(currentFont), fontSize: currentFontSize + 'px' }">
-            预览文字 Abc 123
+            {{ $t('预览文字 Abc 123') }}
           </div>
         </div>
       </transition>
@@ -129,18 +120,18 @@
         <div v-if="showDropdown" class="user-dropdown" ref="dropdownRef">
           <div class="dd-header">
             <div class="dd-name">{{ userStore.userInfo?.nikeName || 'Admin' }}</div>
-            <div class="dd-role">{{ userStore.userInfo?.roleName || '管理员' }}</div>
+            <div class="dd-role">{{ $t(userStore.userInfo?.roleName || '') || $t('管理员') }}</div>
           </div>
           <div class="dd-divider" />
           <div class="dd-item" @click="openProfileModal">
-            <el-icon><User /></el-icon>编辑资料
+            <el-icon><User /></el-icon>{{ $t('编辑资料') }}
           </div>
           <div class="dd-item" @click="router.push('/settings')">
-            <el-icon><Setting /></el-icon>系统设置
+            <el-icon><Setting /></el-icon>{{ $t('系统设置') }}
           </div>
           <div class="dd-divider" />
           <div class="dd-item danger" @click="handleLogout">
-            <el-icon><SwitchButton /></el-icon>登出
+            <el-icon><SwitchButton /></el-icon>{{ $t('登出') }}
           </div>
         </div>
       </transition>
@@ -153,7 +144,7 @@
         <div v-if="profileVisible" class="profile-overlay" @click.self="profileVisible = false">
           <div class="profile-modal">
             <div class="modal-header">
-              <span>个人中心</span>
+              <span>{{ $t('个人中心') }}</span>
               <el-icon class="close-btn" @click="profileVisible = false"><Close /></el-icon>
             </div>
             <div class="modal-body">
@@ -165,47 +156,47 @@
                     <div v-else class="preview-placeholder">{{ initials }}</div>
                     <div class="upload-overlay">
                       <el-icon :size="28"><Upload /></el-icon>
-                      <span class="overlay-text">点击上传</span>
+                      <span class="overlay-text">{{ $t('点击上传') }}</span>
                     </div>
                   </div>
                   <input ref="fileInputRef" type="file" accept="image/*" style="display:none" @change="handleAvatarUpload" />
                   <div class="profile-username">{{ userStore.userInfo?.userName || 'administer' }}</div>
                   <div class="profile-email-text">{{ userStore.userInfo?.email || 'user@example.com' }}</div>
-                  <button class="view-avatar-btn" @click="showFullAvatar = true">查看头像</button>
+                  <button class="view-avatar-btn" @click="showFullAvatar = true">{{ $t('查看头像') }}</button>
                 </div>
                 <!-- 右侧：表单 -->
                 <div class="profile-right">
                   <div class="form-group">
-                    <label class="form-label">用户名</label>
+                    <label class="form-label">{{ $t('用户名') }}</label>
                     <el-input :model-value="userStore.userInfo?.userName" disabled size="large" />
                   </div>
                   <div class="form-group">
-                    <label class="form-label">昵称</label>
-                    <el-input v-model="profileForm.nikeName" placeholder="请输入昵称" size="large" />
+                    <label class="form-label">{{ $t('昵称') }}</label>
+                    <el-input v-model="profileForm.nikeName" :placeholder="$t('请输入昵称')" size="large" />
                   </div>
                   <div class="form-group">
-                    <label class="form-label">邮箱</label>
-                    <el-input v-model="profileForm.email" :disabled="!profileForm.emailEditing" placeholder="请输入邮箱" size="large" />
-                    <span v-if="!profileForm.emailEditing" class="edit-email-link" @click="profileForm.emailEditing = true">修改邮箱</span>
+                    <label class="form-label">{{ $t('邮箱') }}</label>
+                    <el-input v-model="profileForm.email" :disabled="!profileForm.emailEditing" :placeholder="$t('请输入邮箱')" size="large" />
+                    <span v-if="!profileForm.emailEditing" class="edit-email-link" @click="profileForm.emailEditing = true">{{ $t('修改邮箱') }}</span>
                   </div>
                   <div v-if="profileForm.emailEditing" class="form-group">
                     <div class="code-row">
-                      <el-input v-model="profileForm.emailCode" placeholder="请输入验证码" size="large" />
+                      <el-input v-model="profileForm.emailCode" :placeholder="$t('请输入验证码')" size="large" />
                       <el-button class="code-btn" size="large" :disabled="codeCountdown > 0" @click="handleSendCode">
-                        {{ codeCountdown > 0 ? `${codeCountdown}s` : '获取验证码' }}
+                        {{ codeCountdown > 0 ? `${codeCountdown}s` : $t('获取验证码') }}
                       </el-button>
                     </div>
                   </div>
                   <div class="form-group">
-                    <label class="form-label">角色</label>
+                    <label class="form-label">{{ $t('角色') }}</label>
                     <el-input :model-value="userStore.userInfo?.roleName" disabled size="large" />
                   </div>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <el-button size="large" @click="profileVisible = false">取消</el-button>
-              <el-button size="large" type="primary" :loading="profileSaving" class="confirm-btn" @click="handleSaveProfile">确认</el-button>
+              <el-button size="large" @click="profileVisible = false">{{ $t('取消') }}</el-button>
+              <el-button size="large" type="primary" :loading="profileSaving" class="confirm-btn" @click="handleSaveProfile">{{ $t('确认') }}</el-button>
             </div>
           </div>
         </div>
@@ -243,11 +234,14 @@
  */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import { logout as logoutApi, getUserInfo as getUserInfoApi, sendEmailCode } from '@/api/auth'
 import { clearAuth, setUserInfo } from '@/utils/auth'
+
+const { t } = useI18n()
 
 // 路由和状态管理
 const router = useRouter()
@@ -284,8 +278,11 @@ const fontPopoverRef = ref(null)
 
 // 字体设置状态
 const showFontPopover = ref(false)
-const currentFont = ref(appStore.fontFamily || '默认')
+const currentFont = ref(appStore.fontFamily || '默认') // i18n-key
 const currentFontSize = ref(parseInt(appStore.fontSize) || 14)
+
+// 字体选项（中文值作为字体标识，展示时走 $t()）
+const fontOptions = ['默认', '微软雅黑', '宋体', '黑体', '楷体', '仿宋', '思源黑体', '思源宋体', '苹方', '等线'] // i18n-key
 
 // 计算属性：头像URL
 const avatarUrl = computed(() => {
@@ -376,13 +373,13 @@ async function handleAvatarUpload(e) {
   
   // 验证文件类型
   if (!file.type.startsWith('image/')) {
-    ElMessage.warning('请选择图片文件')
+    ElMessage.warning(t('请选择图片文件'))
     return
   }
   
   // 验证文件大小（最大5MB）
   if (file.size > 5 * 1024 * 1024) {
-    ElMessage.warning('图片大小不能超过5MB')
+    ElMessage.warning(t('图片大小不能超过5MB'))
     return
   }
   
@@ -402,9 +399,9 @@ async function handleAvatarUpload(e) {
       onProgress: (p) => { profileForm.value.uploadProgress = p }
     })
     profileForm.value.avatarUrl = result.url
-    ElMessage.success('头像上传成功')
+    ElMessage.success(t('头像上传成功'))
   } catch {
-    ElMessage.error('头像上传失败')
+    ElMessage.error(t('头像上传失败'))
   } finally {
     setTimeout(() => { profileForm.value.uploadProgress = 0 }, 1000)
   }
@@ -415,14 +412,14 @@ async function handleAvatarUpload(e) {
  */
 async function handleSendCode() {
   if (!profileForm.value.email) {
-    ElMessage.warning('请先输入邮箱')
+    ElMessage.warning(t('请先输入邮箱'))
     return
   }
   try {
     const key = `email_${Date.now()}`
     profileForm.value.emailKey = key
     await sendEmailCode(profileForm.value.email)
-    ElMessage.success('验证码已发送')
+    ElMessage.success(t('验证码已发送'))
     // 开始60秒倒计时
     codeCountdown.value = 60
     codeTimer = setInterval(() => {
@@ -430,7 +427,7 @@ async function handleSendCode() {
       if (codeCountdown.value <= 0) clearInterval(codeTimer)
     }, 1000)
   } catch {
-    ElMessage.error('发送验证码失败')
+    ElMessage.error(t('发送验证码失败'))
   }
 }
 
@@ -439,7 +436,7 @@ async function handleSendCode() {
  */
 async function handleSaveProfile() {
   if (!profileForm.value.nikeName) {
-    ElMessage.warning('请输入昵称')
+    ElMessage.warning(t('请输入昵称'))
     return
   }
   profileSaving.value = true
@@ -465,13 +462,13 @@ async function handleSaveProfile() {
       }
       // 触发用户更新事件
       window.dispatchEvent(new CustomEvent('user-updated'))
-      ElMessage.success('保存成功')
+      ElMessage.success(t('保存成功'))
       profileVisible.value = false
     } else {
-      ElMessage.error(res.data?.message || '保存失败')
+      ElMessage.error(res.data?.message || t('保存失败'))
     }
   } catch {
-    ElMessage.error('保存失败')
+    ElMessage.error(t('保存失败'))
   } finally {
     profileSaving.value = false
   }
@@ -512,18 +509,18 @@ function handleClickOutside(e) {
  */
 function getFontFamily(fontName) {
   const fontMap = {
-    '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif",
-    '微软雅黑': "'Microsoft YaHei', sans-serif",
-    '宋体': "'SimSun', serif",
-    '黑体': "'SimHei', sans-serif",
-    '楷体': "'KaiTi', serif",
-    '仿宋': "'FangSong', serif",
-    '思源黑体': "'Noto Sans SC', sans-serif",
-    '思源宋体': "'Noto Serif SC', serif",
-    '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif",
-    '等线': "'DengXian', sans-serif"
+    '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif", // i18n-key
+    '微软雅黑': "'Microsoft YaHei', sans-serif", // i18n-key
+    '宋体': "'SimSun', serif", // i18n-key
+    '黑体': "'SimHei', sans-serif", // i18n-key
+    '楷体': "'KaiTi', serif", // i18n-key
+    '仿宋': "'FangSong', serif", // i18n-key
+    '思源黑体': "'Noto Sans SC', sans-serif", // i18n-key
+    '思源宋体': "'Noto Serif SC', sans-serif", // i18n-key
+    '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif", // i18n-key
+    '等线': "'DengXian', sans-serif" // i18n-key
   }
-  return fontMap[fontName] || fontMap['默认']
+  return fontMap[fontName] || fontMap['默认'] // i18n-key
 }
 
 /**

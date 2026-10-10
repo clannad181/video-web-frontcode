@@ -81,7 +81,7 @@ export const useUserStore = defineStore('user', () => {
           email: loginData.email || '',
           avatar: '',
           roleId: 1,
-          roleName: '超级管理员',
+          roleName: '超级管理员', // i18n-key
           roleLevel: 1,
           status: 1
         }

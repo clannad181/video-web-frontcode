@@ -1,8 +1,8 @@
 <template>
   <div class="activity-feed">
     <div class="feed-header">
-      <span class="feed-title">最近动态</span>
-      <button class="view-all">查看全部</button>
+      <span class="feed-title">{{ $t('最近动态') }}</span>
+      <button class="view-all">{{ $t('查看全部') }}</button>
     </div>
     <div class="feed-list">
       <div
@@ -17,11 +17,11 @@
         <div class="feed-content">
           <div class="feed-line">
             <span class="feed-user">{{ item.user }}</span>
-            <span class="feed-action">{{ item.action }}</span>
+            <span class="feed-action">{{ $t(item.action) }}</span>
           </div>
-          <div class="feed-detail">{{ item.detail }}</div>
+          <div class="feed-detail">{{ $t(item.detail) }}</div>
         </div>
-        <div class="feed-time">{{ item.time }}</div>
+        <div class="feed-time">{{ $t(item.time) }}</div>
       </div>
     </div>
   </div>
@@ -29,11 +29,11 @@
 
 <script setup>
 const activities = [
-  { user: '张三', action: '上传了', detail: '《Vue 3 高级教程》第 3 集', time: '5分钟前', color: '#fb7299' },
-  { user: '李四', action: '发送了弹幕', detail: '"这个讲解太清晰了！"', time: '12分钟前', color: '#7c5cfc' },
-  { user: '系统', action: '自动审核通过', detail: '《React 最佳实践》已发布', time: '28分钟前', color: '#ff8c42' },
-  { user: '王五', action: '完成了实名认证', detail: '身份信息已验证', time: '1小时前', color: '#00a1d6' },
-  { user: '赵六', action: '提交了反馈', detail: '"希望增加倍速播放功能"', time: '2小时前', color: '#67c23a' }
+  { user: '张三', action: '上传了', detail: '《Vue 3 高级教程》第 3 集', time: '5分钟前', color: '#fb7299' }, // i18n-key
+  { user: '李四', action: '发送了弹幕', detail: '"这个讲解太清晰了！"', time: '12分钟前', color: '#7c5cfc' }, // i18n-key
+  { user: '系统', action: '自动审核通过', detail: '《React 最佳实践》已发布', time: '28分钟前', color: '#ff8c42' }, // i18n-key
+  { user: '王五', action: '完成了实名认证', detail: '身份信息已验证', time: '1小时前', color: '#00a1d6' }, // i18n-key
+  { user: '赵六', action: '提交了反馈', detail: '"希望增加倍速播放功能"', time: '2小时前', color: '#67c23a' } // i18n-key
 ]
 </script>
 

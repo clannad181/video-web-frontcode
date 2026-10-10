@@ -8,45 +8,45 @@
     <div class="filter-card">
       <div class="filter-grid">
         <div class="filter-item">
-          <label class="filter-label">登录账号</label>
-          <input v-model="filter.account" class="filter-input" placeholder="搜索登录账号" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('登录账号') }}</label>
+          <input v-model="filter.account" class="filter-input" :placeholder="$t('搜索登录账号')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">系统类型</label>
+          <label class="filter-label">{{ $t('系统类型') }}</label>
           <div class="select-wrap" :class="{ open: systemTypeOpen }">
             <select v-model="filter.systemType" class="filter-select" @mousedown="systemTypeOpen = true" @blur="systemTypeOpen = false">
-              <option value="">全部</option>
-              <option value="0">后台</option>
-              <option value="1">前台</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option value="0">{{ $t('后台') }}</option>
+              <option value="1">{{ $t('前台') }}</option>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">登录状态</label>
+          <label class="filter-label">{{ $t('登录状态') }}</label>
           <div class="select-wrap" :class="{ open: loginStatusOpen }">
             <select v-model="filter.loginStatus" class="filter-select" @mousedown="loginStatusOpen = true" @blur="loginStatusOpen = false">
-              <option value="">全部</option>
-              <option value="1">成功</option>
-              <option value="0">失败</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option value="1">{{ $t('成功') }}</option>
+              <option value="0">{{ $t('失败') }}</option>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">登录方式</label>
+          <label class="filter-label">{{ $t('登录方式') }}</label>
           <div class="select-wrap" :class="{ open: loginTypeOpen }">
             <select v-model="filter.loginType" class="filter-select" @mousedown="loginTypeOpen = true" @blur="loginTypeOpen = false">
-              <option value="">全部</option>
-              <option value="img_captcha">账号登录</option>
-              <option value="email_captcha">邮箱登录</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option value="img_captcha">{{ $t('账号登录') }}</option>
+              <option value="email_captcha">{{ $t('邮箱登录') }}</option>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">开始时间</label>
+          <label class="filter-label">{{ $t('开始时间') }}</label>
           <input v-model="filter.startTime" type="datetime-local" class="filter-input" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">结束时间</label>
+          <label class="filter-label">{{ $t('结束时间') }}</label>
           <input v-model="filter.endTime" type="datetime-local" class="filter-input" />
         </div>
         <div class="filter-actions">
@@ -54,13 +54,13 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
             </svg>
-            重置
+            {{ $t('重置') }}
           </button>
           <button class="btn btn-primary" @click="onSearch">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
             </svg>
-            搜索
+            {{ $t('搜索') }}
           </button>
         </div>
       </div>
@@ -72,32 +72,32 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>登录账号</th>
-              <th>登录方式</th>
-              <th>系统类型</th>
-              <th>IP 地址</th>
-              <th>登录状态</th>
-              <th>失败原因</th>
-              <th>登录时间</th>
-              <th>操作</th>
+              <th>{{ $t('登录账号') }}</th>
+              <th>{{ $t('登录方式') }}</th>
+              <th>{{ $t('系统类型') }}</th>
+              <th>{{ $t('IP 地址') }}</th>
+              <th>{{ $t('登录状态') }}</th>
+              <th>{{ $t('失败原因') }}</th>
+              <th>{{ $t('登录时间') }}</th>
+              <th>{{ $t('操作') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="list.length === 0 && !loading">
-              <td colspan="9" class="empty-cell"><div class="empty-state"><p>暂无数据</p></div></td>
+              <td colspan="9" class="empty-cell"><div class="empty-state"><p>{{ $t('暂无数据') }}</p></div></td>
             </tr>
             <tr v-for="(row, idx) in list" :key="row.id" class="table-row">
               <td>{{ (pagination.page - 1) * pagination.size + idx + 1 }}</td>
               <td>{{ row.account || '-' }}</td>
-              <td>{{ row.loginType === 'img_captcha' ? '账号登录' : '邮箱登录' }}</td>
-              <td>{{ row.systemType === 0 ? '后台' : '前台' }}</td>
+              <td>{{ row.loginType === 'img_captcha' ? $t('账号登录') : $t('邮箱登录') }}</td>
+              <td>{{ row.systemType === 0 ? $t('后台') : $t('前台') }}</td>
               <td class="mono">{{ row.ipAddress || '-' }}</td>
-              <td><span class="badge" :class="row.loginStatus === 1 ? 'badge-green' : 'badge-red'">{{ row.loginStatus === 1 ? '成功' : '失败' }}</span></td>
+              <td><span class="badge" :class="row.loginStatus === 1 ? 'badge-green' : 'badge-red'">{{ row.loginStatus === 1 ? $t('成功') : $t('失败') }}</span></td>
               <td class="col-truncate">{{ row.failReason || '-' }}</td>
               <td class="mono">{{ row.loginTime || '-' }}</td>
               <td>
                 <div class="action-group">
-                  <button class="act-btn act-blue" @click="viewDetail(row)">查看</button>
+                  <button class="act-btn act-blue" @click="viewDetail(row)">{{ $t('查看') }}</button>
                 </div>
               </td>
             </tr>
@@ -105,7 +105,7 @@
         </table>
       </div>
       <div class="pagination">
-        <div class="page-info">共 {{ pagination.total }} 条日志</div>
+        <div class="page-info">{{ $t('共 {total} 条日志', { total: pagination.total }) }}</div>
         <div class="page-btns">
           <button class="pg-btn" :disabled="pagination.page <= 1" @click="goPage(pagination.page - 1)">&#8249;</button>
           <template v-for="p in visiblePages" :key="p">
@@ -114,9 +114,9 @@
           </template>
           <button class="pg-btn" :disabled="pagination.page >= totalPages" @click="goPage(pagination.page + 1)">&#8250;</button>
         </div>
-        <div class="page-size">每页 <select v-model.number="pagination.size" class="size-sel" @change="onPageSizeChange">
+        <div class="page-size">{{ $t('每页') }} <select v-model.number="pagination.size" class="size-sel" @change="onPageSizeChange">
           <option :value="10">10</option><option :value="20">20</option><option :value="50">50</option><option :value="100">100</option>
-        </select> 条</div>
+        </select> {{ $t('条') }}</div>
       </div>
     </div>
 
@@ -125,21 +125,21 @@
         <div v-if="visible" class="modal-overlay" @click.self="visible = false">
           <div class="modal-card modal-std" @click.stop>
             <div class="modal-header">
-              <h3>登录详情</h3>
+              <h3>{{ $t('登录详情') }}</h3>
               <button class="modal-close" @click="visible = false">&times;</button>
             </div>
             <div class="modal-body" v-if="detailRow">
-              <div class="detail-row"><span class="dr-label">登录账号</span><span class="dr-value">{{ detailRow.account || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">登录方式</span><span class="dr-value">{{ detailRow.loginType === 'img_captcha' ? '账号登录' : '邮箱登录' }}</span></div>
-              <div class="detail-row"><span class="dr-label">系统类型</span><span class="dr-value">{{ detailRow.systemType === 0 ? '后台' : '前台' }}</span></div>
-              <div class="detail-row"><span class="dr-label">IP 地址</span><span class="dr-value mono">{{ detailRow.ipAddress || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">登录状态</span><span class="dr-value"><span class="badge" :class="detailRow.loginStatus === 1 ? 'badge-green' : 'badge-red'">{{ detailRow.loginStatus === 1 ? '成功' : '失败' }}</span></span></div>
-              <div class="detail-row"><span class="dr-label">失败原因</span><span class="dr-value">{{ detailRow.failReason || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">用户代理</span><span class="dr-value ua-text">{{ detailRow.userAgent || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">登录时间</span><span class="dr-value mono">{{ detailRow.loginTime || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('登录账号') }}</span><span class="dr-value">{{ detailRow.account || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('登录方式') }}</span><span class="dr-value">{{ detailRow.loginType === 'img_captcha' ? $t('账号登录') : $t('邮箱登录') }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('系统类型') }}</span><span class="dr-value">{{ detailRow.systemType === 0 ? $t('后台') : $t('前台') }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('IP 地址') }}</span><span class="dr-value mono">{{ detailRow.ipAddress || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('登录状态') }}</span><span class="dr-value"><span class="badge" :class="detailRow.loginStatus === 1 ? 'badge-green' : 'badge-red'">{{ detailRow.loginStatus === 1 ? $t('成功') : $t('失败') }}</span></span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('失败原因') }}</span><span class="dr-value">{{ detailRow.failReason || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('用户代理') }}</span><span class="dr-value ua-text">{{ detailRow.userAgent || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('登录时间') }}</span><span class="dr-value mono">{{ detailRow.loginTime || '-' }}</span></div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="visible = false">关闭</button>
+              <button class="btn btn-secondary" @click="visible = false">{{ $t('关闭') }}</button>
             </div>
           </div>
         </div>
@@ -151,14 +151,16 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { getLoginLogList } from '@/api/loginLog'
 
+const { t } = useI18n()
 const route = useRoute()
-const pageTitle = computed(() => route.meta?.title || '登录日志')
+const pageTitle = computed(() => t(route.meta?.title || '') || t('登录日志'))
 const pageSub = computed(() =>
   route.path === '/system-log'
-    ? '查看系统运行与登录安全审计记录'
-    : '查看系统用户登录记录和安全审计'
+    ? t('查看系统运行与登录安全审计记录')
+    : t('查看系统用户登录记录和安全审计')
 )
 
 const loading = ref(false)

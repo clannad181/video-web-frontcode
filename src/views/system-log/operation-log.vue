@@ -1,47 +1,47 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">运行日志</h2>
-      <span class="page-sub">查看系统操作记录和接口调用日志</span>
+      <h2 class="page-title">{{ $t('运行日志') }}</h2>
+      <span class="page-sub">{{ $t('查看系统操作记录和接口调用日志') }}</span>
     </div>
 
     <div class="filter-card">
       <div class="filter-grid">
         <div class="filter-item">
-          <label class="filter-label">操作用户</label>
-          <input v-model="filter.username" class="filter-input" placeholder="搜索操作用户" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('操作用户') }}</label>
+          <input v-model="filter.username" class="filter-input" :placeholder="$t('搜索操作用户')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">所属模块</label>
-          <input v-model="filter.module" class="filter-input" placeholder="搜索所属模块" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('所属模块') }}</label>
+          <input v-model="filter.module" class="filter-input" :placeholder="$t('搜索所属模块')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">操作结果</label>
+          <label class="filter-label">{{ $t('操作结果') }}</label>
           <div class="select-wrap" :class="{ open: resultOpen }">
             <select v-model="filter.resultStatus" class="filter-select" @mousedown="resultOpen = true" @blur="resultOpen = false">
-              <option value="">全部</option>
-              <option value="2">成功</option>
-              <option value="1">业务异常</option>
-              <option value="0">系统异常</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option value="2">{{ $t('成功') }}</option>
+              <option value="1">{{ $t('业务异常') }}</option>
+              <option value="0">{{ $t('系统异常') }}</option>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">系统类型</label>
+          <label class="filter-label">{{ $t('系统类型') }}</label>
           <div class="select-wrap" :class="{ open: systemTypeOpen }">
             <select v-model="filter.systemType" class="filter-select" @mousedown="systemTypeOpen = true" @blur="systemTypeOpen = false">
-              <option value="">全部</option>
-              <option value="1">后台</option>
-              <option value="0">前台</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option value="1">{{ $t('后台') }}</option>
+              <option value="0">{{ $t('前台') }}</option>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">开始时间</label>
+          <label class="filter-label">{{ $t('开始时间') }}</label>
           <input v-model="filter.startTime" type="datetime-local" class="filter-input" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">结束时间</label>
+          <label class="filter-label">{{ $t('结束时间') }}</label>
           <input v-model="filter.endTime" type="datetime-local" class="filter-input" />
         </div>
         <div class="filter-actions">
@@ -49,13 +49,13 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
             </svg>
-            重置
+            {{ $t('重置') }}
           </button>
           <button class="btn btn-primary" @click="onSearch">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
             </svg>
-            搜索
+            {{ $t('搜索') }}
           </button>
         </div>
       </div>
@@ -67,21 +67,21 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>操作用户</th>
-              <th>所属模块</th>
-              <th>操作描述</th>
-              <th>请求 URI</th>
-              <th>请求方式</th>
-              <th>IP 地址</th>
-              <th>执行耗时</th>
-              <th>操作结果</th>
-              <th>操作时间</th>
-              <th>操作</th>
+              <th>{{ $t('操作用户') }}</th>
+              <th>{{ $t('所属模块') }}</th>
+              <th>{{ $t('操作描述') }}</th>
+              <th>{{ $t('请求 URI') }}</th>
+              <th>{{ $t('请求方式') }}</th>
+              <th>{{ $t('IP 地址') }}</th>
+              <th>{{ $t('执行耗时') }}</th>
+              <th>{{ $t('操作结果') }}</th>
+              <th>{{ $t('操作时间') }}</th>
+              <th>{{ $t('操作') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="list.length === 0 && !loading">
-              <td colspan="11" class="empty-cell"><div class="empty-state"><p>暂无数据</p></div></td>
+              <td colspan="11" class="empty-cell"><div class="empty-state"><p>{{ $t('暂无数据') }}</p></div></td>
             </tr>
             <tr v-for="(row, idx) in list" :key="row.id" class="table-row">
               <td>{{ (pagination.page - 1) * pagination.size + idx + 1 }}</td>
@@ -92,11 +92,11 @@
               <td><span class="method-badge" :class="'method-' + (row.requestMethod || '').toLowerCase()">{{ row.requestMethod || '-' }}</span></td>
               <td class="mono">{{ row.ipAddress || '-' }}</td>
               <td class="mono">{{ row.executionTime != null ? row.executionTime + 'ms' : '-' }}</td>
-              <td><span class="badge" :class="resultBadgeCls(row.resultStatus)">{{ resultLbl(row.resultStatus) }}</span></td>
+              <td><span class="badge" :class="resultBadgeCls(row.resultStatus)">{{ $t(resultLbl(row.resultStatus)) }}</span></td>
               <td class="mono">{{ row.operationTime || '-' }}</td>
               <td>
                 <div class="action-group">
-                  <button class="act-btn act-blue" @click="viewDetail(row)">查看</button>
+                  <button class="act-btn act-blue" @click="viewDetail(row)">{{ $t('查看') }}</button>
                 </div>
               </td>
             </tr>
@@ -104,7 +104,7 @@
         </table>
       </div>
       <div class="pagination">
-        <div class="page-info">共 {{ pagination.total }} 条日志</div>
+        <div class="page-info">{{ $t('共 {total} 条日志', { total: pagination.total }) }}</div>
         <div class="page-btns">
           <button class="pg-btn" :disabled="pagination.page <= 1" @click="goPage(pagination.page - 1)">&#8249;</button>
           <template v-for="p in visiblePages" :key="p">
@@ -113,9 +113,9 @@
           </template>
           <button class="pg-btn" :disabled="pagination.page >= totalPages" @click="goPage(pagination.page + 1)">&#8250;</button>
         </div>
-        <div class="page-size">每页 <select v-model.number="pagination.size" class="size-sel" @change="onPageSizeChange">
+        <div class="page-size">{{ $t('每页') }} <select v-model.number="pagination.size" class="size-sel" @change="onPageSizeChange">
           <option :value="10">10</option><option :value="20">20</option><option :value="50">50</option><option :value="100">100</option>
-        </select> 条</div>
+        </select> {{ $t('条') }}</div>
       </div>
     </div>
 
@@ -124,29 +124,29 @@
         <div v-if="visible" class="modal-overlay" @click.self="closeModal">
           <div class="modal-card modal-detail" :class="{ closing: closing }" @click.stop>
             <div class="modal-header">
-              <h3>操作详情</h3>
+              <h3>{{ $t('操作详情') }}</h3>
               <button class="modal-close" @click="closeModal">&times;</button>
             </div>
             <div class="modal-body" v-if="detail">
-              <div class="detail-row"><span class="dr-label">操作用户</span><span class="dr-value">{{ detail.username || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">所属模块</span><span class="dr-value detail-code">{{ detail.module || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">操作描述</span><span class="dr-value">{{ detail.operationDesc || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">类名.方法</span><span class="dr-value detail-code">{{ detail.className || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">请求 URI</span><span class="dr-value detail-code">{{ detail.requestUri || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">请求方式</span><span class="dr-value">{{ detail.requestMethod || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">请求参数</span><span class="dr-value detail-code">{{ detail.requestParams || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">IP 地址</span><span class="dr-value mono">{{ detail.ipAddress || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">执行耗时</span><span class="dr-value mono">{{ detail.executionTime != null ? detail.executionTime + 'ms' : '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">操作结果</span><span class="dr-value"><span class="badge" :class="resultBadgeCls(detail.resultStatus)">{{ resultLbl(detail.resultStatus) }}</span></span></div>
-              <div class="detail-row"><span class="dr-label">错误信息</span><span class="dr-value">{{ detail.errorMessage || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">异常堆栈</span><span class="dr-value detail-code">{{ detail.stackTrace || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">日志类型</span><span class="dr-value">{{ detail.logType === 1 ? '业务日志' : '系统日志' }}</span></div>
-              <div class="detail-row"><span class="dr-label">系统类型</span><span class="dr-value">{{ detail.systemType === 1 ? '后台' : '前台' }}</span></div>
-              <div class="detail-row"><span class="dr-label">操作时间</span><span class="dr-value mono">{{ detail.operationTime || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">创建时间</span><span class="dr-value mono">{{ detail.createTime || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('操作用户') }}</span><span class="dr-value">{{ detail.username || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('所属模块') }}</span><span class="dr-value detail-code">{{ detail.module || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('操作描述') }}</span><span class="dr-value">{{ detail.operationDesc || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('类名.方法') }}</span><span class="dr-value detail-code">{{ detail.className || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('请求 URI') }}</span><span class="dr-value detail-code">{{ detail.requestUri || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('请求方式') }}</span><span class="dr-value">{{ detail.requestMethod || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('请求参数') }}</span><span class="dr-value detail-code">{{ detail.requestParams || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('IP 地址') }}</span><span class="dr-value mono">{{ detail.ipAddress || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('执行耗时') }}</span><span class="dr-value mono">{{ detail.executionTime != null ? detail.executionTime + 'ms' : '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('操作结果') }}</span><span class="dr-value"><span class="badge" :class="resultBadgeCls(detail.resultStatus)">{{ $t(resultLbl(detail.resultStatus)) }}</span></span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('错误信息') }}</span><span class="dr-value">{{ detail.errorMessage || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('异常堆栈') }}</span><span class="dr-value detail-code">{{ detail.stackTrace || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('日志类型') }}</span><span class="dr-value">{{ detail.logType === 1 ? $t('业务日志') : $t('系统日志') }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('系统类型') }}</span><span class="dr-value">{{ detail.systemType === 1 ? $t('后台') : $t('前台') }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('操作时间') }}</span><span class="dr-value mono">{{ detail.operationTime || '-' }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('创建时间') }}</span><span class="dr-value mono">{{ detail.createTime || '-' }}</span></div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="closeModal">关闭</button>
+              <button class="btn btn-secondary" @click="closeModal">{{ $t('关闭') }}</button>
             </div>
           </div>
         </div>
@@ -188,7 +188,7 @@ function makePages(cur, total) {
 const visiblePages = computed(() => makePages(pagination.page, totalPages.value))
 
 function resultBadgeCls(s) { return s === 2 ? 'badge-green' : s === 1 ? 'badge-amber' : 'badge-red' }
-function resultLbl(s) { return s === 2 ? '成功' : s === 1 ? '业务异常' : '系统异常' }
+function resultLbl(s) { return s === 2 ? '成功' : s === 1 ? '业务异常' : '系统异常' } // i18n-key
 
 function buildParams() {
   const p = { page: pagination.page, size: pagination.size }

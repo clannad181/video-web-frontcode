@@ -1,23 +1,23 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h1 class="page-title">菜单管理</h1>
-      <p class="page-subtitle">管理系统菜单结构与层级</p>
+      <h1 class="page-title">{{ $t('菜单管理') }}</h1>
+      <p class="page-subtitle">{{ $t('管理系统菜单结构与层级') }}</p>
     </div>
 
     <div class="filter-card">
       <div class="filter-grid">
         <div class="filter-item">
-          <label class="filter-label">菜单名称</label>
-          <input v-model="query.menuName" class="filter-input" placeholder="请输入菜单名称" @keyup.enter="search" />
+          <label class="filter-label">{{ $t('菜单名称') }}</label>
+          <input v-model="query.menuName" class="filter-input" :placeholder="$t('请输入菜单名称')" @keyup.enter="search" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">状态</label>
+          <label class="filter-label">{{ $t('状态') }}</label>
           <div class="select-wrap" :class="{ open: statusOpen }">
             <select v-model="query.status" class="filter-select" @mousedown="statusOpen = true"
               @blur="statusOpen = false">
-              <option value="">全部</option>
-              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label ? $t(d.label) : d.label }}</option>
             </select>
           </div>
         </div>
@@ -28,15 +28,15 @@
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
             <path d="M3 3v5h5" />
           </svg>
-          重置
-        </button>
+            {{ $t('重置') }}
+          </button>
         <button class="btn btn-primary" @click="search">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
           </svg>
-          搜索
-        </button>
+            {{ $t('搜索') }}
+          </button>
       </div>
     </div>
 
@@ -46,17 +46,17 @@
           <thead>
             <tr>
               <th class="col-index">#</th>
-              <th>菜单名称</th>
-              <th>图标</th>
-              <th>路由标识</th>
-              <th>排序</th>
-              <th>状态</th>
-              <th class="sticky-col">操作</th>
+              <th>{{ $t('菜单名称') }}</th>
+              <th>{{ $t('图标') }}</th>
+              <th>{{ $t('路由标识') }}</th>
+              <th>{{ $t('排序') }}</th>
+              <th>{{ $t('状态') }}</th>
+              <th class="sticky-col">{{ $t('操作') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="pagedData.length === 0 && !loading">
-              <td colspan="7" class="empty-row">暂无数据</td>
+              <td colspan="7" class="empty-row">{{ $t('暂无数据') }}</td>
             </tr>
             <tr v-for="(row, idx) in pagedData" :key="row.id" class="table-row">
               <td class="col-index">{{ (currentPage - 1) * pageSize + idx + 1 }}</td>
@@ -84,13 +84,13 @@
               <td><span class="sort-num">{{ row.descSort }}</span></td>
               <td>
                 <span class="status-badge" :class="row.status ? 'active' : 'inactive'">
-                  {{ row.status ? '启用' : '禁用' }}
+                  {{ row.status ? $t('启用') : $t('禁用') }}
                 </span>
               </td>
               <td class="sticky-col">
                 <div class="action-group">
-                  <button class="btn-action btn-edit" @click="openEditModal(row)">编辑</button>
-                  <button class="btn-action btn-delete" @click="confirmDelete(row)">删除</button>
+                  <button class="btn-action btn-edit" @click="openEditModal(row)">{{ $t('编辑') }}</button>
+                  <button class="btn-action btn-delete" @click="confirmDelete(row)">{{ $t('删除') }}</button>
                 </div>
               </td>
             </tr>
@@ -99,7 +99,7 @@
       </div>
 
       <div v-if="totalFiltered > 0" class="pagination-wrap">
-        <div class="page-info">共 {{ totalFiltered }} 条</div>
+        <div class="page-info">{{ $t('共 {total} 条', { total: totalFiltered }) }}</div>
         <div class="page-btns">
           <button class="pg-btn" :disabled="currentPage <= 1" @click="goPage(currentPage - 1)">&#8249;</button>
           <template v-for="p in totalPages" :key="p">
@@ -109,10 +109,10 @@
           <button class="pg-btn" :disabled="currentPage >= totalPages" @click="goPage(currentPage + 1)">&#8250;</button>
         </div>
         <select v-model.number="pageSize" class="page-size-sel">
-          <option :value="10">10 条/页</option>
-          <option :value="20">20 条/页</option>
-          <option :value="50">50 条/页</option>
-          <option :value="100">100 条/页</option>
+          <option :value="10">{{ $t('10 条/页') }}</option>
+          <option :value="20">{{ $t('20 条/页') }}</option>
+          <option :value="50">{{ $t('50 条/页') }}</option>
+          <option :value="100">{{ $t('100 条/页') }}</option>
         </select>
       </div>
     </div>
@@ -123,16 +123,16 @@
         <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
           <div class="modal-card modal-std" @click.stop>
             <div class="modal-header">
-              <h3>{{ editForm.id ? '编辑菜单' : '新增菜单' }}</h3>
+              <h3>{{ editForm.id ? $t('编辑菜单') : $t('新增菜单') }}</h3>
               <button class="modal-close" @click="closeEditModal">&times;</button>
             </div>
             <div class="modal-body">
               <div class="fg">
-                <label class="fl">菜单名称 <span class="req">*</span></label>
-                <input v-model="editForm.menuName" class="fi" placeholder="请输入菜单名称" />
+                <label class="fl">{{ $t('菜单名称') }} <span class="req">*</span></label>
+                <input v-model="editForm.menuName" class="fi" :placeholder="$t('请输入菜单名称')" />
               </div>
               <div class="fg">
-                <label class="fl">菜单图标</label>
+                <label class="fl">{{ $t('菜单图标') }}</label>
                 <div class="icon-select-trigger" @click="showIconPicker = true">
                   <template v-if="editForm.icon">
                     <el-icon :size="18">
@@ -140,41 +140,41 @@
                     </el-icon>
                     <span class="icon-selected-name">{{ editForm.icon }}</span>
                   </template>
-                  <span v-else class="icon-placeholder">点击选择图标</span>
+                  <span v-else class="icon-placeholder">{{ $t('点击选择图标') }}</span>
                 </div>
               </div>
               <div class="fg">
-                <label class="fl">路由标识</label>
-                <input v-model="editForm.menuIdentification" class="fi" placeholder="建议填路由 name，如 ReviewManage" />
-                <span class="fh">填路由 name（推荐）或 /path，改路由/图标/名称都不影响跳转</span>
+                <label class="fl">{{ $t('路由标识') }}</label>
+                <input v-model="editForm.menuIdentification" class="fi" :placeholder="$t('建议填路由 name，如 ReviewManage')" />
+                <span class="fh">{{ $t('填路由 name（推荐）或 /path，改路由/图标/名称都不影响跳转') }}</span>
               </div>
               <div class="fg">
-                <label class="fl">排序 <span class="req">*</span></label>
-                <input v-model.number="editForm.descSort" class="fi" type="number" placeholder="请输入排序值" />
+                <label class="fl">{{ $t('排序') }} <span class="req">*</span></label>
+                <input v-model.number="editForm.descSort" class="fi" type="number" :placeholder="$t('请输入排序值')" />
               </div>
               <div class="fg">
-                <label class="fl">上级菜单</label>
+                <label class="fl">{{ $t('上级菜单') }}</label>
                 <div class="select-wrap" :class="{ open: parentOpen }">
                   <select v-model="editForm.parentId" class="filter-select" @mousedown="parentOpen = true"
                     @blur="parentOpen = false">
-                    <option :value="null">无父级</option>
+                    <option :value="null">{{ $t('无父级') }}</option>
                     <option v-for="opt in parentOptions" :key="opt.id" :value="opt.id">{{ opt.label }}</option>
                   </select>
                 </div>
               </div>
               <div class="fg">
-                <label class="fl">状态</label>
+                <label class="fl">{{ $t('状态') }}</label>
                 <div class="toggle-wrap" @click="editForm.status = !editForm.status">
                   <button class="toggle-btn" :class="{ on: editForm.status }">
                     <span class="toggle-knob"></span>
                   </button>
-                  <span class="toggle-label">{{ editForm.status ? '启用' : '禁用' }}</span>
+                  <span class="toggle-label">{{ editForm.status ? $t('启用') : $t('禁用') }}</span>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="closeEditModal">取消</button>
-              <button class="btn btn-primary" @click="handleSave">确认</button>
+              <button class="btn btn-secondary" @click="closeEditModal">{{ $t('取消') }}</button>
+              <button class="btn btn-primary" @click="handleSave">{{ $t('确认') }}</button>
             </div>
           </div>
         </div>
@@ -188,10 +188,12 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onActivated, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { getMenuList, updateMenu, deleteMenu } from '@/api/menu'
 import { getEnabledDictData } from '@/api/dict'
 import IconPicker from '@/components/IconPicker.vue'
 
+const { t } = useI18n()
 const loading = ref(false)
 const rawList = ref([])
 const total = ref(0)
@@ -363,11 +365,11 @@ function closeEditModal() { showEditModal.value = false }
 
 async function handleSave() {
   if (!editForm.menuName || editForm.menuName.trim() === '') {
-    ElMessage.warning('请填写菜单名称')
+    ElMessage.warning(t('请填写菜单名称'))
     return
   }
   if (editForm.descSort === '' || editForm.descSort == null) {
-    ElMessage.warning('请填写排序值')
+    ElMessage.warning(t('请填写排序值'))
     return
   }
   try {
@@ -380,7 +382,7 @@ async function handleSave() {
       parentId: editForm.parentId,
       status: editForm.status
     })
-    ElMessage.success('菜单更新成功')
+    ElMessage.success(t('菜单更新成功'))
     showEditModal.value = false
     fetchData()
     window.dispatchEvent(new Event('menu-updated'))
@@ -392,13 +394,13 @@ async function handleSave() {
 // --- 删除 ---
 async function confirmDelete(row) {
   try {
-    await ElMessageBox.confirm(`确定要删除菜单「${row.menuName}」吗？`, '删除确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('确定要删除菜单「{name}」吗？', { name: row.menuName }), t('删除确认'), {
+      confirmButtonText: t('确定'),
+      cancelButtonText: t('取消'),
       type: 'warning'
     })
     await deleteMenu(row.id)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('删除成功'))
     fetchData()
     window.dispatchEvent(new Event('menu-updated'))
   } catch (e) {

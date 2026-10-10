@@ -33,7 +33,7 @@
           </svg>
         </div>
         <h1 class="login-title">Video Admin</h1>
-        <p class="login-subtitle">视频内容管理平台</p>
+        <p class="login-subtitle">{{ $t('视频内容管理平台') }}</p>
       </div>
 
       <!-- 登录表单 -->
@@ -45,14 +45,14 @@
             :class="{ active: activeTab === 'account' }"
             @click="activeTab = 'account'"
           >
-            账号登录
+            {{ $t('账号登录') }}
           </div>
           <div
             class="tab-item"
             :class="{ active: activeTab === 'email' }"
             @click="activeTab = 'email'"
           >
-            邮箱登录
+            {{ $t('邮箱登录') }}
           </div>
           <div class="tab-indicator" :class="{ right: activeTab === 'email' }"></div>
         </div>
@@ -69,12 +69,12 @@
             <input
               v-model="accountForm.username"
               type="text"
-              placeholder="请输入用户名"
+              :placeholder="$t('请输入用户名')"
               class="form-input"
               @keyup.enter="handleLogin"
             />
           </div>
-          <div v-if="errors.username" class="error-text">{{ errors.username }}</div>
+          <div v-if="errors.username" class="error-text">{{ errors.username ? $t(errors.username) : '' }}</div>
 
           <div class="input-group">
             <div class="input-icon">
@@ -86,7 +86,7 @@
             <input
               v-model="accountForm.password"
               :type="showPassword ? 'text' : 'password'"
-              placeholder="请输入密码"
+              :placeholder="$t('请输入密码')"
               class="form-input"
               @keyup.enter="handleLogin"
             />
@@ -101,7 +101,7 @@
               </svg>
             </div>
           </div>
-          <div v-if="errors.password" class="error-text">{{ errors.password }}</div>
+          <div v-if="errors.password" class="error-text">{{ errors.password ? $t(errors.password) : '' }}</div>
 
           <div class="captcha-group">
             <div class="input-group captcha-input">
@@ -113,13 +113,13 @@
               <input
                 v-model="accountForm.captcha"
                 type="text"
-                placeholder="验证码"
+                :placeholder="$t('验证码')"
                 class="form-input"
                 maxlength="6"
                 @keyup.enter="handleLogin"
               />
             </div>
-            <div class="captcha-box" @click="refreshCaptcha" title="点击刷新验证码">
+            <div class="captcha-box" @click="refreshCaptcha" :title="$t('点击刷新验证码')">
               <div v-if="captchaLoading" class="captcha-loading">
                 <div class="spinner"></div>
               </div>
@@ -127,15 +127,15 @@
               <canvas v-else ref="captchaCanvas" width="120" height="40"></canvas>
             </div>
           </div>
-          <div v-if="errors.captcha" class="error-text">{{ errors.captcha }}</div>
+          <div v-if="errors.captcha" class="error-text">{{ errors.captcha ? $t(errors.captcha) : '' }}</div>
 
           <div class="form-options">
             <label class="checkbox-wrapper">
               <input type="checkbox" v-model="rememberMe" />
               <span class="checkbox-custom"></span>
-              <span class="checkbox-label">记住我</span>
+              <span class="checkbox-label">{{ $t('记住我') }}</span>
             </label>
-            <a href="javascript:void(0)" class="forgot-link">忘记密码?</a>
+            <a href="javascript:void(0)" class="forgot-link">{{ $t('忘记密码?') }}</a>
           </div>
         </div>
 
@@ -151,11 +151,11 @@
             <input
               v-model="emailForm.email"
               type="email"
-              placeholder="请输入邮箱"
+              :placeholder="$t('请输入邮箱')"
               class="form-input"
             />
           </div>
-          <div v-if="errors.email" class="error-text">{{ errors.email }}</div>
+          <div v-if="errors.email" class="error-text">{{ errors.email ? $t(errors.email) : '' }}</div>
 
           <div class="input-group code-group">
             <div class="input-icon">
@@ -166,7 +166,7 @@
             <input
               v-model="emailForm.code"
               type="text"
-              placeholder="请输入验证码"
+              :placeholder="$t('请输入验证码')"
               class="form-input"
               maxlength="6"
               @keyup.enter="handleLogin"
@@ -177,22 +177,22 @@
               @click="sendCode"
             >
               <span v-if="sendingCode" class="btn-loader-small"></span>
-              <span v-else>{{ countdown > 0 ? `${countdown}s` : '获取验证码' }}</span>
+              <span v-else>{{ countdown > 0 ? `${countdown}s` : t('获取验证码') }}</span>
             </button>
           </div>
-          <div v-if="errors.code" class="error-text">{{ errors.code }}</div>
+          <div v-if="errors.code" class="error-text">{{ errors.code ? $t(errors.code) : '' }}</div>
         </div>
 
         <!-- 登录按钮 -->
         <button class="login-btn" :class="{ loading: isLoading }" @click="handleLogin" :disabled="isLoading">
           <span v-if="isLoading" class="btn-loader"></span>
-          <span v-else>登 录</span>
+          <span v-else>{{ $t('登 录') }}</span>
         </button>
 
         <!-- 错误提示 -->
         <div v-if="loginError" class="login-error">
           <span class="error-icon">!</span>
-          {{ loginError }}
+          {{ loginError ? $t(loginError) : '' }}
         </div>
       </div>
 
@@ -211,6 +211,9 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { getCaptcha, sendEmailCode } from '@/api/auth'
 import SparkMD5 from 'spark-md5'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -355,15 +358,15 @@ function validateAccount() {
   let valid = true
 
   if (!accountForm.username.trim()) {
-    errors.username = '请输入用户名'
+    errors.username = '请输入用户名' // i18n-key
     valid = false
   }
   if (!accountForm.password) {
-    errors.password = '请输入密码'
+    errors.password = '请输入密码' // i18n-key
     valid = false
   }
   if (!accountForm.captcha.trim()) {
-    errors.captcha = '请输入验证码'
+    errors.captcha = '请输入验证码' // i18n-key
     valid = false
   }
 
@@ -375,14 +378,14 @@ function validateEmail() {
   let valid = true
 
   if (!emailForm.email.trim()) {
-    errors.email = '请输入邮箱'
+    errors.email = '请输入邮箱' // i18n-key
     valid = false
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailForm.email)) {
-    errors.email = '邮箱格式不正确'
+    errors.email = '邮箱格式不正确' // i18n-key
     valid = false
   }
   if (!emailForm.code.trim()) {
-    errors.code = '请输入验证码'
+    errors.code = '请输入验证码' // i18n-key
     valid = false
   }
 
@@ -420,7 +423,7 @@ async function handleLogin() {
 
     await userStore.login(loginData)
   } catch (e) {
-    let msg = '登录失败，请重试'
+    let msg = t('登录失败，请重试')
     if (e?.response?.data?.message) {
       msg = e.response.data.message
     } else if (e?.response?.data?.msg) {
@@ -441,11 +444,11 @@ async function sendCode() {
   if (countdown.value > 0 || sendingCode.value) return
 
   if (!emailForm.email.trim()) {
-    errors.email = '请输入邮箱'
+    errors.email = '请输入邮箱' // i18n-key
     return
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailForm.email)) {
-    errors.email = '邮箱格式不正确'
+    errors.email = '邮箱格式不正确' // i18n-key
     return
   }
 
@@ -455,14 +458,14 @@ async function sendCode() {
     const key = generateCaptchaKey()
     captchaKey.value = key
     await sendEmailCode(emailForm.email)
-    ElMessage.success('验证码已发送')
+    ElMessage.success(t('验证码已发送'))
     countdown.value = 60
     timer = setInterval(() => {
       countdown.value--
       if (countdown.value <= 0) clearInterval(timer)
     }, 1000)
   } catch (e) {
-    ElMessage.error('发送验证码失败')
+    ElMessage.error(t('发送验证码失败'))
   } finally {
     sendingCode.value = false
   }

@@ -17,7 +17,7 @@
             {{ diff >= 0 ? '▲' : '▼' }}
           </span>
           <span class="trend-value">{{ formatDiff(Math.abs(diff)) }}</span>
-          <span class="trend-label">较昨日</span>
+          <span class="trend-label">{{ $t('较昨日') }}</span>
         </div>
       </div>
     </div>

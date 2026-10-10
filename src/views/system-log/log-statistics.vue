@@ -1,12 +1,12 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">日志统计</h2>
-      <span class="page-sub">登录与操作日志统计总览</span>
+      <h2 class="page-title">{{ $t('日志统计') }}</h2>
+      <span class="page-sub">{{ $t('登录与操作日志统计总览') }}</span>
     </div>
 
     <div class="stats-section">
-      <h3 class="section-title">登录统计</h3>
+      <h3 class="section-title">{{ $t('登录统计') }}</h3>
       <div class="stats-grid">
         <div class="stat-card" v-for="s in loginStats" :key="s.label">
           <div class="stat-icon" :style="{ background: s.bg, color: s.color }">
@@ -16,14 +16,14 @@
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ s.value }}</div>
-            <div class="stat-label">{{ s.label }}</div>
+            <div class="stat-label">{{ $t(s.label) }}</div>
           </div>
         </div>
       </div>
     </div>
 
     <div class="stats-section">
-      <h3 class="section-title">操作统计</h3>
+      <h3 class="section-title">{{ $t('操作统计') }}</h3>
       <div class="stats-grid">
         <div class="stat-card" v-for="s in operationStats" :key="s.label">
           <div class="stat-icon" :style="{ background: s.bg, color: s.color }">
@@ -33,7 +33,7 @@
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ s.value }}</div>
-            <div class="stat-label">{{ s.label }}</div>
+            <div class="stat-label">{{ $t(s.label) }}</div>
           </div>
         </div>
       </div>
@@ -41,23 +41,23 @@
 
     <div class="charts-row">
       <div class="chart-card">
-        <div class="chart-header">登录趋势</div>
+        <div class="chart-header">{{ $t('登录趋势') }}</div>
         <div ref="loginChartRef" class="chart-body"></div>
       </div>
       <div class="chart-card">
-        <div class="chart-header">操作趋势</div>
+        <div class="chart-header">{{ $t('操作趋势') }}</div>
         <div ref="operationChartRef" class="chart-body"></div>
       </div>
     </div>
 
     <div class="top-row">
       <div class="top-card">
-        <div class="top-header">失败次数 TOP 账号</div>
+        <div class="top-header">{{ $t('失败次数 TOP 账号') }}</div>
         <div class="top-body">
           <table class="top-table">
-            <thead><tr><th>排名</th><th>账号</th><th>次数</th></tr></thead>
+            <thead><tr><th>{{ $t('排名') }}</th><th>{{ $t('账号') }}</th><th>{{ $t('次数') }}</th></tr></thead>
             <tbody>
-              <tr v-if="accountRank.length === 0"><td colspan="3" class="empty-cell">暂无数据</td></tr>
+              <tr v-if="accountRank.length === 0"><td colspan="3" class="empty-cell">{{ $t('暂无数据') }}</td></tr>
               <tr v-for="(r, i) in accountRank" :key="i">
                 <td class="rank-cell"><span class="rank-badge" :class="rankCls(i)">{{ i + 1 }}</span></td>
                 <td>{{ r.account }}</td>
@@ -68,12 +68,12 @@
         </div>
       </div>
       <div class="top-card">
-        <div class="top-header">访问 IP TOP</div>
+        <div class="top-header">{{ $t('访问 IP TOP') }}</div>
         <div class="top-body">
           <table class="top-table">
-            <thead><tr><th>排名</th><th>IP 地址</th><th>次数</th></tr></thead>
+            <thead><tr><th>{{ $t('排名') }}</th><th>{{ $t('IP 地址') }}</th><th>{{ $t('次数') }}</th></tr></thead>
             <tbody>
-              <tr v-if="ipRank.length === 0"><td colspan="3" class="empty-cell">暂无数据</td></tr>
+              <tr v-if="ipRank.length === 0"><td colspan="3" class="empty-cell">{{ $t('暂无数据') }}</td></tr>
               <tr v-for="(r, i) in ipRank" :key="i">
                 <td class="rank-cell"><span class="rank-badge" :class="rankCls(i)">{{ i + 1 }}</span></td>
                 <td class="mono">{{ r.ipAddress }}</td>
@@ -89,6 +89,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import * as echarts from 'echarts'
 import { getLoginLogTrend } from '@/api/loginLog'
 import {
@@ -98,6 +99,7 @@ import {
   getOperationLogIpRank
 } from '@/api/operationLog'
 
+const { t } = useI18n()
 const loginChartRef = ref(null)
 const operationChartRef = ref(null)
 let loginChart = null
@@ -113,14 +115,14 @@ const accountRank = ref([])
 const ipRank = ref([])
 
 const loginStats = ref([
-  { label: '登录总次数', icon: 'user', color: '#00a1d6', bg: 'rgba(0,161,214,0.1)', value: 0 },
-  { label: '登录成功', icon: 'check', color: '#4caf50', bg: 'rgba(76,175,80,0.1)', value: 0 },
-  { label: '登录失败', icon: 'x', color: '#f56c6c', bg: 'rgba(245,108,108,0.1)', value: 0 }
+  { label: '登录总次数', icon: 'user', color: '#00a1d6', bg: 'rgba(0,161,214,0.1)', value: 0 }, // i18n-key
+  { label: '登录成功', icon: 'check', color: '#4caf50', bg: 'rgba(76,175,80,0.1)', value: 0 }, // i18n-key
+  { label: '登录失败', icon: 'x', color: '#f56c6c', bg: 'rgba(245,108,108,0.1)', value: 0 } // i18n-key
 ])
 const operationStats = ref([
-  { label: '操作总次数', icon: 'gear', color: 'var(--color-primary, #fb7299)', bg: 'rgba(251,114,153,0.1)', value: 0 },
-  { label: '业务异常', icon: 'warning', color: '#e6a23c', bg: 'rgba(230,162,60,0.1)', value: 0 },
-  { label: '系统异常', icon: 'forbidden', color: '#f56c6c', bg: 'rgba(245,108,108,0.1)', value: 0 }
+  { label: '操作总次数', icon: 'gear', color: 'var(--color-primary, #fb7299)', bg: 'rgba(251,114,153,0.1)', value: 0 }, // i18n-key
+  { label: '业务异常', icon: 'warning', color: '#e6a23c', bg: 'rgba(230,162,60,0.1)', value: 0 }, // i18n-key
+  { label: '系统异常', icon: 'forbidden', color: '#f56c6c', bg: 'rgba(245,108,108,0.1)', value: 0 } // i18n-key
 ])
 
 function rankCls(i) { return i === 0 ? 'rank-gold' : i === 1 ? 'rank-silver' : i === 2 ? 'rank-bronze' : '' }
@@ -174,17 +176,17 @@ function initCharts() {
   if (loginChartRef.value) {
     loginChart = echarts.init(loginChartRef.value)
     loginChart.setOption(baseChartOption(loginTrend.value, [
-      { name: '成功', type: 'bar', yAxisIndex: 0, data: loginTrend.value.map(d => d.loginSuccess || 0), itemStyle: { color: '#4caf50', borderRadius: [4, 4, 0, 0] }, emphasis: { focus: 'series' } },
-      lineSeries('失败', '#f56c6c', loginTrend.value.map(d => d.loginFailure || 0))
-    ], dualAxis('成功次数', '失败次数')))
+      { name: t('成功'), type: 'bar', yAxisIndex: 0, data: loginTrend.value.map(d => d.loginSuccess || 0), itemStyle: { color: '#4caf50', borderRadius: [4, 4, 0, 0] }, emphasis: { focus: 'series' } },
+      lineSeries(t('失败'), '#f56c6c', loginTrend.value.map(d => d.loginFailure || 0))
+    ], dualAxis(t('成功次数'), t('失败次数'))))
   }
   if (operationChartRef.value) {
     operationChart = echarts.init(operationChartRef.value)
     operationChart.setOption(baseChartOption(operationTrend.value, [
-      { name: '正常', type: 'bar', yAxisIndex: 0, data: operationTrend.value.map(d => d.normalCount || 0), itemStyle: { color: '#4caf50', borderRadius: [4, 4, 0, 0] }, emphasis: { focus: 'series' } },
-      lineSeries('业务异常', '#e6a23c', operationTrend.value.map(d => d.businessException || 0)),
-      lineSeries('系统异常', '#f56c6c', operationTrend.value.map(d => d.systemException || 0))
-    ], dualAxis('正常次数', '异常次数')))
+      { name: t('正常'), type: 'bar', yAxisIndex: 0, data: operationTrend.value.map(d => d.normalCount || 0), itemStyle: { color: '#4caf50', borderRadius: [4, 4, 0, 0] }, emphasis: { focus: 'series' } },
+      lineSeries(t('业务异常'), '#e6a23c', operationTrend.value.map(d => d.businessException || 0)),
+      lineSeries(t('系统异常'), '#f56c6c', operationTrend.value.map(d => d.systemException || 0))
+    ], dualAxis(t('正常次数'), t('异常次数'))))
   }
 }
 

@@ -1,8 +1,8 @@
 <template>
   <div class="data-analysis">
     <div class="page-header">
-      <h1 class="page-title">数据分析</h1>
-      <p class="page-subtitle">深入了解平台运营数据，洞察增长趋势</p>
+      <h1 class="page-title">{{ $t('数据分析') }}</h1>
+      <p class="page-subtitle">{{ $t('深入了解平台运营数据，洞察增长趋势') }}</p>
     </div>
 
     <div class="stats-grid">
@@ -17,7 +17,7 @@
         </div>
         <div class="stat-card__body">
           <span class="stat-card__value">{{ formatNum(overviewData[card.key]) }}</span>
-          <span class="stat-card__label">{{ card.label }}</span>
+          <span class="stat-card__label">{{ $t(card.label) }}</span>
         </div>
       </div>
     </div>
@@ -28,15 +28,15 @@
           <div class="card-header">
             <div class="card-header__title">
               <span class="gradient-bar" />
-              <span>视频趋势</span>
+              <span>{{ $t('视频趋势') }}</span>
             </div>
             <div class="card-header__actions">
               <el-date-picker
                 v-model="videoTrendRange"
                 type="daterange"
                 range-separator="~"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
+                :start-placeholder="$t('开始日期')"
+                :end-placeholder="$t('结束日期')"
                 value-format="YYYY-MM-DD"
                 size="small"
                 :clearable="false"
@@ -52,15 +52,15 @@
           <div class="card-header">
             <div class="card-header__title">
               <span class="gradient-bar" />
-              <span>用户活跃度</span>
+              <span>{{ $t('用户活跃度') }}</span>
             </div>
             <div class="card-header__actions">
               <el-date-picker
                 v-model="activeUserRange"
                 type="daterange"
                 range-separator="~"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
+                :start-placeholder="$t('开始日期')"
+                :end-placeholder="$t('结束日期')"
                 value-format="YYYY-MM-DD"
                 size="small"
                 :clearable="false"
@@ -79,7 +79,7 @@
           <div class="card-header">
             <div class="card-header__title">
               <span class="gradient-bar" />
-              <span>内容分布</span>
+              <span>{{ $t('内容分布') }}</span>
             </div>
           </div>
         </template>
@@ -90,7 +90,7 @@
           <div class="card-header">
             <div class="card-header__title">
               <span class="gradient-bar" />
-              <span>实时访客</span>
+              <span>{{ $t('实时访客') }}</span>
             </div>
           </div>
         </template>
@@ -103,15 +103,15 @@
         <div class="card-header">
           <div class="card-header__title">
             <span class="gradient-bar" />
-            <span>分类每日视频增量</span>
+            <span>{{ $t('分类每日视频增量') }}</span>
           </div>
           <div class="card-header__actions">
             <el-date-picker
               v-model="categoryIncrementRange"
               type="daterange"
               range-separator="~"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
+              :start-placeholder="$t('开始日期')"
+              :end-placeholder="$t('结束日期')"
               value-format="YYYY-MM-DD"
               size="small"
               :clearable="false"
@@ -137,36 +137,39 @@ import {
   getCategoryDailyIncrement, getCategoryStats, getHourlyActive
 } from '@/api/analytics'
 import { useAppStore } from '@/stores/app'
+import { useI18n } from 'vue-i18n'
 
+const { t, locale } = useI18n()
 const appStore = useAppStore()
 
 const PALETTE = ['#00a1d6', '#fb7299', '#4caf50', '#e6a23c', '#7c5cfc', '#ff6b6b', '#1ecf54', '#ff9f43', '#5f7fff', '#a855f7']
 
 const fontMap = {
-  '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif",
-  '微软雅黑': "'Microsoft YaHei', sans-serif",
-  '宋体': "'SimSun', serif",
-  '黑体': "'SimHei', sans-serif",
-  '楷体': "'KaiTi', serif",
-  '仿宋': "'FangSong', serif",
-  '思源黑体': "'Noto Sans SC', sans-serif",
-  '思源宋体': "'Noto Serif SC', serif",
-  '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif",
-  '等线': "'DengXian', sans-serif"
+  '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif", // i18n-key
+  '微软雅黑': "'Microsoft YaHei', sans-serif", // i18n-key
+  '宋体': "'SimSun', serif", // i18n-key
+  '黑体': "'SimHei', sans-serif", // i18n-key
+  '楷体': "'KaiTi', serif", // i18n-key
+  '仿宋': "'FangSong', serif", // i18n-key
+  '思源黑体': "'Noto Sans SC', sans-serif", // i18n-key
+  '思源宋体': "'Noto Serif SC', sans-serif", // i18n-key
+  '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif", // i18n-key
+  '等线': "'DengXian', sans-serif" // i18n-key
 }
 
 function getCurrentFontFamily() {
-  return fontMap[appStore.fontFamily] || fontMap['默认']
+  return fontMap[appStore.fontFamily] || fontMap['默认'] // i18n-key：字体名仅作取值 key，不展示，文案由 layout-nav.js 翻译
 }
 
 function getChartTextStyle() {
   return { fontFamily: getCurrentFontFamily() }
 }
 
+// 数字缩写后缀与除数绑定（1.2万 / 1.2亿），中文后缀只在中文环境出现
 const formatNum = (n) => {
   if (n == null) return '0'
-  if (n >= 100000000) return (n / 100000000).toFixed(1) + '亿'
-  if (n >= 10000) return (n / 10000).toFixed(1) + '万'
+  if (n >= 100000000) return (n / 100000000).toFixed(1) + (locale.value === 'zh-cn' ? '亿' : 'B') // i18n-key
+  if (n >= 10000) return (n / 10000).toFixed(1) + (locale.value === 'zh-cn' ? '万' : 'K') // i18n-key
   return n.toLocaleString()
 }
 
@@ -186,14 +189,14 @@ const activeUserRange = ref(getDateRange(7))
 const categoryIncrementRange = ref(getDateRange(7))
 
 const statCards = [
-  { key: 'totalVideoCount', label: '视频总数', icon: VideoCamera, color: '#00a1d6', bgColor: 'rgba(0,161,214,0.1)' },
-  { key: 'totalPlayCount', label: '总播放量', icon: View, color: '#fb7299', bgColor: 'rgba(251,114,153,0.1)' },
-  { key: 'todayActiveUsers', label: '今日活跃用户', icon: TrendCharts, color: '#4caf50', bgColor: 'rgba(76,175,80,0.1)' },
-  { key: 'totalCommentCount', label: '评论总数', icon: ChatDotRound, color: '#7c5cfc', bgColor: 'rgba(124,92,252,0.1)' },
-  { key: 'todayNewVideos', label: '今日上传视频', icon: Upload, color: '#ff6b6b', bgColor: 'rgba(255,107,107,0.1)' },
-  { key: 'todayPlayCount', label: '今日播放量', icon: View, color: '#1ecf54', bgColor: 'rgba(30,207,84,0.1)' },
-  { key: 'todayNewComments', label: '今日新增评论', icon: ChatLineRound, color: '#5f7fff', bgColor: 'rgba(95,127,255,0.1)' },
-  { key: 'todayLoginCount', label: '今日登录人数', icon: UserFilled, color: '#ff9f43', bgColor: 'rgba(255,159,67,0.1)' }
+  { key: 'totalVideoCount', label: '视频总数', icon: VideoCamera, color: '#00a1d6', bgColor: 'rgba(0,161,214,0.1)' }, // i18n-key
+  { key: 'totalPlayCount', label: '总播放量', icon: View, color: '#fb7299', bgColor: 'rgba(251,114,153,0.1)' }, // i18n-key
+  { key: 'todayActiveUsers', label: '今日活跃用户', icon: TrendCharts, color: '#4caf50', bgColor: 'rgba(76,175,80,0.1)' }, // i18n-key
+  { key: 'totalCommentCount', label: '评论总数', icon: ChatDotRound, color: '#7c5cfc', bgColor: 'rgba(124,92,252,0.1)' }, // i18n-key
+  { key: 'todayNewVideos', label: '今日上传视频', icon: Upload, color: '#ff6b6b', bgColor: 'rgba(255,107,107,0.1)' }, // i18n-key
+  { key: 'todayPlayCount', label: '今日播放量', icon: View, color: '#1ecf54', bgColor: 'rgba(30,207,84,0.1)' }, // i18n-key
+  { key: 'todayNewComments', label: '今日新增评论', icon: ChatLineRound, color: '#5f7fff', bgColor: 'rgba(95,127,255,0.1)' }, // i18n-key
+  { key: 'todayLoginCount', label: '今日登录人数', icon: UserFilled, color: '#ff9f43', bgColor: 'rgba(255,159,67,0.1)' } // i18n-key
 ]
 
 const videoTrendRef = ref(null)
@@ -296,34 +299,34 @@ async function loadVideoTrend() {
       yAxis: [
         {
           type: 'value',
-          name: '数量',
+          name: t('数量'),
           splitLine: { lineStyle: { color: 'rgba(0,0,0,0.04)' } },
           axisLabel: { color: '#909399', fontSize: 11, fontFamily: getCurrentFontFamily() }
         },
         {
           type: 'value',
-          name: '播放量',
+          name: t('播放量'),
           splitLine: { show: false },
           axisLabel: { color: '#909399', fontSize: 11, fontFamily: getCurrentFontFamily() }
         }
       ],
       series: [
         {
-          name: '新增视频',
+          name: t('新增视频数'),
           type: 'bar',
           barWidth: barWidth,
           itemStyle: { color: '#00a1d6', borderRadius: [3, 3, 0, 0] },
           data: data.map(d => d.videoCount ?? d.uploadCount ?? 0)
         },
         {
-          name: '新增评论',
+          name: t('新增评论'),
           type: 'bar',
           barWidth: barWidth,
           itemStyle: { color: '#fb7299', borderRadius: [3, 3, 0, 0] },
           data: data.map(d => d.commentCount ?? 0)
         },
         {
-          name: '总播放量',
+          name: t('总播放量'),
           type: 'line',
           smooth: true,
           yAxisIndex: 1,
@@ -387,7 +390,7 @@ async function loadActiveUsers() {
       },
       series: [
         {
-          name: '活跃用户',
+          name: t('活跃用户'),
           type: 'bar',
           barWidth: barWidth,
           itemStyle: {
@@ -630,6 +633,13 @@ watch(() => appStore.darkMode, () => {
 
 // 监听字体变化，重新渲染图表
 watch(() => appStore.fontFamily, () => {
+  nextTick(() => {
+    reloadAllCharts()
+  })
+})
+
+// 监听语言变化，图表内 t() 取到的名称需要重新渲染
+watch(locale, () => {
   nextTick(() => {
     reloadAllCharts()
   })

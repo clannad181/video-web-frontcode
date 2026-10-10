@@ -2,22 +2,22 @@
   <div class="page-container">
     <div class="audit-header">
       <div class="header-left">
-        <h2 class="page-title">视频审核</h2>
+        <h2 class="page-title">{{ $t('视频审核') }}</h2>
         <el-badge :value="pendingCount" :max="99" class="pending-badge" type="warning">
-          <el-button size="small" plain>待审核</el-button>
+          <el-button size="small" plain>{{ $t('待审核') }}</el-button>
         </el-badge>
       </div>
       <el-tabs v-model="activeTab" class="filter-tabs" @tab-change="handleTabChange">
-        <el-tab-pane label="待审核" name="pending" />
-        <el-tab-pane label="全部" name="all" />
+        <el-tab-pane :label="$t('待审核')" name="pending" />
+        <el-tab-pane :label="$t('全部')" name="all" />
       </el-tabs>
     </div>
 
     <div class="audit-layout" :class="{ 'is-mobile': isMobile }">
       <div class="audit-list-panel">
         <div class="list-header">
-          <span>视频列表</span>
-          <span class="list-count">共 {{ pagination.total }} 条</span>
+          <span>{{ $t('视频列表') }}</span>
+          <span class="list-count">{{ $t('共 {total} 条', { total: pagination.total }) }}</span>
         </div>
         <div v-loading="loading" class="video-list">
           <div
@@ -47,11 +47,11 @@
                 round
                 class="card-status"
               >
-                {{ ['待审核', '已通过', '已拒绝'][item.status] }}
+                {{ $t(auditStatusLbl(item.status)) }}
               </el-tag>
             </div>
           </div>
-          <el-empty v-if="!loading && !tableData.length" description="暂无数据" />
+          <el-empty v-if="!loading && !tableData.length" :description="$t('暂无数据')" />
         </div>
         <div class="list-pagination">
           <el-pagination
@@ -91,7 +91,7 @@
           </div>
 
           <div class="preview-episodes">
-            <h4 class="section-label">分集预览</h4>
+            <h4 class="section-label">{{ $t('分集预览') }}</h4>
             <div class="episode-tabs">
               <div
                 v-for="(ep, index) in episodes"
@@ -100,20 +100,20 @@
                 :class="{ active: activeEpisode === index }"
                 @click="activeEpisode = index"
               >
-                <span class="ep-name">{{ ep.title }}</span>
+                <span class="ep-name">{{ $t(ep.title) }}</span>
                 <span class="ep-dur">{{ formatDuration(ep.duration) }}</span>
               </div>
             </div>
           </div>
 
           <div class="preview-details">
-            <h4 class="section-label">视频详情</h4>
+            <h4 class="section-label">{{ $t('视频详情') }}</h4>
             <el-descriptions :column="1" size="small" border>
-              <el-descriptions-item label="标题">{{ selectedVideo.title }}</el-descriptions-item>
-              <el-descriptions-item label="上传者">{{ selectedVideo.username }}</el-descriptions-item>
-              <el-descriptions-item label="上传时间">{{ selectedVideo.createTime }}</el-descriptions-item>
-              <el-descriptions-item label="描述">
-                {{ selectedVideo.content || '暂无描述' }}
+              <el-descriptions-item :label="$t('标题')">{{ selectedVideo.title }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('上传者')">{{ selectedVideo.username }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('上传时间')">{{ selectedVideo.createTime }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('描述')">
+                {{ selectedVideo.content || $t('暂无描述') }}
               </el-descriptions-item>
             </el-descriptions>
           </div>
@@ -126,7 +126,7 @@
               :loading="actionLoading"
               @click="handleApprove"
             >
-              通过
+              {{ $t('通过') }}
             </el-button>
             <el-button
               type="danger"
@@ -135,44 +135,44 @@
               :loading="actionLoading"
               @click="showRejectDialog"
             >
-              驳回
+              {{ $t('驳回') }}
             </el-button>
           </div>
         </template>
-        <el-empty v-else description="请选择要审核的视频" :image-size="120" />
+        <el-empty v-else :description="$t('请选择要审核的视频')" :image-size="120" />
       </div>
     </div>
 
     <el-dialog
       v-model="rejectDialogVisible"
-      title="驳回视频"
+      :title="$t('驳回视频')"
       width="480px"
       destroy-on-close
       class="reject-dialog"
     >
       <div class="reject-body">
         <el-alert
-          :title="`确定要驳回视频「${selectedVideo?.title}」吗？`"
+          :title="$t('确定要驳回视频「{title}」吗？', { title: selectedVideo?.title })"
           type="warning"
           :closable="false"
           show-icon
           style="margin-bottom: 16px"
         />
-        <el-form-item label="驳回原因" label-position="top">
+        <el-form-item :label="$t('驳回原因')" label-position="top">
           <el-input
             v-model="rejectReason"
             type="textarea"
             :rows="4"
-            placeholder="请填写驳回原因，将自动通知上传者"
+            :placeholder="$t('请填写驳回原因，将自动通知上传者')"
             maxlength="200"
             show-word-limit
           />
         </el-form-item>
       </div>
       <template #footer>
-        <el-button @click="rejectDialogVisible = false">取消</el-button>
+        <el-button @click="rejectDialogVisible = false">{{ $t('取消') }}</el-button>
         <el-button type="danger" :loading="actionLoading" @click="handleReject">
-          确认驳回
+          {{ $t('确认驳回') }}
         </el-button>
       </template>
     </el-dialog>
@@ -187,6 +187,9 @@ import { formatDuration } from '@/utils/format'
 import { getVideoList } from '@/api/video'
 import { auditItem, rejectItem, getAuditStats } from '@/api/audit'
 import DPlayer from '@/components/DPlayer.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const loading = ref(false)
 const previewLoading = ref(false)
@@ -199,12 +202,14 @@ const pendingCount = ref(0)
 const isMobile = ref(false)
 const activeEpisode = ref(0)
 
+const auditStatusLbl = (s) => ['待审核', '已通过', '已拒绝'][s] ?? '' // i18n-key
+
 const episodes = computed(() => {
   if (!selectedVideo.value) return []
   return [
-    { title: '第1集 - 开篇', duration: 1200 },
-    { title: '第2集 - 发展', duration: 980 },
-    { title: '第3集 - 高潮', duration: 1100 }
+    { title: '第1集 - 开篇', duration: 1200 }, // i18n-key
+    { title: '第2集 - 发展', duration: 980 }, // i18n-key
+    { title: '第3集 - 高潮', duration: 1100 } // i18n-key
   ]
 })
 
@@ -246,19 +251,19 @@ const handlePlay = () => {
 
 const handleApprove = async () => {
   await ElMessageBox.confirm(
-    `确定通过视频「${selectedVideo.value.title}」的审核吗？`,
-    '审核确认',
+    t('确定通过视频「{title}」的审核吗？', { title: selectedVideo.value.title }),
+    t('审核确认'),
     {
       type: 'success',
-      confirmButtonText: '确定通过',
-      cancelButtonText: '取消',
+      confirmButtonText: t('确定通过'),
+      cancelButtonText: t('取消'),
       confirmButtonClass: 'el-button--success'
     }
   )
   actionLoading.value = true
   try {
     await auditItem(selectedVideo.value.id, { status: 1 })
-    ElMessage.success('审核已通过')
+    ElMessage.success(t('审核已通过'))
     selectedVideo.value = null
     fetchData()
   } finally {
@@ -276,13 +281,13 @@ const showRejectDialog = () => {
 
 const handleReject = async () => {
   if (!rejectReason.value.trim()) {
-    ElMessage.warning('请填写驳回原因')
+    ElMessage.warning(t('请填写驳回原因'))
     return
   }
   actionLoading.value = true
   try {
     await rejectItem(selectedVideo.value.id, rejectReason.value)
-    ElMessage.success('已驳回，通知已发送给上传者')
+    ElMessage.success(t('已驳回，通知已发送给上传者'))
     rejectDialogVisible.value = false
     selectedVideo.value = null
     fetchData()

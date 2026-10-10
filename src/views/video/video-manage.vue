@@ -1,52 +1,52 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h1 class="page-title">视频管理</h1>
-      <p class="page-subtitle">管理平台所有视频内容，支持搜索、筛选、排序和批量操作</p>
+      <h1 class="page-title">{{ $t('视频管理') }}</h1>
+      <p class="page-subtitle">{{ $t('管理平台所有视频内容，支持搜索、筛选、排序和批量操作') }}</p>
     </div>
 
     <div class="filter-card">
       <div class="filter-grid">
         <div class="filter-item">
-          <label class="filter-label">视频AVID</label>
-          <input v-model="filter.id" class="filter-input" placeholder="输入视频ID" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('视频AVID') }}</label>
+          <input v-model="filter.id" class="filter-input" :placeholder="$t('输入视频ID')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">视频标题</label>
-          <input v-model="filter.title" class="filter-input" placeholder="搜索视频标题" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('视频标题') }}</label>
+          <input v-model="filter.title" class="filter-input" :placeholder="$t('搜索视频标题')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">分类</label>
+          <label class="filter-label">{{ $t('分类') }}</label>
           <div class="select-wrap" :class="{ open: categoryOpen }">
             <select v-model="filter.categoryId" class="filter-select" @mousedown="categoryOpen = true" @blur="categoryOpen = false">
-              <option value="">全部分类</option>
+              <option value="">{{ $t('全部分类') }}</option>
               <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">视频状态</label>
+          <label class="filter-label">{{ $t('视频状态') }}</label>
           <div class="select-wrap" :class="{ open: videoStatusOpen }">
             <select v-model="filter.videoStatus" class="filter-select" @mousedown="videoStatusOpen = true" @blur="videoStatusOpen = false">
-              <option value="">全部</option>
-              <option v-for="d in videoStatusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option v-for="d in videoStatusOptions" :key="d.id ?? d.value" :value="d.value">{{ $t(d.label) }}</option>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">UP主昵称</label>
-          <input v-model="filter.username" class="filter-input" placeholder="输入UP主昵称" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('UP主昵称') }}</label>
+          <input v-model="filter.username" class="filter-input" :placeholder="$t('输入UP主昵称')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">用户UID</label>
-          <input v-model="filter.userId" class="filter-input" placeholder="输入用户ID" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('用户UID') }}</label>
+          <input v-model="filter.userId" class="filter-input" :placeholder="$t('输入用户ID')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">连载状态</label>
+          <label class="filter-label">{{ $t('连载状态') }}</label>
           <div class="select-wrap" :class="{ open: serialStatusOpen }">
             <select v-model="filter.serialStatus" class="filter-select" @mousedown="serialStatusOpen = true" @blur="serialStatusOpen = false">
-              <option value="">全部</option>
-              <option v-for="d in serialStatusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option v-for="d in serialStatusOptions" :key="d.id ?? d.value" :value="d.value">{{ $t(d.label) }}</option>
             </select>
           </div>
         </div>
@@ -57,7 +57,7 @@
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
               <path d="M3 3v5h5" />
             </svg>
-            重置
+            {{ $t('重置') }}
           </button>
           <button class="btn btn-primary" @click="onSearch">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -65,7 +65,7 @@
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            搜索
+            {{ $t('搜索') }}
           </button>
         </div>
       </div>
@@ -76,7 +76,7 @@
             <path d="M12 5v14" />
             <path d="M5 12h14" />
           </svg>
-          新增视频
+          {{ $t('新增视频') }}
         </button>
       </div>
     </div>
@@ -87,36 +87,36 @@
           <thead>
             <tr>
               <th class="col-index">#</th>
-              <th class="col-id">视频AVID</th>
-              <th class="col-cover">封面</th>
-              <th class="col-title">标题</th>
-              <th class="col-user">UP主</th>
-              <th class="col-category">分类</th>
-              <th class="col-episodes">集数</th>
-              <th class="col-sortable" @click="toggleSort('duration')">总时长<span class="sort-icon"><i class="arrow-up"
+              <th class="col-id">{{ $t('视频AVID') }}</th>
+              <th class="col-cover">{{ $t('封面') }}</th>
+              <th class="col-title">{{ $t('标题') }}</th>
+              <th class="col-user">{{ $t('UP主') }}</th>
+              <th class="col-category">{{ $t('分类') }}</th>
+              <th class="col-episodes">{{ $t('集数') }}</th>
+              <th class="col-sortable" @click="toggleSort('duration')">{{ $t('总时长') }}<span class="sort-icon"><i class="arrow-up"
                     :class="{ active: sortField === 'duration' && sortOrder === 'asc' }"></i><i class="arrow-down"
                     :class="{ active: sortField === 'duration' && sortOrder === 'desc' }"></i></span></th>
-              <th class="col-sortable" @click="toggleSort('viewCount')">播放量<span class="sort-icon"><i class="arrow-up"
+              <th class="col-sortable" @click="toggleSort('viewCount')">{{ $t('播放量') }}<span class="sort-icon"><i class="arrow-up"
                     :class="{ active: sortField === 'viewCount' && sortOrder === 'asc' }"></i><i class="arrow-down"
                     :class="{ active: sortField === 'viewCount' && sortOrder === 'desc' }"></i></span></th>
-              <th class="col-fav col-sortable" @click="toggleSort('favoriteCount')">收藏<span class="sort-icon"><i
+              <th class="col-fav col-sortable" @click="toggleSort('favoriteCount')">{{ $t('收藏') }}<span class="sort-icon"><i
                     class="arrow-up" :class="{ active: sortField === 'favoriteCount' && sortOrder === 'asc' }"></i><i
                     class="arrow-down"
                     :class="{ active: sortField === 'favoriteCount' && sortOrder === 'desc' }"></i></span></th>
-              <th class="col-serial">连载</th>
-              <th class="col-audit">审核状态</th>
-              <th class="col-status">视频状态</th>
-              <th class="col-sortable" @click="toggleSort('createTime')">创建时间<span class="sort-icon"><i class="arrow-up"
+              <th class="col-serial">{{ $t('连载') }}</th>
+              <th class="col-audit">{{ $t('审核状态') }}</th>
+              <th class="col-status">{{ $t('视频状态') }}</th>
+              <th class="col-sortable" @click="toggleSort('createTime')">{{ $t('创建时间') }}<span class="sort-icon"><i class="arrow-up"
                     :class="{ active: sortField === 'createTime' && sortOrder === 'asc' }"></i><i class="arrow-down"
                     :class="{ active: sortField === 'createTime' && sortOrder === 'desc' }"></i></span></th>
-              <th class="col-action" style="border-left:1px solid var(--border-color,#e4e7ed);background:var(--bg-color,#f8f9fc);">操作</th>
+              <th class="col-action" style="border-left:1px solid var(--border-color,#e4e7ed);background:var(--bg-color,#f8f9fc);">{{ $t('操作') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="tableData.length === 0 && !loading">
               <td colspan="15" class="empty-cell">
                 <div class="empty-state">
-                  <p>暂无数据</p>
+                  <p>{{ $t('暂无数据') }}</p>
                 </div>
               </td>
             </tr>
@@ -147,19 +147,19 @@
               <td class="col-data mono">{{ formatNumber(row.viewCount) }}</td>
               <td class="col-fav mono">{{ formatNumber(row.favoriteCount) }}</td>
               <td class="col-serial"><span class="badge"
-                  :class="row.serialStatus === 1 ? 'badge-green' : 'badge-gray'">{{ row.serialStatus === 1 ? '连载中' :
-                  '已完结' }}</span></td>
+                  :class="row.serialStatus === 1 ? 'badge-green' : 'badge-gray'">{{ row.serialStatus === 1 ? $t('连载中') :
+                  $t('已完结') }}</span></td>
               <td class="col-audit"><span class="badge" :class="auditBadgeCls(row.auditStatus)">{{
-                auditLbl(row.auditStatus) }}</span></td>
+                $t(auditLbl(row.auditStatus)) }}</span></td>
               <td class="col-status"><span class="badge" :class="statusBadgeCls(row.videoStatus)">{{
-                statusLbl(row.videoStatus) }}</span></td>
+                $t(statusLbl(row.videoStatus)) }}</span></td>
               <td class="col-data mono">{{ row.createTime }}</td>
               <td class="col-action">
                 <div class="action-group">
-                  <button class="act-btn act-blue" @click="openDetail(row)">详情</button>
-                  <button class="act-btn act-amber" @click="openEdit(row)">编辑</button>
-                  <button class="act-btn act-green" @click="openEpisode(row)">剧集</button>
-                  <button class="act-btn act-red" @click="handleDelete(row)">删除</button>
+                  <button class="act-btn act-blue" @click="openDetail(row)">{{ $t('详情') }}</button>
+                  <button class="act-btn act-amber" @click="openEdit(row)">{{ $t('编辑') }}</button>
+                  <button class="act-btn act-green" @click="openEpisode(row)">{{ $t('剧集') }}</button>
+                  <button class="act-btn act-red" @click="handleDelete(row)">{{ $t('删除') }}</button>
                 </div>
               </td>
             </tr>
@@ -167,7 +167,7 @@
         </table>
       </div>
       <div class="pagination">
-        <div class="page-info">共 {{ pagination.total }} 个视频</div>
+        <div class="page-info">{{ $t('共 {total} 个视频', { total: pagination.total }) }}</div>
         <div class="page-btns">
           <button class="pg-btn" :disabled="pagination.page <= 1" @click="goPage(pagination.page - 1)">&#8249;</button>
           <template v-for="p in visiblePages" :key="p">
@@ -177,12 +177,15 @@
           <button class="pg-btn" :disabled="pagination.page >= totalPages"
             @click="goPage(pagination.page + 1)">&#8250;</button>
         </div>
-        <div class="page-size">每页 <select v-model.number="pagination.pageSize" class="size-sel"
-            @change="onPageSizeChange">
-            <option :value="10">10</option>
-            <option :value="20">20</option>
-            <option :value="50">50</option>
-          </select> 条</div>
+        <div class="page-size"><i18n-t keypath="每页 {size} 条" tag="span" class="page-size-text"><!-- i18n-key: keypath 由 i18n-t 消费 -->
+            <template #size>
+              <select v-model.number="pagination.pageSize" class="size-sel" @change="onPageSizeChange">
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </template>
+          </i18n-t></div>
       </div>
     </div>
 
@@ -192,7 +195,7 @@
         <div v-if="detailVisible" class="modal-overlay" @click.self="detailVisible = false">
           <div class="modal-card modal-wide" @click.stop>
             <div class="modal-header">
-              <h3>视频详情</h3><button class="modal-close" @click="detailVisible = false">&times;</button>
+              <h3>{{ $t('视频详情') }}</h3><button class="modal-close" @click="detailVisible = false">&times;</button>
             </div>
             <div class="modal-body" v-loading="detailLoading">
               <div class="detail-layout" v-if="detailData">
@@ -203,29 +206,27 @@
                     <div v-else class="player-empty"><el-icon :size="48" color="#555">
                         <VideoPlay />
                       </el-icon>
-                      <p>暂无播放源</p>
+                      <p>{{ $t('暂无播放源') }}</p>
                     </div>
                   </div>
                   <div class="detail-desc">
-                    <h4>简介</h4>
-                    <p>{{ detailData.description || '暂无简介' }}</p>
+                    <h4>{{ $t('简介') }}</h4>
+                    <p>{{ detailData.description || $t('暂无简介') }}</p>
                   </div>
-                  <div class="detail-tags" v-if="detailData.tags?.length"><h4>标签</h4><div class="tag-row"><span v-for="(tag, i) in detailData.tags"
+                  <div class="detail-tags" v-if="detailData.tags?.length"><h4>{{ $t('标签') }}</h4><div class="tag-row"><span v-for="(tag, i) in detailData.tags"
                       :key="i" class="tag-pill">{{ tag }}</span></div></div>
                   <div class="detail-eps" v-if="detailData.episodes?.length > 1">
-                    <h4>剧集</h4>
+                    <h4>{{ $t('剧集') }}</h4>
                     <div class="ep-pills">
                       <button v-for="(ep, i) in detailData.episodes" :key="ep.id || i"
                         class="ep-pill" :class="{ active: detailActiveEp === i, 'ep-unreviewed': ep.reviewStatus === 0 }" @click="detailActiveEp = i">{{
-                          ep.title ||
-                           '第' + (i+1) +
-                        '集' }}</button></div>
+                          ep.title || $t('第 {n} 集', { n: i + 1 }) }}</button></div>
                   </div>
                 </div>
                 <div class="detail-right">
                   <div class="detail-title-row">
                     <span class="detail-vtitle">{{ curEpData?.title ? curEpData.title : detailData.title }}</span>
-                    <span class="badge" :class="epReviewBadgeCls(curEpData?.reviewStatus)">{{ epReviewLbl(curEpData?.reviewStatus) }}</span>
+                    <span class="badge" :class="epReviewBadgeCls(curEpData?.reviewStatus)">{{ $t(epReviewLbl(curEpData?.reviewStatus)) }}</span>
                   </div>
                   <div class="detail-user">
                     <img v-if="detailData.avatar" :src="detailData.avatar" class="user-avatar" />
@@ -236,25 +237,25 @@
                     </div>
                   </div>
                   <div class="info-grid">
-                    <div class="info-item"><span class="il">分类</span><span class="iv">{{ detailData.categoryName || '-'
+                    <div class="info-item"><span class="il">{{ $t('分类') }}</span><span class="iv">{{ detailData.categoryName || '-'
                         }}</span></div>
-                    <div class="info-item"><span class="il">集数</span><span class="iv">{{ detailData.episodes?.length ||
+                    <div class="info-item"><span class="il">{{ $t('集数') }}</span><span class="iv">{{ detailData.episodes?.length ||
                         '-'
                         }}</span></div>
-                    <div class="info-item"><span class="il">总时长</span><span class="iv mono">{{
+                    <div class="info-item"><span class="il">{{ $t('总时长') }}</span><span class="iv mono">{{
                       formatDuration(detailData.duration) }}</span></div>
-                    <div class="info-item"><span class="il">播放</span><span class="iv mono">{{
+                    <div class="info-item"><span class="il">{{ $t('播放量') }}</span><span class="iv mono">{{
                       formatNumber(curEpData?.viewCount ?? detailData.viewCount) }}</span></div>
-                    <div class="info-item"><span class="il">收藏</span><span class="iv mono">{{
+                    <div class="info-item"><span class="il">{{ $t('收藏') }}</span><span class="iv mono">{{
                       formatNumber(curEpData?.favoriteCount ?? detailData.favoriteCount) }}</span></div>
-                    <div class="info-item"><span class="il">点赞</span><span class="iv mono">{{
+                    <div class="info-item"><span class="il">{{ $t('点赞') }}</span><span class="iv mono">{{
                       formatNumber(curEpData?.likeCount ?? detailData.likeCount) }}</span></div>
-                    <div class="info-item"><span class="il">投币</span><span class="iv mono">{{
+                    <div class="info-item"><span class="il">{{ $t('投币') }}</span><span class="iv mono">{{
                       formatNumber(curEpData?.coinCount ?? detailData.coinCount) }}</span></div>
-                    <div class="info-item"><span class="il">观看人数</span><span class="iv mono">{{
+                    <div class="info-item"><span class="il">{{ $t('观看人数') }}</span><span class="iv mono">{{
                       formatNumber(curEpData?.viewCount ?? detailData.viewCount) }}</span></div>
                   </div>
-                  <div class="info-item full"><span class="il">创建时间</span><span class="iv">{{ detailData.createTime
+                  <div class="info-item full"><span class="il">{{ $t('创建时间') }}</span><span class="iv">{{ detailData.createTime
                       }}</span></div>
                   <div class="detail-cover" v-if="detailData.coverUrl || detailData.cover" @click="previewCover(detailData.coverUrl || detailData.cover)">
                     <img :src="detailData.coverUrl || detailData.cover" />
@@ -274,30 +275,30 @@
           <div class="modal-card modal-wide" @click.stop>
             <div class="modal-header">
               <div class="modal-title-row">
-                <h3>{{ isEditing ? '编辑视频' : '新增视频' }}</h3>
-                <span class="modal-subtitle">{{ isEditing ? '修改视频信息' : '填写视频基本信息' }}</span>
+                <h3>{{ isEditing ? $t('编辑视频') : $t('新增视频') }}</h3>
+                <span class="modal-subtitle">{{ isEditing ? $t('修改视频信息') : $t('填写视频基本信息') }}</span>
               </div>
               <button class="modal-close" @click="closeEdit">&times;</button>
             </div>
             <div class="modal-body" style="max-height:70vh;overflow-y:auto">
               <!-- 基本信息 -->
               <div class="form-section">
-                <div class="section-title">基本信息</div>
+                <div class="section-title">{{ $t('基本信息') }}</div>
                 <div class="form-grid">
-                  <div class="fg full"><label class="fl required">视频标题</label><input v-model="editForm.title" class="fi"
-                      placeholder="请输入视频标题" maxlength="80" /></div>
-                  <div class="fg"><label class="fl required">分类</label><select v-model="editForm.categoryId" class="fs">
-                      <option value="">请选择分类</option>
+                  <div class="fg full"><label class="fl required">{{ $t('视频标题') }}</label><input v-model="editForm.title" class="fi"
+                      :placeholder="$t('请输入视频标题')" maxlength="80" /></div>
+                  <div class="fg"><label class="fl required">{{ $t('分类') }}</label><select v-model="editForm.categoryId" class="fs">
+                      <option value="">{{ $t('请选择分类') }}</option>
                       <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
                     </select></div>
-                  <div class="fg"><label class="fl">连载状态</label>
+                  <div class="fg"><label class="fl">{{ $t('连载状态') }}</label>
                     <div class="toggle-wrap" @click="editForm.isOngoing = editForm.isOngoing ? 0 : 1">
                       <div class="toggle-track" :class="{ active: editForm.isOngoing }"><div class="toggle-thumb"></div></div>
-                      <span class="toggle-text">{{ editForm.isOngoing ? '连载中' : '已完结' }}</span>
+                      <span class="toggle-text">{{ editForm.isOngoing ? $t('连载中') : $t('已完结') }}</span>
                     </div>
                   </div>
                   <div class="fg full">
-                    <label class="fl">封面</label>
+                    <label class="fl">{{ $t('封面') }}</label>
                     <div class="cover-row">
                       <div class="cover-upload" @click="$refs.coverInput.click()">
                         <input ref="coverInput" type="file" accept="image/*" style="display:none" @change="onCoverChange" />
@@ -306,51 +307,51 @@
                         <button v-if="editForm.coverUrl" class="cover-rm-x" @click.stop="editForm.coverUrl = ''">❌</button>
                         <div v-else class="cover-ph">
                           <el-icon :size="28"><Plus /></el-icon>
-                          <span>上传封面</span>
-                          <span class="cover-hint">建议 16:9 比例</span>
+                          <span>{{ $t('上传封面') }}</span>
+                          <span class="cover-hint">{{ $t('建议 16:9 比例') }}</span>
                         </div>
                       </div>
                       <div v-if="uploadedEps.length && !editForm.coverUrl" class="cover-extract">
                         <select v-model="extractEpIndex" class="fs fs-sm" @change="onExtractEpChange">
-                          <option :value="-1">选择剧集</option>
-                          <option v-for="(ep, i) in uploadedEps" :key="i" :value="ep._idx">第 {{ ep._disp }} 集</option>
+                          <option :value="-1">{{ $t('选择剧集') }}</option>
+                          <option v-for="(ep, i) in uploadedEps" :key="i" :value="ep._idx">{{ $t('第 {n} 集', { n: ep._disp }) }}</option>
                         </select>
                         <button v-if="extractEpIndex >= 0" class="btn btn-sm btn-primary" @click="extractModalVisible = true">
-                          截取封面
+                          {{ $t('截取封面') }}
                         </button>
                       </div>
                     </div>
                     <canvas ref="extractCanvasRef" style="display:none"></canvas>
                   </div>
                   <div class="fg full">
-                    <label class="fl">标签</label>
-                    <input v-model="tagInput" class="fi tag-input" placeholder="输入标签后按回车添加" @keyup.enter="addTag" />
+                    <label class="fl">{{ $t('标签') }}</label>
+                    <input v-model="tagInput" class="fi tag-input" :placeholder="$t('输入标签后按回车添加')" @keyup.enter="addTag" />
                     <div v-if="editForm.tags.length" class="tags-list">
                       <span v-for="(tag, i) in editForm.tags" :key="i" class="tag-pill">{{ tag }}<button class="tag-rm"
                           @click="editForm.tags.splice(i, 1)">&times;</button></span>
                     </div>
                   </div>
-                  <div class="fg full"><label class="fl">简介</label><textarea v-model="editForm.description" class="fta"
-                      rows="3" placeholder="请输入视频简介（选填）"></textarea></div>
+                  <div class="fg full"><label class="fl">{{ $t('简介') }}</label><textarea v-model="editForm.description" class="fta"
+                      rows="3" :placeholder="$t('请输入视频简介（选填）')"></textarea></div>
                 </div>
               </div>
               <!-- 剧集管理 -->
               <div class="form-section">
                 <div class="section-title-row">
-                  <span class="section-title">剧集管理</span>
-                  <button class="btn btn-sm btn-primary" @click="addEditEpisode">+ 添加剧集</button>
+                  <span class="section-title">{{ $t('剧集管理') }}</span>
+                  <button class="btn btn-sm btn-primary" @click="addEditEpisode">+ {{ $t('添加剧集') }}</button>
                 </div>
                 <div v-if="editForm.episodes.length === 0" class="ep-empty">
                   <el-icon :size="36" color="#c0c4cc"><VideoPlay /></el-icon>
-                  <p>暂无剧集，点击上方添加</p>
+                  <p>{{ $t('暂无剧集，点击上方添加') }}</p>
                 </div>
                 <TransitionGroup name="ep-list" tag="div" class="ep-list">
                   <div v-for="(ep, i) in reversedEpisodes" :key="ep._key" class="ep-card">
                     <div class="ep-card-top">
-                      <div class="ep-num-badge">第 {{ ep._num }} 集</div>
-                      <button class="ep-rm" @click="editForm.episodes.splice(ep._origIdx, 1)" title="删除剧集">&times;</button>
+                      <div class="ep-num-badge">{{ $t('第 {n} 集', { n: ep._num }) }}</div>
+                      <button class="ep-rm" @click="editForm.episodes.splice(ep._origIdx, 1)" :title="$t('删除剧集')">&times;</button>
                     </div>
-                    <input v-model="editForm.episodes[ep._origIdx].title" class="fi" placeholder="剧集标题" />
+                    <input v-model="editForm.episodes[ep._origIdx].title" class="fi" :placeholder="$t('剧集标题')" />
                     <div v-if="!ep.playUrl" class="ep-dropzone"
                       :class="{ 'dragover': ep._dragover }"
                       @dragover.prevent="ep._dragover = true"
@@ -361,8 +362,8 @@
                         @change="e => onEpFileChange(e, ep._origIdx)" />
                       <div class="ep-drop-hint">
                         <el-icon :size="28"><Upload /></el-icon>
-                        <span>点击或拖拽视频到此处</span>
-                        <span class="ep-drop-sub">支持大文件自动分片上传</span>
+                        <span>{{ $t('点击或拖拽视频到此处') }}</span>
+                        <span class="ep-drop-sub">{{ $t('支持大文件自动分片上传') }}</span>
                       </div>
                     </div>
                     <div v-if="ep.playUrl" class="ep-preview">
@@ -379,13 +380,13 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="closeEdit" :disabled="saving">取消</button>
+              <button class="btn btn-secondary" @click="closeEdit" :disabled="saving">{{ $t('取消') }}</button>
               <button v-if="!isEditing" class="btn btn-ghost" @click="onSave(0)" :disabled="saving">
-                {{ saving ? '保存中...' : '存草稿' }}
+                {{ saving ? $t('保存中...') : $t('存草稿') }}
               </button>
               <button class="btn btn-primary" @click="onSave(1)" :disabled="saving">
                 <span v-if="saving" class="btn-loading"></span>
-                {{ saving ? '保存中...' : '确定' }}
+                {{ saving ? $t('保存中...') : $t('确定') }}
               </button>
             </div>
           </div>
@@ -399,20 +400,20 @@
         <div v-if="episodeVisible" class="modal-overlay" @click.self="episodeVisible = false">
           <div class="modal-card" style="width:700px" @click.stop>
             <div class="modal-header">
-              <h3>剧集 - {{ episodeVideo?.title }}</h3><button class="modal-close"
+              <h3>{{ $t('剧集') }} - {{ episodeVideo?.title }}</h3><button class="modal-close"
                 @click="episodeVisible = false">&times;</button>
             </div>
             <div class="modal-body">
               <div class="ep-section">
                 <div class="ep-header">
-                  <h4>剧集列表</h4><button v-if="episodeVideo?.serialStatus === 1" class="btn-add-ep"
-                    @click="addEpManage">+ 添加剧集</button>
+                  <h4>{{ $t('剧集列表') }}</h4><button v-if="episodeVideo?.serialStatus === 1" class="btn-add-ep"
+                    @click="addEpManage">+ {{ $t('添加剧集') }}</button>
                 </div>
-                <div v-if="episodeList.length === 0" class="ep-empty">暂无剧集</div>
+                <div v-if="episodeList.length === 0" class="ep-empty">{{ $t('暂无剧集') }}</div>
                 <div v-for="(ep, i) in episodeList" :key="i" class="ep-card">
-                  <div class="ep-card-top"><span class="ep-num">第 {{ ep.episodeNumber || episodeList.length - i }}
-                      集</span><button class="ep-rm" @click="episodeList.splice(i, 1)">&times;</button></div>
-                  <input v-model="ep.title" class="fi" placeholder="剧集标题" />
+                  <div class="ep-card-top"><span class="ep-num">{{ $t('第 {n} 集', { n: ep.episodeNumber || episodeList.length - i })
+                      }}</span><button class="ep-rm" @click="episodeList.splice(i, 1)">&times;</button></div>
+                  <input v-model="ep.title" class="fi" :placeholder="$t('剧集标题')" />
                   <div v-if="ep.playUrl" class="ep-preview">
                     <video :src="ep.playUrl" controls preload="metadata" class="ep-video"></video>
                     <button class="ep-video-rm" @click="ep.playUrl=''; ep.fileName=''; ep.duration=0">❌</button>
@@ -427,16 +428,16 @@
                       @change="e => onEmFileChange(e, i)" />
                     <div class="ep-drop-hint">
                       <el-icon :size="28"><Upload /></el-icon>
-                      <span>点击或拖拽视频到此处</span>
-                      <span class="ep-drop-sub">支持大文件自动分片上传</span>
+                      <span>{{ $t('点击或拖拽视频到此处') }}</span>
+                      <span class="ep-drop-sub">{{ $t('支持大文件自动分片上传') }}</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             <div class="modal-footer"><button class="btn btn-secondary"
-                @click="episodeVisible = false">取消</button><button class="btn btn-primary"
-                @click="onSaveEpisodes">保存</button></div>
+                @click="episodeVisible = false">{{ $t('取消') }}</button><button class="btn btn-primary"
+                @click="onSaveEpisodes">{{ $t('保存') }}</button></div>
           </div>
         </div>
       </transition>
@@ -459,8 +460,8 @@
           <div class="modal-card" style="width:760px" @click.stop>
             <div class="modal-header">
               <div class="modal-title-row">
-                <h3>截取封面</h3>
-                <span class="modal-subtitle">第 {{ extractEpIndex + 1 }} 集 · 拖动进度条选择帧</span>
+                <h3>{{ $t('截取封面') }}</h3>
+                <span class="modal-subtitle">{{ $t('第 {n} 集 · 拖动进度条选择帧', { n: extractEpIndex + 1 }) }}</span>
               </div>
               <button class="modal-close" @click="extractModalVisible = false">&times;</button>
             </div>
@@ -471,7 +472,7 @@
                   @timeupdate="onExtractTimeUpdate" @loaded="onExtractLoaded" />
                 <div v-if="capturing" class="extract-capturing-overlay">
                   <div class="btn-loading"></div>
-                  <span>截取中...</span>
+                  <span>{{ $t('截取中...') }}</span>
                 </div>
               </div>
               <div class="extract-modal-controls">
@@ -480,7 +481,7 @@
                   :value="extractCurrent * 10" @input="onExtractSeek" />
                 <span class="extract-time">{{ formatExtractTime(extractDuration) }}</span>
                 <button class="btn btn-sm btn-primary" @click="captureFrame" :disabled="capturing">
-                  {{ capturing ? '截取中...' : '截取封面' }}
+                  {{ capturing ? $t('截取中...') : $t('截取封面') }}
                 </button>
               </div>
             </div>
@@ -500,6 +501,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onActivated, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { VideoPlay, Plus, Upload } from '@element-plus/icons-vue'
 import { formatDuration, formatNumber } from '@/utils/format'
@@ -510,6 +512,7 @@ import { uploadFile } from '@/utils/upload'
 import DPlayer from '@/components/DPlayer.vue'
 
 const route = useRoute()
+const { t } = useI18n()
 const loading = ref(false)
 const tableData = ref([])
 const categories = ref([])
@@ -526,21 +529,21 @@ const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
 
 const totalPages = computed(() => Math.ceil(pagination.total / pagination.pageSize) || 1)
 const visiblePages = computed(() => {
-  const t = totalPages.value, c = pagination.page
-  if (t <= 7) return Array.from({ length: t }, (_, i) => i + 1)
+  const total = totalPages.value, c = pagination.page
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
   const pages = [1]
   if (c > 3) pages.push('...')
-  for (let i = Math.max(2, c - 1); i <= Math.min(t - 1, c + 1); i++) pages.push(i)
-  if (c < t - 2) pages.push('...')
-  pages.push(t)
+  for (let i = Math.max(2, c - 1); i <= Math.min(total - 1, c + 1); i++) pages.push(i)
+  if (c < total - 2) pages.push('...')
+  pages.push(total)
   return pages
 })
 
-const auditLbl = (s) => ['未审核', '部分审核', '审核完成'][s] ?? '未知'
+const auditLbl = (s) => ['未审核', '部分审核', '审核完成'][s] ?? '未知' // i18n-key
 const auditBadgeCls = (s) => ['badge-amber', 'badge-blue', 'badge-green'][s] ?? ''
-const epReviewLbl = (s) => ['未审核', '审核通过', '已拒绝'][s] ?? '未知'
+const epReviewLbl = (s) => ['未审核', '审核通过', '已拒绝'][s] ?? '未知' // i18n-key
 const epReviewBadgeCls = (s) => ['badge-amber', 'badge-green', 'badge-red'][s] ?? ''
-const statusLbl = (s) => ['草稿', '待发布', '已发布', '已下架'][s] || '未知'
+const statusLbl = (s) => ['草稿', '待发布', '已发布', '已下架'][s] || '未知' // i18n-key
 const statusBadgeCls = (s) => ['badge-gray', 'badge-amber', 'badge-green', 'badge-red'][s] || ''
 
 const fieldMap = { duration: 1, viewCount: 2, favoriteCount: 3, createTime: 4 }
@@ -597,8 +600,8 @@ const goPage = (p) => { if (p >= 1 && p <= totalPages.value) { pagination.page =
 const onPageSizeChange = () => { pagination.page = 1; fetchData() }
 
 const handleDelete = (row) => {
-  ElMessageBox.confirm(`确定要删除视频「${row.title}」吗？`, '删除确认', { type: 'warning' })
-    .then(async () => { await deleteVideo(row.id); ElMessage.success('删除成功'); window.dispatchEvent(new Event('review-updated')); fetchData() }).catch(() => { })
+  ElMessageBox.confirm(t('确定要删除视频「{title}」吗？', { title: row.title }), t('删除确认'), { type: 'warning' })
+    .then(async () => { await deleteVideo(row.id); ElMessage.success(t('删除成功')); window.dispatchEvent(new Event('review-updated')); fetchData() }).catch(() => { })
 }
 
 const detailVisible = ref(false)
@@ -675,7 +678,7 @@ const reversedEpisodes = computed(() => {
 })
 const onCoverChange = async (e) => {
   const file = e.target.files?.[0]; if (!file) return
-  try { const r = await uploadFile(file, { category: 'image' }); editForm.coverUrl = r.url; ElMessage.success('封面上传成功') } catch (err) { ElMessage.error(err.message || '上传失败') }
+  try { const r = await uploadFile(file, { category: 'image' }); editForm.coverUrl = r.url; ElMessage.success(t('封面上传成功')) } catch (err) { ElMessage.error(err.message || t('上传失败')) }
 }
 
 const extractVideoRef = ref(null)
@@ -730,7 +733,7 @@ const captureFrame = async () => {
     const dplayer = extractDPlayerRef.value
     const video = dplayer?.getVideoEl()
     const canvas = extractCanvasRef.value
-    if (!video || !canvas) throw new Error('播放器未就绪')
+    if (!video || !canvas) throw new Error(t('播放器未就绪'))
     const wasPaused = video.paused
     video.pause()
     const seekTo = extractCurrent.value
@@ -738,35 +741,35 @@ const captureFrame = async () => {
       const onSeeked = () => { video.removeEventListener('seeked', onSeeked); resolve() }
       video.addEventListener('seeked', onSeeked)
       video.currentTime = seekTo
-      setTimeout(() => { video.removeEventListener('seeked', onSeeked); reject(new Error('截取超时')) }, 8000)
+      setTimeout(() => { video.removeEventListener('seeked', onSeeked); reject(new Error(t('截取超时'))) }, 8000)
     })
     const w = video.videoWidth || 640
     const h = video.videoHeight || 360
     canvas.width = w; canvas.height = h
     canvas.getContext('2d').drawImage(video, 0, 0, w, h)
     const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92))
-    if (!blob) throw new Error('截图失败')
+    if (!blob) throw new Error(t('截图失败'))
     const file = new File([blob], `cover_ep${extractEpIndex.value + 1}.jpg`, { type: 'image/jpeg' })
     const res = await uploadFile(file, { category: 'image' })
     editForm.coverUrl = res.url
-    ElMessage.success('封面截取成功')
+    ElMessage.success(t('封面截取成功'))
     extractModalVisible.value = false
     if (!wasPaused) video.play()
-  } catch (err) { ElMessage.error(err.message || '截取失败') } finally { capturing.value = false }
+  } catch (err) { ElMessage.error(err.message || t('截取失败')) } finally { capturing.value = false }
 }
 const onEpFileChange = async (e, i) => {
   const file = e.target.files?.[0]; if (!file) return
   const ep = editForm.episodes[i]; ep.fileName = file.name
-  try { const r = await uploadFile(file, { category: 'video' }); ep.playUrl = r.url; ep.duration = r.duration || 0; ElMessage.success('视频上传成功') } catch (err) { ep.fileName = ''; ElMessage.error(err.message || '上传失败') }
+  try { const r = await uploadFile(file, { category: 'video' }); ep.playUrl = r.url; ep.duration = r.duration || 0; ElMessage.success(t('视频上传成功')) } catch (err) { ep.fileName = ''; ElMessage.error(err.message || t('上传失败')) }
 }
 const onEpFileDrop = async (e, i) => {
   const file = e.dataTransfer?.files?.[0]; if (!file || !file.type.startsWith('video/')) return
   const ep = editForm.episodes[i]; ep.fileName = file.name
-  try { const r = await uploadFile(file, { category: 'video' }); ep.playUrl = r.url; ep.duration = r.duration || 0; ElMessage.success('视频上传成功') } catch (err) { ep.fileName = ''; ElMessage.error(err.message || '上传失败') }
+  try { const r = await uploadFile(file, { category: 'video' }); ep.playUrl = r.url; ep.duration = r.duration || 0; ElMessage.success(t('视频上传成功')) } catch (err) { ep.fileName = ''; ElMessage.error(err.message || t('上传失败')) }
 }
 const onSave = async (videoStatus) => {
-  if (!editForm.title) return ElMessage.warning('请填写视频标题')
-  if (!editForm.categoryId) return ElMessage.warning('请选择视频分类')
+  if (!editForm.title) return ElMessage.warning(t('请填写视频标题'))
+  if (!editForm.categoryId) return ElMessage.warning(t('请选择视频分类'))
   if (saving.value) return
   saving.value = true
   let userId
@@ -791,10 +794,10 @@ const onSave = async (videoStatus) => {
     }))
   }
   try {
-    if (isEditing.value) { await updateVideo(payload); ElMessage.success('更新成功') }
-    else { await createVideo(payload); ElMessage.success(videoStatus === 0 ? '视频已暂存' : '视频保存成功') }
+    if (isEditing.value) { await updateVideo(payload); ElMessage.success(t('更新成功')) }
+    else { await createVideo(payload); ElMessage.success(videoStatus === 0 ? t('视频已暂存') : t('视频保存成功')) }
     closeEdit(); window.dispatchEvent(new Event('review-updated')); fetchData()
-  } catch (e) { ElMessage.error(e.message || '保存失败') } finally { saving.value = false }
+  } catch (e) { ElMessage.error(e.message || t('保存失败')) } finally { saving.value = false }
 }
 
 const episodeVisible = ref(false)
@@ -834,8 +837,8 @@ const onSaveEpisodes = async () => {
       videoId: episodeVideo.value.id,
       episodes: episodeList.value.map((e, i) => ({ id: e.id, episodeNumber: e.episodeNumber, title: e.title, duration: e.duration, playUrl: e.playUrl, sort: i }))
     })
-    ElMessage.success('剧集保存成功'); episodeVisible.value = false; window.dispatchEvent(new Event('review-updated')); fetchData()
-  } catch (e) { ElMessage.error(e.message || '保存失败') }
+    ElMessage.success(t('剧集保存成功')); episodeVisible.value = false; window.dispatchEvent(new Event('review-updated')); fetchData()
+  } catch (e) { ElMessage.error(e.message || t('保存失败')) }
 }
 
 const coverPreviewVisible = ref(false)
@@ -1542,6 +1545,12 @@ onActivated(() => {
   align-items: center;
   gap: 6px;
   padding-right: 10px;
+}
+
+.page-size-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .size-sel {

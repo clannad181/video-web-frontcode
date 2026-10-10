@@ -2,27 +2,27 @@
   <div class="page-container">
     <el-card class="search-card" shadow="never">
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="视频关键词">
+        <el-form-item :label="$t('视频关键词')">
           <el-input
             v-model="searchForm.keyword"
-            placeholder="搜索视频标题"
+            :placeholder="$t('搜索视频标题')"
             clearable
             :prefix-icon="Search"
           />
         </el-form-item>
-        <el-form-item label="时间范围">
+        <el-form-item :label="$t('时间范围')">
           <el-date-picker
             v-model="searchForm.timeRange"
             type="datetimerange"
-            range-separator="至"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
+            :range-separator="$t('至')"
+            :start-placeholder="$t('开始时间')"
+            :end-placeholder="$t('结束时间')"
             value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch" :icon="Search">搜索</el-button>
-          <el-button @click="handleReset" :icon="Refresh">重置</el-button>
+          <el-button type="primary" @click="handleSearch" :icon="Search">{{ $t('搜索') }}</el-button>
+          <el-button @click="handleReset" :icon="Refresh">{{ $t('重置') }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -30,9 +30,9 @@
     <el-card class="table-card" shadow="never">
       <template #header>
         <div class="card-header">
-          <span class="header-title">弹幕列表</span>
+          <span class="header-title">{{ $t('弹幕列表') }}</span>
           <div class="header-stats">
-            <el-tag type="info" size="small">共 {{ pagination.total }} 条</el-tag>
+            <el-tag type="info" size="small">{{ $t('共 {total} 条', { total: pagination.total }) }}</el-tag>
           </div>
         </div>
       </template>
@@ -46,12 +46,12 @@
         class="danmaku-table"
       >
         <el-table-column prop="id" label="ID" width="70" align="center" />
-        <el-table-column prop="content" label="弹幕内容" min-width="200" show-overflow-tooltip>
+        <el-table-column prop="content" :label="$t('弹幕内容')" min-width="200" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="danmaku-content" :style="{ color: row.color }">{{ row.content }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="用户" width="110">
+        <el-table-column :label="$t('用户')" width="110">
           <template #default="{ row }">
             <div class="user-cell">
               <el-avatar :size="24" class="user-avatar">
@@ -61,47 +61,47 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="视频" width="140" show-overflow-tooltip>
+        <el-table-column :label="$t('视频')" width="140" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="video-link" @click="goToVideo(row.videoId)">
               {{ row.videoTitle }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="时间点" width="90" align="center">
+        <el-table-column :label="$t('时间点')" width="90" align="center">
           <template #default="{ row }">
             <span class="mono-text">{{ formatDuration(row.timePoint) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="颜色" width="70" align="center">
+        <el-table-column :label="$t('颜色')" width="70" align="center">
           <template #default="{ row }">
             <span class="color-dot" :style="{ background: row.color }"></span>
             <span class="color-hex">{{ row.color }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="类型" width="80" align="center">
+        <el-table-column :label="$t('类型')" width="80" align="center">
           <template #default="{ row }">
             <el-tag size="small" :type="danmakuTypeMap[row.position]?.type">
-              {{ danmakuTypeMap[row.position]?.label }}
+              {{ $t(danmakuTypeMap[row.position]?.label) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="发送时间" width="160" />
-        <el-table-column label="操作" width="160" fixed="right" align="center">
+        <el-table-column prop="createTime" :label="$t('发送时间')" width="160" />
+        <el-table-column :label="$t('操作')" width="160" fixed="right" align="center">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="locateVideo(row)">
-              定位视频
+              {{ $t('定位视频') }}
             </el-button>
             <el-popconfirm
-              :title="`确定删除弹幕「${row.content}」吗？`"
-              confirm-button-text="确定"
-              cancel-button-text="取消"
+              :title="$t('确定删除弹幕「{content}」吗？', { content: row.content })"
+              :confirm-button-text="$t('确定')"
+              :cancel-button-text="$t('取消')"
               :icon="WarningFilled"
               icon-color="#F56C6C"
               @confirm="handleDelete(row.id)"
             >
               <template #reference>
-                <el-button type="danger" link size="small">删除</el-button>
+                <el-button type="danger" link size="small">{{ $t('删除') }}</el-button>
               </template>
             </el-popconfirm>
           </template>
@@ -123,7 +123,7 @@
 
     <el-dialog
       v-model="locateDialogVisible"
-      title="定位弹幕"
+      :title="$t('定位弹幕')"
       width="720px"
       destroy-on-close
       class="locate-dialog"
@@ -156,24 +156,24 @@
         </div>
 
         <div class="locate-info">
-          <el-descriptions :column="2" border size="small">
-            <el-descriptions-item label="弹幕内容" :span="2">
-              <span :style="{ color: locateData.color, fontWeight: 600 }">
-                {{ locateData.content }}
-              </span>
-            </el-descriptions-item>
-            <el-descriptions-item label="发送用户">{{ locateData.username }}</el-descriptions-item>
-            <el-descriptions-item label="时间点">
-              {{ formatDuration(locateData.timePoint) }}
-            </el-descriptions-item>
-            <el-descriptions-item label="颜色">
-              <span class="color-dot" :style="{ background: locateData.color }"></span>
-              {{ locateData.color }}
-            </el-descriptions-item>
-            <el-descriptions-item label="类型">
-              {{ danmakuTypeMap[locateData.position]?.label }}
-            </el-descriptions-item>
-          </el-descriptions>
+            <el-descriptions :column="2" border size="small">
+              <el-descriptions-item :label="$t('弹幕内容')" :span="2">
+                <span :style="{ color: locateData.color, fontWeight: 600 }">
+                  {{ locateData.content }}
+                </span>
+              </el-descriptions-item>
+              <el-descriptions-item :label="$t('发送用户')">{{ locateData.username }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('时间点')">
+                {{ formatDuration(locateData.timePoint) }}
+              </el-descriptions-item>
+              <el-descriptions-item :label="$t('颜色')">
+                <span class="color-dot" :style="{ background: locateData.color }"></span>
+                {{ locateData.color }}
+              </el-descriptions-item>
+              <el-descriptions-item :label="$t('类型')">
+                {{ $t(danmakuTypeMap[locateData.position]?.label) }}
+              </el-descriptions-item>
+            </el-descriptions>
         </div>
       </div>
     </el-dialog>
@@ -183,15 +183,18 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { Search, Refresh, WarningFilled, VideoPlay, Clock } from '@element-plus/icons-vue'
 import { formatDuration } from '@/utils/format'
 import { getDanmakuList, deleteDanmaku } from '@/api/danmaku'
 import DPlayer from '@/components/DPlayer.vue'
 
+const { t } = useI18n()
+
 const danmakuTypeMap = {
-  0: { label: '滚动', type: 'primary' },
-  1: { label: '顶部', type: 'success' },
-  2: { label: '底部', type: 'warning' }
+  0: { label: '滚动', type: 'primary' }, // i18n-key
+  1: { label: '顶部', type: 'success' }, // i18n-key
+  2: { label: '底部', type: 'warning' } // i18n-key
 }
 
 const loading = ref(false)
@@ -238,7 +241,7 @@ const handleReset = () => {
 
 const handleDelete = async (id) => {
   await deleteDanmaku(id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('删除成功'))
   fetchData()
 }
 
@@ -254,7 +257,7 @@ const locateVideo = (row) => {
 }
 
 const goToVideo = (videoId) => {
-  ElMessage.info(`跳转到视频 ID: ${videoId}`)
+  ElMessage.info(t('跳转到视频 ID: {id}', { id: videoId }))
 }
 
 onMounted(fetchData)

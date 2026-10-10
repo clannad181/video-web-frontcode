@@ -3,29 +3,29 @@
     <el-card shadow="never" class="table-card fade-in">
       <template #header>
         <div class="card-header">
-          <span class="header-title">角色管理</span>
-          <el-button type="primary" :icon="Plus" @click="handleAdd">新增角色</el-button>
+          <span class="header-title">{{ $t('角色管理') }}</span>
+          <el-button type="primary" :icon="Plus" @click="handleAdd">{{ $t('新增角色') }}</el-button>
         </div>
       </template>
 
       <el-table :data="tableData" v-loading="loading" stripe row-key="id" class="role-table">
         <el-table-column prop="id" label="ID" width="70" align="center" />
-        <el-table-column prop="name" label="角色名称" width="140">
+        <el-table-column prop="name" :label="$t('角色名称')" width="140">
           <template #default="{ row }">
             <span class="role-name">{{ row.name }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="code" label="角色标识" width="140">
+        <el-table-column prop="code" :label="$t('角色标识')" width="140">
           <template #default="{ row }">
             <span class="mono-text">{{ row.code }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="level" label="等级" width="80" align="center">
+        <el-table-column prop="level" :label="$t('等级')" width="80" align="center">
           <template #default="{ row }">
             <span class="level-num">{{ row.level }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="90" align="center">
+        <el-table-column prop="status" :label="$t('状态')" width="90" align="center">
           <template #default="{ row }">
             <el-switch
               v-model="row.status"
@@ -36,30 +36,30 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="isSystem" label="系统保留" width="100" align="center">
+        <el-table-column prop="isSystem" :label="$t('系统保留')" width="100" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.isSystem" type="warning" effect="dark" size="small" round>
-              系统
+              {{ $t('系统') }}
             </el-tag>
             <span v-else class="text-muted">—</span>
           </template>
         </el-table-column>
-        <el-table-column prop="creator" label="创建人" width="100" />
-        <el-table-column prop="createTime" label="创建时间" width="170" />
-        <el-table-column label="操作" width="180" fixed="right" align="center">
+        <el-table-column prop="creator" :label="$t('创建人')" width="100" />
+        <el-table-column prop="createTime" :label="$t('创建时间')" width="170" />
+        <el-table-column :label="$t('操作')" width="180" fixed="right" align="center">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="handleEdit(row)">编辑</el-button>
+            <el-button type="primary" link size="small" @click="handleEdit(row)">{{ $t('编辑') }}</el-button>
             <el-popconfirm
-              :title="`确定删除角色「${row.name}」吗？`"
-              confirm-button-text="确定"
-              cancel-button-text="取消"
+              :title="$t('确定删除角色「{name}」吗？', { name: row.name })"
+              :confirm-button-text="$t('确定')"
+              :cancel-button-text="$t('取消')"
               :icon="WarningFilled"
               icon-color="#E6A23C"
               :disabled="row.isSystem"
               @confirm="handleDelete(row.id)"
             >
               <template #reference>
-                <el-button type="danger" link size="small" :disabled="row.isSystem">删除</el-button>
+                <el-button type="danger" link size="small" :disabled="row.isSystem">{{ $t('删除') }}</el-button>
               </template>
             </el-popconfirm>
           </template>
@@ -69,7 +69,7 @@
 
     <el-dialog
       v-model="dialogVisible"
-      :title="isEditing ? '编辑角色' : '新增角色'"
+      :title="dialogTitle"
       width="560px"
       destroy-on-close
       class="edit-dialog"
@@ -81,25 +81,25 @@
         label-width="90px"
         class="edit-form"
       >
-        <el-form-item label="角色名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入角色名称" maxlength="30" show-word-limit />
+        <el-form-item :label="$t('角色名称')" prop="name">
+          <el-input v-model="form.name" :placeholder="$t('请输入角色名称')" maxlength="30" show-word-limit />
         </el-form-item>
-        <el-form-item label="角色标识" prop="code">
-          <el-input v-model="form.code" placeholder="如 admin, editor" :disabled="isEditing" />
+        <el-form-item :label="$t('角色标识')" prop="code">
+          <el-input v-model="form.code" :placeholder="$t('如 admin, editor')" :disabled="isEditing" />
         </el-form-item>
-        <el-form-item label="等级" prop="level">
+        <el-form-item :label="$t('等级')" prop="level">
           <el-input-number v-model="form.level" :min="1" :max="99" controls-position="right" />
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入角色描述" />
+        <el-form-item :label="$t('描述')">
+          <el-input v-model="form.description" type="textarea" :rows="3" :placeholder="$t('请输入角色描述')" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item :label="$t('状态')">
           <el-radio-group v-model="form.status">
-            <el-radio :value="1">正常</el-radio>
-            <el-radio :value="0">禁用</el-radio>
+            <el-radio :value="1">{{ $t('正常') }}</el-radio>
+            <el-radio :value="0">{{ $t('禁用') }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="菜单权限">
+        <el-form-item :label="$t('菜单权限')">
           <div class="menu-tree-wrap">
             <el-tree
               ref="menuTreeRef"
@@ -115,8 +115,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" :loading="saving" @click="handleSave">确定</el-button>
+          <el-button @click="dialogVisible = false">{{ $t('取消') }}</el-button>
+          <el-button type="primary" :loading="saving" @click="handleSave">{{ $t('确定') }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -124,11 +124,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, WarningFilled } from '@element-plus/icons-vue'
 import { getRoleList, addRole as createRole, updateRole, deleteRole } from '@/api/role'
 import { getMenuList } from '@/api/menu'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const loading = ref(false)
 const tableData = ref([])
@@ -139,6 +142,8 @@ const isEditing = ref(false)
 const formRef = ref(null)
 const menuTreeRef = ref(null)
 const menuTree = ref([])
+
+const dialogTitle = computed(() => (isEditing.value ? t('编辑角色') : t('新增角色')))
 
 const form = reactive({
   id: null,
@@ -151,9 +156,9 @@ const form = reactive({
 })
 
 const rules = {
-  name: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
-  code: [{ required: true, message: '请输入角色标识', trigger: 'blur' }],
-  level: [{ required: true, message: '请输入等级', trigger: 'blur' }]
+  name: [{ required: true, message: t('请输入角色名称'), trigger: 'blur' }],
+  code: [{ required: true, message: t('请输入角色标识'), trigger: 'blur' }],
+  level: [{ required: true, message: t('请输入等级'), trigger: 'blur' }]
 }
 
 const fetchData = async () => {
@@ -214,10 +219,10 @@ const handleSave = async () => {
     data.menuIds = menuTreeRef.value?.getCheckedKeys() || []
     if (isEditing.value) {
       await updateRole(form.id, data)
-      ElMessage.success('更新成功')
+      ElMessage.success(t('更新成功'))
     } else {
       await createRole(data)
-      ElMessage.success('创建成功')
+      ElMessage.success(t('创建成功'))
     }
     dialogVisible.value = false
     fetchData()
@@ -228,12 +233,12 @@ const handleSave = async () => {
 
 const handleStatusChange = async (row) => {
   await updateRole({ id: row.id, status: row.status })
-  ElMessage.success('状态已更新')
+  ElMessage.success(t('状态已更新'))
 }
 
 const handleDelete = async (id) => {
   await deleteRole(id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('删除成功'))
   fetchData()
 }
 

@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">外观设置</h2>
-      <p class="page-desc">自定义系统的主题、颜色和布局样式</p>
+      <h2 class="page-title">{{ $t('外观设置') }}</h2>
+      <p class="page-desc">{{ $t('自定义系统的主题、颜色和布局样式') }}</p>
     </div>
 
     <div class="appearance-layout">
@@ -15,9 +15,9 @@
             label-position="left"
           >
             <div class="form-section">
-              <h3 class="section-title">主题配色</h3>
+              <h3 class="section-title">{{ $t('主题配色') }}</h3>
               <el-divider />
-              <el-form-item label="主题色">
+              <el-form-item :label="$t('主题色')">
                 <div class="color-picker-row">
                   <el-color-picker v-model="form.primaryColor" show-alpha />
                   <div class="preset-colors">
@@ -35,32 +35,32 @@
             </div>
 
             <div class="form-section">
-              <h3 class="section-title">深色模式</h3>
+              <h3 class="section-title">{{ $t('深色模式') }}</h3>
               <el-divider />
-              <el-form-item label="深色模式">
+              <el-form-item :label="$t('深色模式')">
                 <div class="switch-with-desc">
-                  <el-switch v-model="form.darkMode" active-text="启用" inactive-text="禁用" />
-                  <span class="field-desc">切换为深色主题，减少眼部疲劳</span>
+                  <el-switch v-model="form.darkMode" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+                  <span class="field-desc">{{ $t('切换为深色主题，减少眼部疲劳') }}</span>
                 </div>
               </el-form-item>
             </div>
 
             <div class="form-section">
-              <h3 class="section-title">布局设置</h3>
+              <h3 class="section-title">{{ $t('布局设置') }}</h3>
               <el-divider />
-              <el-form-item label="紧凑模式">
+              <el-form-item :label="$t('紧凑模式')">
                 <div class="switch-with-desc">
-                  <el-switch v-model="form.compactMode" active-text="启用" inactive-text="禁用" />
-                  <span class="field-desc">减少元素间距，在屏幕内显示更多内容</span>
+                  <el-switch v-model="form.compactMode" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+                  <span class="field-desc">{{ $t('减少元素间距，在屏幕内显示更多内容') }}</span>
                 </div>
               </el-form-item>
-              <el-form-item label="侧边栏主题">
+              <el-form-item :label="$t('侧边栏主题')">
                 <el-radio-group v-model="form.sidebarTheme">
-                  <el-radio-button value="dark">深色</el-radio-button>
-                  <el-radio-button value="light">浅色</el-radio-button>
+                  <el-radio-button value="dark">{{ $t('深色') }}</el-radio-button>
+                  <el-radio-button value="light">{{ $t('浅色') }}</el-radio-button>
                 </el-radio-group>
               </el-form-item>
-              <el-form-item label="字体大小">
+              <el-form-item :label="$t('字体大小')">
                 <div class="inline-field">
                   <el-slider
                     v-model="form.fontSize"
@@ -79,7 +79,7 @@
             <div class="form-actions">
               <el-button type="primary" :loading="saving" @click="handleSave">
                 <el-icon v-if="!saving"><Check /></el-icon>
-                保存设置
+                {{ $t('保存设置') }}
               </el-button>
             </div>
           </el-form>
@@ -89,20 +89,20 @@
       <div class="preview-area">
         <el-card class="preview-card">
           <template #header>
-            <span class="preview-title">实时预览</span>
+            <span class="preview-title">{{ $t('实时预览') }}</span>
           </template>
           <div class="preview-panel" :class="{ dark: form.darkMode }">
             <div class="preview-sidebar" :class="form.sidebarTheme">
               <div class="preview-logo">V</div>
               <div class="preview-menu-items">
                 <div class="preview-menu-item active">
-                  <span class="menu-dot"></span>仪表盘
+                  <span class="menu-dot"></span>{{ $t('仪表盘') }}
                 </div>
                 <div class="preview-menu-item">
-                  <span class="menu-dot"></span>内容管理
+                  <span class="menu-dot"></span>{{ $t('内容管理') }}
                 </div>
                 <div class="preview-menu-item">
-                  <span class="menu-dot"></span>用户管理
+                  <span class="menu-dot"></span>{{ $t('用户管理') }}
                 </div>
               </div>
             </div>
@@ -114,15 +114,15 @@
                 <div class="preview-card-row">
                   <div class="preview-stat-card" :style="{ borderTopColor: form.primaryColor }">
                     <div class="stat-number">1,234</div>
-                    <div class="stat-label">用户数</div>
+                    <div class="stat-label">{{ $t('用户数') }}</div>
                   </div>
                   <div class="preview-stat-card" :style="{ borderTopColor: form.primaryColor }">
                     <div class="stat-number">5,678</div>
-                    <div class="stat-label">视频数</div>
+                    <div class="stat-label">{{ $t('视频数') }}</div>
                   </div>
                 </div>
                 <div class="preview-text-line" :style="{ fontSize: form.fontSize + 'px' }">
-                  示例文本内容
+                  {{ $t('示例文本内容') }}
                 </div>
               </div>
             </div>
@@ -138,6 +138,9 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Check } from '@element-plus/icons-vue'
 import { getAppearanceSettings, updateAppearanceSettings } from '@/api/system'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const formRef = ref(null)
 const loading = ref(false)
@@ -169,7 +172,7 @@ const handleSave = async () => {
   saving.value = true
   try {
     await updateAppearanceSettings(form.value)
-    ElMessage.success('外观设置已保存')
+    ElMessage.success(t('外观设置已保存'))
   } finally {
     saving.value = false
   }

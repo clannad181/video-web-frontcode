@@ -9,6 +9,7 @@
  */
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import i18n from '@/locales'
 import { getToken, getRefreshToken, setAuth, clearAuth } from './auth'
 import router from '@/router'
 import NProgress from 'nprogress'
@@ -164,11 +165,11 @@ service.interceptors.response.use(
     }
     // 无权限（403）- 直接提示，不尝试刷新token
     if (res.code === 403) {
-      ElMessage.error('无权限访问')
-      return Promise.reject(new Error(res.message || '无权限'))
+      ElMessage.error(i18n.global.t('无权限访问'))
+      return Promise.reject(new Error(res.message || i18n.global.t('无权限')))
     }
     // 其他业务错误
-    return Promise.reject(new Error(res.message || '请求失败'))
+    return Promise.reject(new Error(res.message || i18n.global.t('请求失败')))
   },
   async error => {
     endRequest()
@@ -176,7 +177,7 @@ service.interceptors.response.use(
 
     // 处理无config的错误（如网络错误、请求取消）
     if (!originalRequest) {
-      const message = error.message || '网络错误'
+      const message = i18n.global.t(error.message || '网络错误') // i18n-key
       ElMessage.error(message)
       return Promise.reject(error)
     }
@@ -216,12 +217,12 @@ service.interceptors.response.use(
 
     // HTTP 403错误（无权限）- 直接提示，不尝试刷新token
     if (error.response?.status === 403) {
-      ElMessage.error('无权限访问')
+      ElMessage.error(i18n.global.t('无权限访问'))
       return Promise.reject(error)
     }
 
     // 其他错误
-    const message = error.response?.data?.message || error.message || '网络错误'
+    const message = i18n.global.t(error.response?.data?.message || error.message || '网络错误') // i18n-key
     ElMessage.error(message)
     return Promise.reject(error)
   }

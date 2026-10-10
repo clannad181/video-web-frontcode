@@ -2,10 +2,10 @@
   <div class="chart-card">
     <div class="chart-header">
       <div class="chart-title">
-        <span>数据趋势</span>
+        <span>{{ $t('数据趋势') }}</span>
         <span class="realtime-badge">
           <span class="pulse-dot" />
-          实时更新
+          {{ $t('实时更新') }}
         </span>
       </div>
       <div class="chart-legend">
@@ -17,7 +17,7 @@
           @click="toggleSeries(item.key)"
         >
           <span class="legend-dot" :style="{ background: item.color }" />
-          {{ item.label }}
+          {{ $t(item.label) }}
         </span>
       </div>
     </div>
@@ -28,26 +28,28 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 
+const { t, locale } = useI18n()
 const appStore = useAppStore()
 const isDark = computed(() => appStore.darkMode)
 
 const fontMap = {
-  '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif",
-  '微软雅黑': "'Microsoft YaHei', sans-serif",
-  '宋体': "'SimSun', serif",
-  '黑体': "'SimHei', sans-serif",
-  '楷体': "'KaiTi', serif",
-  '仿宋': "'FangSong', serif",
-  '思源黑体': "'Noto Sans SC', sans-serif",
-  '思源宋体': "'Noto Serif SC', serif",
-  '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif",
-  '等线': "'DengXian', sans-serif"
+  '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif", // i18n-key
+  '微软雅黑': "'Microsoft YaHei', sans-serif", // i18n-key
+  '宋体': "'SimSun', serif", // i18n-key
+  '黑体': "'SimHei', sans-serif", // i18n-key
+  '楷体': "'KaiTi', serif", // i18n-key
+  '仿宋': "'FangSong', serif", // i18n-key
+  '思源黑体': "'Noto Sans SC', sans-serif", // i18n-key
+  '思源宋体': "'Noto Serif SC', sans-serif", // i18n-key
+  '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif", // i18n-key
+  '等线': "'DengXian', sans-serif" // i18n-key
 }
 
 function getCurrentFontFamily() {
-  return fontMap[appStore.fontFamily] || fontMap['默认']
+  return fontMap[appStore.fontFamily] || fontMap['默认'] // i18n-key
 }
 
 const props = defineProps({
@@ -61,8 +63,8 @@ const chartRef = ref(null)
 let chart = null
 
 const legendItems = ref([
-  { key: 'videoCount', label: '视频增量', color: '#fb7299', visible: true },
-  { key: 'commentCount', label: '评论增量', color: '#7c5cfc', visible: true }
+  { key: 'videoCount', label: '视频增量', color: '#fb7299', visible: true }, // i18n-key
+  { key: 'commentCount', label: '评论增量', color: '#7c5cfc', visible: true } // i18n-key
 ])
 
 function toggleSeries(key) {
@@ -129,7 +131,7 @@ function buildOption(chartData) {
     },
     series: [
       {
-        name: '视频增量',
+        name: t('视频增量'),
         type: 'bar',
         data: videoData,
         barWidth: 20,
@@ -155,7 +157,7 @@ function buildOption(chartData) {
         data: videoVisible ? videoData : videoData.map(() => undefined)
       },
       {
-        name: '评论增量',
+        name: t('评论增量'),
         type: 'line',
         data: commentData,
         smooth: true,
@@ -200,6 +202,7 @@ onUnmounted(() => {
 watch(() => props.data, () => updateChart(), { deep: true })
 watch(isDark, () => updateChart())
 watch(() => appStore.fontFamily, () => updateChart())
+watch(locale, () => updateChart())
 </script>
 
 <style scoped>

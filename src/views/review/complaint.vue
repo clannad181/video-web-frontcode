@@ -1,41 +1,41 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">稿件投诉</h2>
-      <span class="page-sub">处理用户对已发布稿件的投诉与举报</span>
+      <h2 class="page-title">{{ $t('稿件投诉') }}</h2>
+      <span class="page-sub">{{ $t('处理用户对已发布稿件的投诉与举报') }}</span>
     </div>
 
     <div class="filter-card">
       <div class="filter-grid">
         <div class="filter-item">
-          <label class="filter-label">视频标题</label>
-          <input v-model="filter.videoTitle" class="filter-input" placeholder="搜索视频标题" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('视频标题') }}</label>
+          <input v-model="filter.videoTitle" class="filter-input" :placeholder="$t('搜索视频标题')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">举报人昵称</label>
-          <input v-model="filter.reporterNickName" class="filter-input" placeholder="搜索举报人昵称" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('举报人昵称') }}</label>
+          <input v-model="filter.reporterNickName" class="filter-input" :placeholder="$t('搜索举报人昵称')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">举报类型</label>
+          <label class="filter-label">{{ $t('举报类型') }}</label>
           <div class="select-wrap" :class="{ open: typeOpen }">
             <select v-model="filter.reportType" class="filter-select" @mousedown="typeOpen = true"
               @blur="typeOpen = false">
-              <option value="">全部</option>
-              <optgroup v-for="g in reportTypeGroups" :key="g.typeCode" :label="g.typeName">
+              <option value="">{{ $t('全部') }}</option>
+              <optgroup v-for="g in reportTypeGroups" :key="g.typeCode" :label="$t(g.typeName)">
                 <option v-for="d in g.items" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
               </optgroup>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">处理状态</label>
+          <label class="filter-label">{{ $t('处理状态') }}</label>
           <div class="select-wrap" :class="{ open: statusOpen }">
             <select v-model="filter.status" class="filter-select" @mousedown="statusOpen = true"
               @blur="statusOpen = false">
-              <option value="">全部</option>
-              <option value="0">待处理</option>
-              <option value="1">已受理</option>
-              <option value="2">已驳回</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option value="0">{{ $t('待处理') }}</option>
+              <option value="1">{{ $t('已受理') }}</option>
+              <option value="2">{{ $t('已驳回') }}</option>
             </select>
           </div>
         </div>
@@ -46,7 +46,7 @@
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
               <path d="M3 3v5h5" />
             </svg>
-            重置
+            {{ $t('重置') }}
           </button>
           <button class="btn btn-primary" @click="onSearch">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -54,7 +54,7 @@
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            搜索
+            {{ $t('搜索') }}
           </button>
         </div>
       </div>
@@ -66,22 +66,22 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>被举报稿件</th>
-              <th>UP主</th>
-              <th>举报类型</th>
-              <th>举报原因</th>
-              <th>举报人</th>
-              <th>举报时间</th>
-              <th>处理状态</th>
-              <th>处理人</th>
-              <th>操作</th>
+              <th>{{ $t('被举报稿件') }}</th>
+              <th>{{ $t('UP主') }}</th>
+              <th>{{ $t('举报类型') }}</th>
+              <th>{{ $t('举报原因') }}</th>
+              <th>{{ $t('举报人') }}</th>
+              <th>{{ $t('举报时间') }}</th>
+              <th>{{ $t('处理状态') }}</th>
+              <th>{{ $t('处理人') }}</th>
+              <th>{{ $t('操作') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="loading">
               <td colspan="10" class="empty-cell">
                 <div class="empty-state">
-                  <p>加载中...</p>
+                  <p>{{ $t('加载中...') }}</p>
                 </div>
               </td>
             </tr>
@@ -95,8 +95,8 @@
                     <line x1="12" y1="9" x2="12" y2="13" />
                     <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
-                  <p>暂无投诉数据</p>
-                  <span class="empty-tip">没有符合条件的举报记录</span>
+                  <p>{{ $t('暂无投诉数据') }}</p>
+                  <span class="empty-tip">{{ $t('没有符合条件的举报记录') }}</span>
                 </div>
               </td>
             </tr>
@@ -112,30 +112,30 @@
                   <div class="video-meta">
                     <div class="cell-main col-truncate" :title="row.videoTitle">{{ row.videoTitle || '-' }}</div>
                     <div class="cell-sub col-truncate" v-if="row.episodeAvid">
-                      第{{ row.episodeNumber ?? '-' }}集 <template v-if="row.episodeTitle">· {{ row.episodeTitle
+                      {{ $t('第{n}集', { n: row.episodeNumber ?? '-' }) }} <template v-if="row.episodeTitle">· {{ row.episodeTitle
                         }}</template><template v-if="row.episodeDuration"> · {{ formatDuration(row.episodeDuration)
                         }}</template>
                     </div>
-                    <div class="cell-sub col-truncate" v-else>视频级举报</div>
+                    <div class="cell-sub col-truncate" v-else>{{ $t('视频级举报') }}</div>
                   </div>
                 </div>
               </td>
               <td>{{ row.upNickName || '-' }}</td>
-              <td>{{ typeLabel(row.reportType) }}</td>
+              <td>{{ $t(typeLabel(row.reportType)) }}</td>
               <td class="col-truncate" :title="row.reason">{{ row.reason || '-' }}</td>
               <td>{{ row.reporterNickName || '-' }}</td>
               <td class="mono">{{ row.createTime || '-' }}</td>
-              <td><span class="badge" :class="statusCls(row.status)">{{ statusLabel(row.status) }}</span></td>
+              <td><span class="badge" :class="statusCls(row.status)">{{ $t(statusLabel(row.status)) }}</span></td>
               <td>
                 <template v-if="row.handlerNickName">{{ row.handlerNickName }}</template>
                 <span v-else class="cell-dash">-</span>
               </td>
               <td>
                 <div class="action-group">
-                  <button class="act-btn act-blue" @click="viewDetail(row)">查看</button>
-                  <button class="act-btn act-green" :disabled="!row.videoId" @click="openPreview(row)">播放</button>
+                  <button class="act-btn act-blue" @click="viewDetail(row)">{{ $t('查看') }}</button>
+                  <button class="act-btn act-green" :disabled="!row.videoId" @click="openPreview(row)">{{ $t('播放') }}</button>
                   <button class="act-btn act-pink" :disabled="row.status !== 0"
-                    :title="row.status === 0 ? '' : '该举报已处理'" @click="openHandle(row)">处置</button>
+                    :title="handleTitleOf(row)" @click="openHandle(row)">{{ $t('处置') }}</button>
                 </div>
               </td>
             </tr>
@@ -143,7 +143,7 @@
         </table>
       </div>
       <div class="pagination">
-        <div class="page-info">共 {{ pagination.total }} 条投诉</div>
+        <div class="page-info">{{ $t('共 {total} 条投诉', { total: pagination.total }) }}</div>
         <div class="page-btns">
           <button class="pg-btn" :disabled="pagination.page <= 1" @click="goPage(pagination.page - 1)">&#8249;</button>
           <template v-for="p in visiblePages" :key="p">
@@ -153,12 +153,12 @@
           <button class="pg-btn" :disabled="pagination.page >= totalPages"
             @click="goPage(pagination.page + 1)">&#8250;</button>
         </div>
-        <div class="page-size">每页 <select v-model.number="pagination.size" class="size-sel" @change="onPageSizeChange">
+        <div class="page-size">{{ $t('每页') }} <select v-model.number="pagination.size" class="size-sel" @change="onPageSizeChange">
             <option :value="10">10</option>
             <option :value="20">20</option>
             <option :value="50">50</option>
             <option :value="100">100</option>
-          </select> 条</div>
+          </select> {{ $t('条') }}</div>
       </div>
     </div>
 
@@ -167,72 +167,72 @@
         <div v-if="visible" class="modal-overlay" @click.self="visible = false">
           <div class="modal-card modal-std" @click.stop>
             <div class="modal-header">
-              <h3>投诉详情</h3>
+              <h3>{{ $t('投诉详情') }}</h3>
               <button class="modal-close" @click="visible = false">&times;</button>
             </div>
             <div class="modal-body" v-if="detailRow">
               <div class="detail-cover" v-if="detailRow.videoCover">
                 <img :src="coverUrl(detailRow.videoCover)" :alt="detailRow.videoTitle" />
               </div>
-              <div class="detail-row"><span class="dr-label">视频标题</span><span class="dr-value">{{ detailRow.videoTitle
+              <div class="detail-row"><span class="dr-label">{{ $t('视频标题') }}</span><span class="dr-value">{{ detailRow.videoTitle
                   ||
                   '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">视频 avid</span><span class="dr-value mono">{{
+              <div class="detail-row"><span class="dr-label">{{ $t('视频 avid') }}</span><span class="dr-value mono">{{
                 detailRow.videoAvid || '-' }}</span></div>
               <div class="detail-row">
-                <span class="dr-label">视频状态</span>
+                <span class="dr-label">{{ $t('视频状态') }}</span>
                 <span class="dr-value"><span class="badge" :class="videoStatusCls(detailRow.videoStatus)">{{
-                  videoStatusLabel(detailRow.videoStatus) }}</span></span>
+                  $t(videoStatusLabel(detailRow.videoStatus)) }}</span></span>
               </div>
-              <div class="detail-row"><span class="dr-label">UP主昵称</span><span class="dr-value">{{ detailRow.upNickName
+              <div class="detail-row"><span class="dr-label">{{ $t('UP主昵称') }}</span><span class="dr-value">{{ detailRow.upNickName
                   ||
                   '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">剧集标题</span><span class="dr-value">{{ detailRow.episodeTitle
+              <div class="detail-row"><span class="dr-label">{{ $t('剧集标题') }}</span><span class="dr-value">{{ detailRow.episodeTitle
                   ||
                   '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">剧集 avid</span><span class="dr-value mono">{{
+              <div class="detail-row"><span class="dr-label">{{ $t('剧集 avid') }}</span><span class="dr-value mono">{{
                 detailRow.episodeAvid || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">剧集集号</span><span class="dr-value">{{
+              <div class="detail-row"><span class="dr-label">{{ $t('剧集集号') }}</span><span class="dr-value">{{
                 detailRow.episodeNumber ??
                   '-' }}</span></div>
               <div class="detail-row">
-                <span class="dr-label">剧集时长</span>
+                <span class="dr-label">{{ $t('剧集时长') }}</span>
                 <span class="dr-value mono">{{ detailRow.episodeDuration ? formatDuration(detailRow.episodeDuration) :
                   '-'
                   }}</span>
               </div>
-              <div class="detail-row"><span class="dr-label">举报人</span><span class="dr-value">{{
+              <div class="detail-row"><span class="dr-label">{{ $t('举报人') }}</span><span class="dr-value">{{
                 detailRow.reporterNickName
                   || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">举报类型</span><span class="dr-value">{{
-                typeLabel(detailRow.reportType) }}</span></div>
-              <div class="detail-row"><span class="dr-label">补充说明</span><span class="dr-value">{{ detailRow.reason ||
+              <div class="detail-row"><span class="dr-label">{{ $t('举报类型') }}</span><span class="dr-value">{{
+                $t(typeLabel(detailRow.reportType)) }}</span></div>
+              <div class="detail-row"><span class="dr-label">{{ $t('补充说明') }}</span><span class="dr-value">{{ detailRow.reason ||
                   '-'
                   }}</span></div>
               <div class="detail-row">
-                <span class="dr-label">处理状态</span>
+                <span class="dr-label">{{ $t('处理状态') }}</span>
                 <span class="dr-value"><span class="badge" :class="statusCls(detailRow.status)">{{
-                  statusLabel(detailRow.status) }}</span></span>
+                  $t(statusLabel(detailRow.status)) }}</span></span>
               </div>
-              <div class="detail-row"><span class="dr-label">处理人</span><span class="dr-value">{{
+              <div class="detail-row"><span class="dr-label">{{ $t('处理人') }}</span><span class="dr-value">{{
                 detailRow.handlerNickName
                   || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">处理备注</span><span class="dr-value">{{ detailRow.handlerNote
+              <div class="detail-row"><span class="dr-label">{{ $t('处理备注') }}</span><span class="dr-value">{{ detailRow.handlerNote
                   ||
                   '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">处理时间</span><span class="dr-value mono">{{
+              <div class="detail-row"><span class="dr-label">{{ $t('处理时间') }}</span><span class="dr-value mono">{{
                 detailRow.handleTime
                   || '-' }}</span></div>
-              <div class="detail-row"><span class="dr-label">举报时间</span><span class="dr-value mono">{{
+              <div class="detail-row"><span class="dr-label">{{ $t('举报时间') }}</span><span class="dr-value mono">{{
                 detailRow.createTime
                   || '-' }}</span></div>
             </div>
             <div class="modal-footer">
               <button v-if="detailRow?.status === 0" class="btn btn-primary"
-                @click="openHandle(detailRow)">处置举报</button>
-              <button v-if="detailRow?.videoId" class="btn btn-outline" @click="openPreview(detailRow)">播放预览</button>
-              <button v-if="detailRow?.videoId" class="btn btn-outline" @click="goVideo(detailRow)">查看稿件</button>
-              <button class="btn btn-secondary" @click="visible = false">关闭</button>
+                @click="openHandle(detailRow)">{{ $t('处置举报') }}</button>
+              <button v-if="detailRow?.videoId" class="btn btn-outline" @click="openPreview(detailRow)">{{ $t('播放预览') }}</button>
+              <button v-if="detailRow?.videoId" class="btn btn-outline" @click="goVideo(detailRow)">{{ $t('查看稿件') }}</button>
+              <button class="btn btn-secondary" @click="visible = false">{{ $t('关闭') }}</button>
             </div>
           </div>
         </div>
@@ -244,7 +244,7 @@
         <div v-if="previewVisible" class="modal-overlay" @click.self="closePreview">
           <div class="modal-card modal-wide" @click.stop>
             <div class="modal-header">
-              <h3>播放预览</h3>
+              <h3>{{ $t('播放预览') }}</h3>
               <button class="modal-close" @click="closePreview">&times;</button>
             </div>
             <div class="modal-body" style="padding: 24px;">
@@ -252,7 +252,7 @@
                 <el-icon class="is-loading" :size="26">
                   <Loading />
                 </el-icon>
-                <p>正在加载稿件视频...</p>
+                <p>{{ $t('正在加载稿件视频...') }}</p>
               </div>
 
               <div v-else-if="!currentSrc" class="play-state">
@@ -261,8 +261,8 @@
                   <polygon points="5 3 19 12 5 21 5 3" />
                   <line x1="4" y1="21" x2="4" y2="19" />
                 </svg>
-                <p>暂无可播放的视频</p>
-                <span class="empty-tip">该稿件尚未上传视频，或接口未返回播放地址</span>
+                <p>{{ $t('暂无可播放的视频') }}</p>
+                <span class="empty-tip">{{ $t('该稿件尚未上传视频，或接口未返回播放地址') }}</span>
               </div>
 
               <template v-else>
@@ -273,8 +273,8 @@
                 <div class="play-meta">
                   <span class="play-title">{{ previewRow?.videoTitle || '-' }}</span>
                   <span class="badge" :class="videoStatusCls(previewRow?.videoStatus)">{{
-                    videoStatusLabel(previewRow?.videoStatus) }}</span>
-                  <span v-if="currentTrack" class="play-tag">{{ currentTrack.label }}</span>
+                    $t(videoStatusLabel(previewRow?.videoStatus)) }}</span>
+                  <span v-if="currentTrack" class="play-tag">{{ currentTrack.epNumber != null ? $t('第{n}集', { n: currentTrack.epNumber }) : $t('视频') }}</span>
                   <span v-if="currentTrack?.title" class="play-tag play-tag-sub">{{ currentTrack.title }}</span>
                   <span v-if="currentTrack?.duration" class="play-tag play-tag-sub mono">{{
                     formatDuration(currentTrack.duration) }}</span>
@@ -282,13 +282,13 @@
 
                 <div v-if="previewTracks.length > 1" class="ep-chips">
                   <button v-for="(tr, i) in previewTracks" :key="tr.key" class="ep-chip"
-                    :class="{ active: i === trackIdx }" @click="trackIdx = i">{{ tr.label }}</button>
+                    :class="{ active: i === trackIdx }" @click="trackIdx = i">{{ tr.epNumber != null ? $t('第{n}集', { n: tr.epNumber }) : $t('视频') }}</button>
                 </div>
               </template>
             </div>
             <div class="modal-footer">
-              <button v-if="previewRow?.videoId" class="btn btn-outline" @click="goVideo(previewRow)">查看稿件</button>
-              <button class="btn btn-secondary" @click="closePreview">关闭</button>
+              <button v-if="previewRow?.videoId" class="btn btn-outline" @click="goVideo(previewRow)">{{ $t('查看稿件') }}</button>
+              <button class="btn btn-secondary" @click="closePreview">{{ $t('关闭') }}</button>
             </div>
           </div>
         </div>
@@ -300,7 +300,7 @@
         <div v-if="handleVisible" class="modal-overlay" @click.self="handleVisible = false">
           <div class="modal-card modal-std" @click.stop>
             <div class="modal-header">
-              <h3>处置举报</h3>
+              <h3>{{ $t('处置举报') }}</h3>
               <button class="modal-close" @click="handleVisible = false">&times;</button>
             </div>
             <div class="modal-body" v-if="handleRow">
@@ -308,54 +308,54 @@
                 <div class="hs-video">
                   <div class="hs-title">{{ handleRow.videoTitle || '-' }}</div>
                   <div class="hs-sub" v-if="handleRow.episodeAvid">
-                    第{{ handleRow.episodeNumber ?? '-' }}集<template v-if="handleRow.episodeTitle"> · {{
+                    {{ $t('第{n}集', { n: handleRow.episodeNumber ?? '-' }) }}<template v-if="handleRow.episodeTitle"> · {{
                       handleRow.episodeTitle }}</template>
                   </div>
-                  <div class="hs-sub" v-else>视频级举报</div>
+                  <div class="hs-sub" v-else>{{ $t('视频级举报') }}</div>
                 </div>
-                <div class="detail-row"><span class="dr-label">举报类型</span><span class="dr-value">{{
-                  typeLabel(handleRow.reportType) }}</span></div>
-                <div class="detail-row"><span class="dr-label">举报人</span><span class="dr-value">{{
+                <div class="detail-row"><span class="dr-label">{{ $t('举报类型') }}</span><span class="dr-value">{{
+                  $t(typeLabel(handleRow.reportType)) }}</span></div>
+                <div class="detail-row"><span class="dr-label">{{ $t('举报人') }}</span><span class="dr-value">{{
                   handleRow.reporterNickName || '-' }}</span></div>
-                <div class="detail-row"><span class="dr-label">补充说明</span><span class="dr-value">{{ handleRow.reason ||
+                <div class="detail-row"><span class="dr-label">{{ $t('补充说明') }}</span><span class="dr-value">{{ handleRow.reason ||
                     '-'
                     }}</span></div>
               </div>
 
               <div class="handle-field">
-                <label class="filter-label">处理结果 <em class="req">*</em></label>
+                <label class="filter-label">{{ $t('处理结果') }} <em class="req">*</em></label>
                 <div class="result-options">
                   <label class="result-opt" :class="{ active: handleForm.handleResult === 1 }">
                     <input type="radio" :value="1" v-model="handleForm.handleResult" />
                     <span class="ro-dot"></span>
                     <span class="ro-body">
-                      <span class="ro-title">已受理</span>
-                      <span class="ro-desc">确认违规，已发布的视频将同步下架并通知 UP 主</span>
+                      <span class="ro-title">{{ $t('已受理') }}</span>
+                      <span class="ro-desc">{{ $t('确认违规，已发布的视频将同步下架并通知 UP 主') }}</span>
                     </span>
                   </label>
                   <label class="result-opt" :class="{ active: handleForm.handleResult === 2 }">
                     <input type="radio" :value="2" v-model="handleForm.handleResult" />
                     <span class="ro-dot"></span>
                     <span class="ro-body">
-                      <span class="ro-title">已驳回</span>
-                      <span class="ro-desc">判定未违规，稿件与视频状态保持不变</span>
+                      <span class="ro-title">{{ $t('已驳回') }}</span>
+                      <span class="ro-desc">{{ $t('判定未违规，稿件与视频状态保持不变') }}</span>
                     </span>
                   </label>
                 </div>
               </div>
 
               <div class="handle-field">
-                <label class="filter-label">处理备注 <em class="opt">选填 · 最多 500 字</em></label>
+                <label class="filter-label">{{ $t('处理备注') }} <em class="opt">{{ $t('选填 · 最多 500 字') }}</em></label>
                 <textarea v-model="handleForm.handlerNote" class="handle-textarea" rows="4" maxlength="500"
-                  placeholder="填写处理说明，便于后续复核..."></textarea>
+                  :placeholder="$t('填写处理说明，便于后续复核...')"></textarea>
                 <div class="ta-count">{{ handleForm.handlerNote.length }}/500</div>
               </div>
             </div>
             <div class="modal-footer">
               <button class="btn btn-primary" :disabled="handleLoading" @click="submitHandle">
-                {{ handleLoading ? '提交中...' : '确认处置' }}
+                {{ handleLoading ? $t('提交中...') : $t('确认处置') }}
               </button>
-              <button class="btn btn-secondary" :disabled="handleLoading" @click="handleVisible = false">取消</button>
+              <button class="btn btn-secondary" :disabled="handleLoading" @click="handleVisible = false">{{ $t('取消') }}</button>
             </div>
           </div>
         </div>
@@ -374,12 +374,15 @@ import DPlayer from '@/components/DPlayer.vue'
 import { formatDuration } from '@/utils/format'
 import { ElMessage } from 'element-plus'
 import { getEnabledDictData, getDictTypeList } from '@/api/dict'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
 
 // 举报类型来自两个字典：report_type_equity（合法权益）、report_type_rule（社区规则）
 const REPORT_TYPE_CODES = ['report_type_equity', 'report_type_rule']
-const FALLBACK_TYPE_NAMES = { report_type_equity: '合法权益', report_type_rule: '社区规则' }
+const FALLBACK_TYPE_NAMES = { report_type_equity: '合法权益', report_type_rule: '社区规则' } // i18n-key
 
 const reportTypeGroups = ref([])   // [{ typeCode, typeName, items }]
 const reportTypeLabelMap = ref({}) // 字典值 -> 标签
@@ -392,8 +395,9 @@ const fetchReportTypes = async () => {
     try {
       const res = await getDictTypeList({ page: 1, size: 100 })
       const rows = Array.isArray(res?.data?.records) ? res.data.records : (Array.isArray(res?.data) ? res.data : [])
-      rows.forEach(t => { if (t && t.typeCode) typeNames[t.typeCode] = t.typeName })
-    } catch { /* 拿不到类型名时走下面的兜底名 */ }
+      rows.forEach(d => { if (d && d.typeCode) typeNames[d.typeCode] = d.typeName })
+      // 拿不到类型名时走下面的兜底名
+    } catch { }
 
     const results = await Promise.all(REPORT_TYPE_CODES.map(code => getEnabledDictData(code)))
     const groups = []
@@ -413,9 +417,9 @@ const fetchReportTypes = async () => {
   }
 }
 
-const STATUS_MAP = { 0: '待处理', 1: '已受理', 2: '已驳回' }
+const STATUS_MAP = { 0: '待处理', 1: '已受理', 2: '已驳回' } // i18n-key
 
-const VIDEO_STATUS_MAP = { 0: '草稿', 1: '待发布', 2: '已发布', 3: '已下架' }
+const VIDEO_STATUS_MAP = { 0: '草稿', 1: '待发布', 2: '已发布', 3: '已下架' } // i18n-key
 
 const router = useRouter()
 
@@ -452,8 +456,9 @@ function coverUrl(u) {
   return fileBaseUrl + (u.startsWith('/') ? u : '/' + u)
 }
 
-function typeLabel(t) { return reportTypeLabelMap.value[String(t)] || '其他' }
-function statusLabel(s) { return STATUS_MAP[s] ?? '待处理' }
+function typeLabel(v) { return reportTypeLabelMap.value[String(v)] || '其他' } // i18n-key
+function statusLabel(s) { return STATUS_MAP[s] ?? '待处理' } // i18n-key
+function handleTitleOf(row) { return row.status === 0 ? '' : t('该举报已处理') }
 function statusCls(s) { return s === 0 ? 'badge-amber' : s === 1 ? 'badge-blue' : 'badge-gray' }
 function videoStatusLabel(s) { return VIDEO_STATUS_MAP[s] ?? '-' }
 function videoStatusCls(s) { return s === 2 ? 'badge-green' : s === 3 ? 'badge-red' : s === 1 ? 'badge-amber' : 'badge-gray' }
@@ -513,12 +518,12 @@ async function submitHandle() {
       handleResult: handleForm.handleResult,
       handlerNote: handleForm.handlerNote.trim() || undefined
     })
-    ElMessage.success(typeof res?.data === 'string' && res.data ? res.data : '处理举报成功')
+    ElMessage.success(typeof res?.data === 'string' && res.data ? res.data : t('处理举报成功'))
     handleVisible.value = false
     handleRow.value = null
     loadData()
   } catch (e) {
-    if (!e?.response) ElMessage.error(e?.message || '处理失败')
+    if (!e?.response) ElMessage.error(e?.message || t('处理失败'))
   } finally {
     handleLoading.value = false
   }
@@ -539,7 +544,7 @@ function buildTracks(data) {
   if (eps.length) {
     return eps.map((e, i) => ({
       key: e.id ?? `ep-${i}`,
-      label: `第${e.episodeNumber ?? i + 1}集`,
+      epNumber: e.episodeNumber ?? i + 1,
       title: e.title || '',
       duration: e.duration || 0,
       src: e.playUrl,
@@ -548,7 +553,7 @@ function buildTracks(data) {
     }))
   }
   if (data.videoUrl) {
-    return [{ key: 'video', label: '视频', title: data.title || '', duration: 0, src: data.videoUrl, poster: '', epId: null }]
+    return [{ key: 'video', epNumber: null, title: data.title || '', duration: 0, src: data.videoUrl, poster: '', epId: null }]
   }
   return []
 }
@@ -566,7 +571,7 @@ async function openPreview(row) {
     const data = res.data || {}
     previewTracks.value = buildTracks(data)
     if (row.episodeId) {
-      const i = previewTracks.value.findIndex(t => t.epId != null && t.epId === row.episodeId)
+      const i = previewTracks.value.findIndex(tr => tr.epId != null && tr.epId === row.episodeId)
       if (i >= 0) trackIdx.value = i
     }
   } catch (e) { console.error(e) } finally { previewLoading.value = false }

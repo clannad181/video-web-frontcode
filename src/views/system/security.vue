@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">安全设置</h2>
-      <p class="page-desc">管理密码策略、登录安全和访问控制</p>
+      <h2 class="page-title">{{ $t('安全设置') }}</h2>
+      <p class="page-desc">{{ $t('管理密码策略、登录安全和访问控制') }}</p>
     </div>
 
     <el-card class="settings-card" v-loading="loading">
@@ -13,9 +13,9 @@
         label-position="left"
       >
         <div class="form-section">
-          <h3 class="section-title">密码策略</h3>
+          <h3 class="section-title">{{ $t('密码策略') }}</h3>
           <el-divider />
-          <el-form-item label="密码最小长度">
+          <el-form-item :label="$t('密码最小长度')">
             <div class="inline-field">
               <el-slider
                 v-model="form.passwordMinLength"
@@ -28,73 +28,73 @@
               <el-input-number v-model="form.passwordMinLength" :min="6" :max="32" :step="1" />
             </div>
           </el-form-item>
-          <el-form-item label="必须包含大写字母">
-            <el-switch v-model="form.passwordRequireUppercase" active-text="启用" inactive-text="禁用" />
+          <el-form-item :label="$t('必须包含大写字母')">
+            <el-switch v-model="form.passwordRequireUppercase" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
           </el-form-item>
-          <el-form-item label="必须包含小写字母">
-            <el-switch v-model="form.passwordRequireLowercase" active-text="启用" inactive-text="禁用" />
+          <el-form-item :label="$t('必须包含小写字母')">
+            <el-switch v-model="form.passwordRequireLowercase" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
           </el-form-item>
-          <el-form-item label="必须包含数字">
-            <el-switch v-model="form.passwordRequireNumber" active-text="启用" inactive-text="禁用" />
+          <el-form-item :label="$t('必须包含数字')">
+            <el-switch v-model="form.passwordRequireNumber" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
           </el-form-item>
-          <el-form-item label="必须包含特殊字符">
-            <el-switch v-model="form.passwordRequireSpecial" active-text="启用" inactive-text="禁用" />
-          </el-form-item>
-        </div>
-
-        <div class="form-section">
-          <h3 class="section-title">登录安全</h3>
-          <el-divider />
-          <el-form-item label="两步验证">
-            <div class="switch-with-desc">
-              <el-switch v-model="form.twoFactorAuth" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">启用后，用户登录时需要进行额外的身份验证</span>
-            </div>
-          </el-form-item>
-          <el-form-item label="登录通知">
-            <div class="switch-with-desc">
-              <el-switch v-model="form.loginNotification" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">新设备登录时发送邮件通知管理员</span>
-            </div>
+          <el-form-item :label="$t('必须包含特殊字符')">
+            <el-switch v-model="form.passwordRequireSpecial" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
           </el-form-item>
         </div>
 
         <div class="form-section">
-          <h3 class="section-title">会话控制</h3>
+          <h3 class="section-title">{{ $t('登录安全') }}</h3>
           <el-divider />
-          <el-form-item label="会话超时时间">
+          <el-form-item :label="$t('两步验证')">
+            <div class="switch-with-desc">
+              <el-switch v-model="form.twoFactorAuth" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('启用后，用户登录时需要进行额外的身份验证') }}</span>
+            </div>
+          </el-form-item>
+          <el-form-item :label="$t('登录通知')">
+            <div class="switch-with-desc">
+              <el-switch v-model="form.loginNotification" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('新设备登录时发送邮件通知管理员') }}</span>
+            </div>
+          </el-form-item>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">{{ $t('会话控制') }}</h3>
+          <el-divider />
+          <el-form-item :label="$t('会话超时时间')">
             <div class="inline-field">
               <el-input-number v-model="form.sessionTimeout" :min="5" :max="1440" :step="5" />
               <el-select v-model="form.sessionTimeoutUnit" style="width: 100px; margin-left: 8px">
-                <el-option label="分钟" value="minutes" />
-                <el-option label="小时" value="hours" />
+                <el-option :label="$t('分钟')" value="minutes" />
+                <el-option :label="$t('小时')" value="hours" />
               </el-select>
-              <span class="field-hint">无操作后自动退出</span>
+              <span class="field-hint">{{ $t('无操作后自动退出') }}</span>
             </div>
           </el-form-item>
         </div>
 
         <div class="form-section">
-          <h3 class="section-title">登录锁定</h3>
+          <h3 class="section-title">{{ $t('登录锁定') }}</h3>
           <el-divider />
-          <el-form-item label="连续登录失败锁定">
+          <el-form-item :label="$t('连续登录失败锁定')">
             <div class="inline-field">
-              <span class="field-label">失败</span>
+              <span class="field-label">{{ $t('失败') }}</span>
               <el-input-number v-model="form.lockAfterAttempts" :min="3" :max="20" :step="1" />
-              <span class="field-label">次后锁定</span>
+              <span class="field-label">{{ $t('次后锁定') }}</span>
               <el-input-number v-model="form.lockDuration" :min="5" :max="1440" :step="5" style="margin-left: 16px" />
               <el-select v-model="form.lockDurationUnit" style="width: 100px; margin-left: 8px">
-                <el-option label="分钟" value="minutes" />
-                <el-option label="小时" value="hours" />
+                <el-option :label="$t('分钟')" value="minutes" />
+                <el-option :label="$t('小时')" value="hours" />
               </el-select>
             </div>
           </el-form-item>
         </div>
 
         <div class="form-section">
-          <h3 class="section-title">IP 白名单</h3>
+          <h3 class="section-title">{{ $t('IP 白名单') }}</h3>
           <el-divider />
-          <el-form-item label="白名单列表">
+          <el-form-item :label="$t('白名单列表')">
             <div class="ip-whitelist">
               <div class="tag-list" v-if="form.ipWhitelist.length">
                 <el-tag
@@ -111,12 +111,12 @@
               <div class="ip-input-row">
                 <el-input
                   v-model="newIp"
-                  placeholder="输入IP地址后回车添加"
+                  :placeholder="$t('输入IP地址后回车添加')"
                   @keyup.enter="addIp"
                 />
-                <el-button type="primary" plain @click="addIp" :disabled="!newIp.trim()">添加</el-button>
+                <el-button type="primary" plain @click="addIp" :disabled="!newIp.trim()">{{ $t('添加') }}</el-button>
               </div>
-              <p class="field-hint">留空则不限制IP访问，多个IP用回车分隔</p>
+              <p class="field-hint">{{ $t('留空则不限制IP访问，多个IP用回车分隔') }}</p>
             </div>
           </el-form-item>
         </div>
@@ -124,7 +124,7 @@
         <div class="form-actions">
           <el-button type="primary" :loading="saving" @click="handleSave">
             <el-icon v-if="!saving"><Check /></el-icon>
-            保存设置
+            {{ $t('保存设置') }}
           </el-button>
         </div>
       </el-form>
@@ -137,6 +137,9 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Check } from '@element-plus/icons-vue'
 import { getSecuritySettings, updateSecuritySettings } from '@/api/system'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const formRef = ref(null)
 const loading = ref(false)
@@ -187,7 +190,7 @@ const handleSave = async () => {
   saving.value = true
   try {
     await updateSecuritySettings(form.value)
-    ElMessage.success('安全设置已保存')
+    ElMessage.success(t('安全设置已保存'))
   } finally {
     saving.value = false
   }

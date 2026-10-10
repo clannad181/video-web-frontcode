@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h1 class="page-title">字典管理</h1>
-      <p class="page-subtitle">维护系统字典类型及其字典数据，供下拉框、枚举等场景复用</p>
+      <h1 class="page-title">{{ $t('字典管理') }}</h1>
+      <p class="page-subtitle">{{ $t('维护系统字典类型及其字典数据，供下拉框、枚举等场景复用') }}</p>
     </div>
 
     <div class="split-layout">
@@ -10,28 +10,28 @@
       <section class="panel">
         <div class="panel-head">
           <div class="panel-head-text">
-            <h2 class="panel-title">字典类型</h2>
-            <span class="panel-sub">共 {{ typeTotal }} 条</span>
+            <h2 class="panel-title">{{ $t('字典类型') }}</h2>
+            <span class="panel-sub">{{ $t('共 {total} 条', { total: typeTotal }) }}</span>
           </div>
           <button class="btn btn-add btn-sm" @click="openTypeModal(null)">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
-            新增类型
+            {{ $t('新增类型') }}
           </button>
         </div>
 
         <div class="panel-filter is-type">
-          <input v-model="typeQuery.typeCode" class="filter-input" placeholder="类型编码" @keyup.enter="searchTypes" />
-          <input v-model="typeQuery.typeName" class="filter-input" placeholder="类型名称" @keyup.enter="searchTypes" />
+          <input v-model="typeQuery.typeCode" class="filter-input" :placeholder="$t('类型编码')" @keyup.enter="searchTypes" />
+          <input v-model="typeQuery.typeName" class="filter-input" :placeholder="$t('类型名称')" @keyup.enter="searchTypes" />
           <div class="select-wrap" :class="{ open: typeStatusOpen }">
             <select v-model="typeQuery.status" class="filter-select" @mousedown="typeStatusOpen = true" @blur="typeStatusOpen = false">
-              <option value="">全部状态</option>
-              <option :value="true">启用</option>
-              <option :value="false">禁用</option>
+              <option value="">{{ $t('全部状态') }}</option>
+              <option :value="true">{{ $t('启用') }}</option>
+              <option :value="false">{{ $t('禁用') }}</option>
             </select>
           </div>
           <div class="panel-filter-btns">
-            <button class="btn btn-secondary btn-sm" @click="resetTypeQuery">重置</button>
-            <button class="btn btn-primary btn-sm" @click="searchTypes">搜索</button>
+            <button class="btn btn-secondary btn-sm" @click="resetTypeQuery">{{ $t('重置') }}</button>
+            <button class="btn btn-primary btn-sm" @click="searchTypes">{{ $t('搜索') }}</button>
           </div>
         </div>
 
@@ -40,45 +40,45 @@
             <thead>
               <tr>
                 <th class="sortable th-left" @click="toggleTypeSort('typeName')">
-                  字典类型
+                  {{ $t('字典类型') }}
                   <span class="sort-icon" :class="{ active: typeSort.field === 'typeName' }">
                     <span class="tri tri-up" :class="{ highlight: typeSortDir('typeName') === 'asc' }">▲</span>
                     <span class="tri tri-down" :class="{ highlight: typeSortDir('typeName') === 'desc' }">▼</span>
                   </span>
                 </th>
-                <th class="col-count">数据量</th>
+                <th class="col-count">{{ $t('数据量') }}</th>
                 <th class="sortable col-status" @click="toggleTypeSort('status')">
-                  状态
+                  {{ $t('状态') }}
                   <span class="sort-icon" :class="{ active: typeSort.field === 'status' }">
                     <span class="tri tri-up" :class="{ highlight: typeSortDir('status') === 'asc' }">▲</span>
                     <span class="tri tri-down" :class="{ highlight: typeSortDir('status') === 'desc' }">▼</span>
                   </span>
                 </th>
-                <th class="col-act">操作</th>
+                <th class="col-act">{{ $t('操作') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="typeRecords.length === 0 && !typeLoading">
-                <td colspan="4" class="empty-row">暂无字典类型</td>
+                <td colspan="4" class="empty-row">{{ $t('暂无字典类型') }}</td>
               </tr>
               <tr v-for="row in typeRecords" :key="row.id" class="table-row type-row"
                 :class="{ selected: selectedType && selectedType.id === row.id }" @click="selectType(row)">
                 <td class="cell-name">
                   <div class="cell-line1">
                     <span class="cell-bold">{{ row.typeName }}</span>
-                    <span v-if="row.isSystem" class="tag-sys">内置</span>
+                    <span v-if="row.isSystem" class="tag-sys">{{ $t('内置') }}</span>
                   </div>
                   <div class="cell-code">{{ row.typeCode }}</div>
                 </td>
                 <td><span class="sort-num">{{ row.dataCount ?? 0 }}</span></td>
                 <td class="col-status">
-                  <span class="status-badge" :class="row.status ? 'active' : 'inactive'">{{ row.status ? '启用' : '禁用' }}</span>
+                  <span class="status-badge" :class="row.status ? 'active' : 'inactive'">{{ row.status ? $t('启用') : $t('禁用') }}</span>
                 </td>
                 <td class="col-act">
                   <div class="action-group">
-                    <button class="btn-action btn-edit" @click.stop="openTypeModal(row)">编辑</button>
+                    <button class="btn-action btn-edit" @click.stop="openTypeModal(row)">{{ $t('编辑') }}</button>
                     <button class="btn-action btn-delete" :disabled="row.isSystem"
-                      :title="row.isSystem ? '系统内置字典不可删除' : ''" @click.stop="confirmDeleteType(row)">删除</button>
+                      :title="row.isSystem ? sysDictDeleteTip : ''" @click.stop="confirmDeleteType(row)">{{ $t('删除') }}</button>
                   </div>
                 </td>
               </tr>
@@ -93,9 +93,9 @@
             <button class="pg-btn" :disabled="typePage >= typePages.length" @click="goTypePage(typePage + 1)">&#8250;</button>
           </div>
           <select v-model.number="typeSize" class="page-size-sel">
-            <option :value="10">10 条/页</option>
-            <option :value="20">20 条/页</option>
-            <option :value="50">50 条/页</option>
+            <option :value="10">{{ $t('10 条/页') }}</option>
+            <option :value="20">{{ $t('20 条/页') }}</option>
+            <option :value="50">{{ $t('50 条/页') }}</option>
           </select>
         </div>
       </section>
@@ -104,97 +104,97 @@
       <section class="panel">
         <div class="panel-head">
           <div class="panel-head-text">
-            <h2 class="panel-title">字典数据</h2>
+            <h2 class="panel-title">{{ $t('字典数据') }}</h2>
             <span class="panel-sub" v-if="selectedType">
               {{ selectedType.typeName }}
               <code class="type-code-chip">{{ selectedType.typeCode }}</code>
             </span>
-            <span class="panel-sub" v-else>未选择字典类型</span>
+            <span class="panel-sub" v-else>{{ $t('未选择字典类型') }}</span>
           </div>
           <button class="btn btn-add btn-sm" :disabled="!selectedType" @click="openDataModal(null)">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
-            新增数据
+            {{ $t('新增数据') }}
           </button>
         </div>
 
         <div class="panel-filter is-data">
-          <input v-model="dataQuery.label" class="filter-input" placeholder="字典标签" :disabled="!selectedType" @keyup.enter="searchDatas" />
+          <input v-model="dataQuery.label" class="filter-input" :placeholder="$t('字典标签')" :disabled="!selectedType" @keyup.enter="searchDatas" />
           <div class="select-wrap" :class="{ open: dataStatusOpen }">
             <select v-model="dataQuery.status" class="filter-select" :disabled="!selectedType" @mousedown="dataStatusOpen = true" @blur="dataStatusOpen = false">
-              <option value="">全部状态</option>
-              <option :value="true">启用</option>
-              <option :value="false">禁用</option>
+              <option value="">{{ $t('全部状态') }}</option>
+              <option :value="true">{{ $t('启用') }}</option>
+              <option :value="false">{{ $t('禁用') }}</option>
             </select>
           </div>
           <div class="panel-filter-btns">
-            <button class="btn btn-secondary btn-sm" :disabled="!selectedType" @click="resetDataQuery">重置</button>
-            <button class="btn btn-primary btn-sm" :disabled="!selectedType" @click="searchDatas">搜索</button>
+            <button class="btn btn-secondary btn-sm" :disabled="!selectedType" @click="resetDataQuery">{{ $t('重置') }}</button>
+            <button class="btn btn-primary btn-sm" :disabled="!selectedType" @click="searchDatas">{{ $t('搜索') }}</button>
           </div>
         </div>
 
         <div class="panel-body table-wrap" v-loading="dataLoading">
           <div v-if="!selectedType" class="empty-state">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18" /><path d="M9 9v11" /></svg>
-            <p>请先在左侧选择字典类型</p>
-            <span>选中后可在此维护该类型下的标签、值、排序与默认项</span>
+            <p>{{ $t('请先在左侧选择字典类型') }}</p>
+            <span>{{ $t('选中后可在此维护该类型下的标签、值、排序与默认项') }}</span>
           </div>
 
           <table v-else class="data-table">
             <thead>
               <tr>
                 <th class="sortable th-left" @click="toggleDataSort('label')">
-                  字典标签
+                  {{ $t('字典标签') }}
                   <span class="sort-icon" :class="{ active: dataSort.field === 'label' }">
                     <span class="tri tri-up" :class="{ highlight: dataSortDir('label') === 'asc' }">▲</span>
                     <span class="tri tri-down" :class="{ highlight: dataSortDir('label') === 'desc' }">▼</span>
                   </span>
                 </th>
                 <th class="sortable th-left" @click="toggleDataSort('value')">
-                  字典值
+                  {{ $t('字典值') }}
                   <span class="sort-icon" :class="{ active: dataSort.field === 'value' }">
                     <span class="tri tri-up" :class="{ highlight: dataSortDir('value') === 'asc' }">▲</span>
                     <span class="tri tri-down" :class="{ highlight: dataSortDir('value') === 'desc' }">▼</span>
                   </span>
                 </th>
                 <th class="sortable col-sort" @click="toggleDataSort('sort')">
-                  排序
+                  {{ $t('排序') }}
                   <span class="sort-icon" :class="{ active: dataSort.field === 'sort' }">
                     <span class="tri tri-up" :class="{ highlight: dataSortDir('sort') === 'asc' }">▲</span>
                     <span class="tri tri-down" :class="{ highlight: dataSortDir('sort') === 'desc' }">▼</span>
                   </span>
                 </th>
-                <th class="col-flag">默认</th>
+                <th class="col-flag">{{ $t('默认') }}</th>
                 <th class="sortable col-status" @click="toggleDataSort('status')">
-                  状态
+                  {{ $t('状态') }}
                   <span class="sort-icon" :class="{ active: dataSort.field === 'status' }">
                     <span class="tri tri-up" :class="{ highlight: dataSortDir('status') === 'asc' }">▲</span>
                     <span class="tri tri-down" :class="{ highlight: dataSortDir('status') === 'desc' }">▼</span>
                   </span>
                 </th>
-                <th class="th-left">备注</th>
-                <th class="col-act">操作</th>
+                <th class="th-left">{{ $t('备注') }}</th>
+                <th class="col-act">{{ $t('操作') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="dataRecords.length === 0 && !dataLoading">
-                <td colspan="7" class="empty-row">该类型下暂无字典数据</td>
+                <td colspan="7" class="empty-row">{{ $t('该类型下暂无字典数据') }}</td>
               </tr>
               <tr v-for="row in dataRecords" :key="row.id" class="table-row">
                 <td class="cell-bold cell-left">{{ row.label }}</td>
                 <td class="cell-mono cell-left">{{ row.value }}</td>
                 <td class="col-sort"><span class="sort-num">{{ row.sort ?? 0 }}</span></td>
                 <td class="col-flag">
-                  <span v-if="row.isDefault" class="tag-default">默认</span>
+                  <span v-if="row.isDefault" class="tag-default">{{ $t('默认') }}</span>
                   <span v-else class="cell-muted">—</span>
                 </td>
                 <td class="col-status">
-                  <span class="status-badge" :class="row.status ? 'active' : 'inactive'">{{ row.status ? '启用' : '禁用' }}</span>
+                  <span class="status-badge" :class="row.status ? 'active' : 'inactive'">{{ row.status ? $t('启用') : $t('禁用') }}</span>
                 </td>
                 <td class="cell-muted cell-left cell-ellipsis" :title="row.remark || ''">{{ row.remark || '—' }}</td>
                 <td class="col-act">
                   <div class="action-group">
-                    <button class="btn-action btn-edit" @click="openDataModal(row)">编辑</button>
-                    <button class="btn-action btn-delete" @click="confirmDeleteData(row)">删除</button>
+                    <button class="btn-action btn-edit" @click="openDataModal(row)">{{ $t('编辑') }}</button>
+                    <button class="btn-action btn-delete" @click="confirmDeleteData(row)">{{ $t('删除') }}</button>
                   </div>
                 </td>
               </tr>
@@ -209,9 +209,9 @@
             <button class="pg-btn" :disabled="dataPage >= dataPages.length" @click="goDataPage(dataPage + 1)">&#8250;</button>
           </div>
           <select v-model.number="dataSize" class="page-size-sel">
-            <option :value="10">10 条/页</option>
-            <option :value="20">20 条/页</option>
-            <option :value="50">50 条/页</option>
+            <option :value="10">{{ $t('10 条/页') }}</option>
+            <option :value="20">{{ $t('20 条/页') }}</option>
+            <option :value="50">{{ $t('50 条/页') }}</option>
           </select>
         </div>
       </section>
@@ -223,38 +223,38 @@
         <div v-if="showTypeModal" class="modal-overlay" @click.self="closeTypeModal">
           <div class="modal-card modal-std" @click.stop>
             <div class="modal-header">
-              <h3>{{ typeForm.id ? '编辑字典类型' : '新增字典类型' }}</h3>
+              <h3>{{ typeForm.id ? $t('编辑字典类型') : $t('新增字典类型') }}</h3>
               <button class="modal-close" @click="closeTypeModal">&times;</button>
             </div>
             <div class="modal-body">
               <div class="fg">
-                <label class="fl">类型编码 <span class="req">*</span>
-                  <span v-if="typeForm.isSystem && typeForm.id" class="tag-sys">系统内置</span>
+                <label class="fl">{{ $t('类型编码') }} <span class="req">*</span>
+                  <span v-if="typeForm.isSystem && typeForm.id" class="tag-sys">{{ $t('系统内置') }}</span>
                 </label>
-                <input v-model="typeForm.typeCode" class="fi" placeholder="如：video_status"
+                <input v-model="typeForm.typeCode" class="fi" :placeholder="$t('如：video_status')"
                   :disabled="typeForm.isSystem && !!typeForm.id" />
-                <span class="fh">{{ typeForm.isSystem && typeForm.id ? '系统内置字典不可修改编码' : '全局唯一，用于按编码获取字典数据' }}</span>
+                <span class="fh">{{ typeForm.isSystem && typeForm.id ? $t('系统内置字典不可修改编码') : $t('全局唯一，用于按编码获取字典数据') }}</span>
               </div>
               <div class="fg">
-                <label class="fl">类型名称 <span class="req">*</span></label>
-                <input v-model="typeForm.typeName" class="fi" placeholder="如：视频状态" />
-                <span class="fh">全局唯一</span>
+                <label class="fl">{{ $t('类型名称') }} <span class="req">*</span></label>
+                <input v-model="typeForm.typeName" class="fi" :placeholder="$t('如：视频状态')" />
+                <span class="fh">{{ $t('全局唯一') }}</span>
               </div>
               <div class="fg">
-                <label class="fl">备注</label>
-                <input v-model="typeForm.remark" class="fi" placeholder="选填，说明该字典的用途" />
+                <label class="fl">{{ $t('备注') }}</label>
+                <input v-model="typeForm.remark" class="fi" :placeholder="$t('选填，说明该字典的用途')" />
               </div>
               <div class="fg">
-                <label class="fl">状态</label>
+                <label class="fl">{{ $t('状态') }}</label>
                 <div class="toggle-wrap" @click="typeForm.status = !typeForm.status">
                   <button class="toggle-btn" :class="{ on: typeForm.status }"><span class="toggle-knob"></span></button>
-                  <span class="toggle-label">{{ typeForm.status ? '启用' : '禁用' }}</span>
+                  <span class="toggle-label">{{ typeForm.status ? $t('启用') : $t('禁用') }}</span>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="closeTypeModal">取消</button>
-              <button class="btn btn-primary" @click="saveType">确认</button>
+              <button class="btn btn-secondary" @click="closeTypeModal">{{ $t('取消') }}</button>
+              <button class="btn btn-primary" @click="saveType">{{ $t('确认') }}</button>
             </div>
           </div>
         </div>
@@ -267,57 +267,57 @@
         <div v-if="showDataModal" class="modal-overlay" @click.self="closeDataModal">
           <div class="modal-card modal-std" @click.stop>
             <div class="modal-header">
-              <h3>{{ dataForm.id ? '编辑字典数据' : '新增字典数据' }}</h3>
+              <h3>{{ dataForm.id ? $t('编辑字典数据') : $t('新增字典数据') }}</h3>
               <button class="modal-close" @click="closeDataModal">&times;</button>
             </div>
             <div class="modal-body">
               <div class="fg">
-                <label class="fl">所属类型 <span class="req">*</span></label>
+                <label class="fl">{{ $t('所属类型') }} <span class="req">*</span></label>
                 <div class="select-wrap" :class="{ open: dataFormTypeOpen }">
                   <select v-model="dataForm.typeCode" class="filter-select" :disabled="typeOptions.length === 0"
                     @mousedown="dataFormTypeOpen = true" @blur="dataFormTypeOpen = false">
-                    <option v-for="t in typeOptions" :key="t.id" :value="t.typeCode">{{ t.typeName }}（{{ t.typeCode }}）</option>
+                    <option v-for="opt in typeOptions" :key="opt.id" :value="opt.typeCode">{{ opt.typeName }}（{{ opt.typeCode }}）</option>
                   </select>
                 </div>
-                <span class="fh">切换类型会将该条数据移动到目标类型下</span>
+                <span class="fh">{{ $t('切换类型会将该条数据移动到目标类型下') }}</span>
               </div>
               <div class="fg">
-                <label class="fl">字典标签 <span class="req">*</span></label>
-                <input v-model="dataForm.label" class="fi" placeholder="如：已发布" />
-                <span class="fh">展示给用户的文案，同类型下唯一</span>
+                <label class="fl">{{ $t('字典标签') }} <span class="req">*</span></label>
+                <input v-model="dataForm.label" class="fi" :placeholder="$t('如：已发布')" />
+                <span class="fh">{{ $t('展示给用户的文案，同类型下唯一') }}</span>
               </div>
               <div class="fg">
-                <label class="fl">字典值 <span class="req">*</span></label>
-                <input v-model="dataForm.value" class="fi" placeholder="如：published" />
-                <span class="fh">业务取值，同类型下唯一</span>
+                <label class="fl">{{ $t('字典值') }} <span class="req">*</span></label>
+                <input v-model="dataForm.value" class="fi" :placeholder="$t('如：published')" />
+                <span class="fh">{{ $t('业务取值，同类型下唯一') }}</span>
               </div>
               <div class="fg fg-half">
-                <label class="fl">排序</label>
+                <label class="fl">{{ $t('排序') }}</label>
                 <input v-model.number="dataForm.sort" class="fi" type="number" placeholder="0" />
-                <span class="fh">升序，越小越靠前</span>
+                <span class="fh">{{ $t('升序，越小越靠前') }}</span>
               </div>
               <div class="fg">
-                <label class="fl">是否默认</label>
+                <label class="fl">{{ $t('是否默认') }}</label>
                 <div class="toggle-wrap" @click="dataForm.isDefault = !dataForm.isDefault">
                   <button class="toggle-btn" :class="{ on: dataForm.isDefault }"><span class="toggle-knob"></span></button>
-                  <span class="toggle-label">{{ dataForm.isDefault ? '默认项' : '非默认' }}</span>
+                  <span class="toggle-label">{{ dataForm.isDefault ? $t('默认项') : $t('非默认') }}</span>
                 </div>
               </div>
               <div class="fg">
-                <label class="fl">备注</label>
-                <input v-model="dataForm.remark" class="fi" placeholder="选填" />
+                <label class="fl">{{ $t('备注') }}</label>
+                <input v-model="dataForm.remark" class="fi" :placeholder="$t('选填')" />
               </div>
               <div class="fg">
-                <label class="fl">状态</label>
+                <label class="fl">{{ $t('状态') }}</label>
                 <div class="toggle-wrap" @click="dataForm.status = !dataForm.status">
                   <button class="toggle-btn" :class="{ on: dataForm.status }"><span class="toggle-knob"></span></button>
-                  <span class="toggle-label">{{ dataForm.status ? '启用' : '禁用' }}</span>
+                  <span class="toggle-label">{{ dataForm.status ? $t('启用') : $t('禁用') }}</span>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="closeDataModal">取消</button>
-              <button class="btn btn-primary" @click="saveData">确认</button>
+              <button class="btn btn-secondary" @click="closeDataModal">{{ $t('取消') }}</button>
+              <button class="btn btn-primary" @click="saveData">{{ $t('确认') }}</button>
             </div>
           </div>
         </div>
@@ -328,11 +328,16 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getDictTypeList, addDictType, updateDictType, deleteDictType,
   getDictDataList, addDictData, updateDictData, deleteDictData
 } from '@/api/dict'
+
+const { t } = useI18n()
+
+const sysDictDeleteTip = computed(() => t('系统内置字典不可删除'))
 
 // 业务错误（code!=200）由拦截器 reject 且不弹提示；HTTP 错误拦截器已弹过，避免重复
 function showError(e, fallback) {
@@ -371,7 +376,7 @@ async function fetchTypes() {
     typeTotal.value = res.data?.total ?? 0
     ensureSelection()
   } catch (e) {
-    showError(e, '加载字典类型失败')
+    showError(e, t('加载字典类型失败'))
   } finally {
     typeLoading.value = false
   }
@@ -485,7 +490,7 @@ async function fetchDatas() {
     dataRecords.value = res.data?.records || []
     dataTotal.value = res.data?.total ?? 0
   } catch (e) {
-    showError(e, '加载字典数据失败')
+    showError(e, t('加载字典数据失败'))
   } finally {
     dataLoading.value = false
   }
@@ -565,45 +570,45 @@ function closeTypeModal() { showTypeModal.value = false }
 async function saveType() {
   const typeCode = typeForm.typeCode.trim()
   const typeName = typeForm.typeName.trim()
-  if (!typeCode) { ElMessage.warning('字典类型编码不能为空'); return }
-  if (!typeName) { ElMessage.warning('字典类型名称不能为空'); return }
+  if (!typeCode) { ElMessage.warning(t('字典类型编码不能为空')); return }
+  if (!typeName) { ElMessage.warning(t('字典类型名称不能为空')); return }
   try {
     if (typeForm.id) {
       const payload = { id: typeForm.id, typeName, remark: typeForm.remark, status: typeForm.status }
       // 系统内置类型不下发 typeCode，规避后端「系统内置字典不可修改编码」
       if (!typeForm.isSystem) payload.typeCode = typeCode
       await updateDictType(payload)
-      ElMessage.success('字典类型更新成功')
+      ElMessage.success(t('字典类型更新成功'))
     } else {
       await addDictType({ typeCode, typeName, remark: typeForm.remark, status: typeForm.status })
-      ElMessage.success('字典类型创建成功')
+      ElMessage.success(t('字典类型创建成功'))
     }
     closeTypeModal()
     fetchTypes()
     loadTypeOptions()
   } catch (e) {
-    showError(e, '保存字典类型失败')
+    showError(e, t('保存字典类型失败'))
   }
 }
 
 async function confirmDeleteType(row) {
   if (row.isSystem) {
-    ElMessage.warning('系统内置字典不可删除')
+    ElMessage.warning(t('系统内置字典不可删除'))
     return
   }
   try {
     await ElMessageBox.confirm(
-      `确定要删除字典类型「${row.typeName}」吗？其下 ${row.dataCount ?? 0} 条字典数据将一并删除。`,
-      '删除确认',
-      { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
+      t('确定要删除字典类型「{name}」吗？其下 {count} 条字典数据将一并删除。', { name: row.typeName, count: row.dataCount ?? 0 }),
+      t('删除确认'),
+      { confirmButtonText: t('确定'), cancelButtonText: t('取消'), type: 'warning' }
     )
     await deleteDictType(row.id)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('删除成功'))
     if (selectedType.value && selectedType.value.id === row.id) selectedType.value = null
     fetchTypes()
     loadTypeOptions()
   } catch (e) {
-    if (e !== 'cancel') showError(e, '删除字典类型失败')
+    if (e !== 'cancel') showError(e, t('删除字典类型失败'))
   }
 }
 
@@ -616,13 +621,15 @@ const typeOptions = ref([])
 async function loadTypeOptions() {
   try {
     const res = await getDictTypeList({ page: 1, size: 500 })
-    typeOptions.value = (res.data?.records || []).map(t => ({ id: t.id, typeCode: t.typeCode, typeName: t.typeName }))
-  } catch { /* 下拉选项加载失败不阻断主流程 */ }
+    typeOptions.value = (res.data?.records || []).map(d => ({ id: d.id, typeCode: d.typeCode, typeName: d.typeName }))
+  } catch {
+    // 下拉选项加载失败不阻断主流程
+  }
 }
 
 function openDataModal(row) {
   if (!selectedType.value) {
-    ElMessage.warning('请先选择字典类型')
+    ElMessage.warning(t('请先选择字典类型'))
     return
   }
   if (typeOptions.value.length === 0) loadTypeOptions()
@@ -654,9 +661,9 @@ async function saveData() {
   const typeCode = dataForm.typeCode
   const label = dataForm.label.trim()
   const value = dataForm.value.trim()
-  if (!typeCode) { ElMessage.warning('字典类型编码不能为空'); return }
-  if (!label) { ElMessage.warning('字典标签不能为空'); return }
-  if (!value) { ElMessage.warning('字典值不能为空'); return }
+  if (!typeCode) { ElMessage.warning(t('字典类型编码不能为空')); return }
+  if (!label) { ElMessage.warning(t('字典标签不能为空')); return }
+  if (!value) { ElMessage.warning(t('字典值不能为空')); return }
   const payload = {
     typeCode, label, value,
     sort: dataForm.sort === '' || dataForm.sort == null ? 0 : Number(dataForm.sort),
@@ -667,30 +674,30 @@ async function saveData() {
   try {
     if (dataForm.id) {
       await updateDictData({ id: dataForm.id, ...payload })
-      ElMessage.success('字典数据更新成功')
+      ElMessage.success(t('字典数据更新成功'))
     } else {
       await addDictData(payload)
-      ElMessage.success('字典数据创建成功')
+      ElMessage.success(t('字典数据创建成功'))
     }
     closeDataModal()
     fetchDatas()
     fetchTypes()
   } catch (e) {
-    showError(e, '保存字典数据失败')
+    showError(e, t('保存字典数据失败'))
   }
 }
 
 async function confirmDeleteData(row) {
   try {
-    await ElMessageBox.confirm(`确定要删除字典数据「${row.label}」吗？`, '删除确认', {
-      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
+    await ElMessageBox.confirm(t('确定要删除字典数据「{label}」吗？', { label: row.label }), t('删除确认'), {
+      confirmButtonText: t('确定'), cancelButtonText: t('取消'), type: 'warning'
     })
     await deleteDictData(row.id)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('删除成功'))
     fetchDatas()
     fetchTypes()
   } catch (e) {
-    if (e !== 'cancel') showError(e, '删除字典数据失败')
+    if (e !== 'cancel') showError(e, t('删除字典数据失败'))
   }
 }
 

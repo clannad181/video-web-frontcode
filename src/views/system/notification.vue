@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">通知设置</h2>
-      <p class="page-desc">配置系统事件通知和通知方式</p>
+      <h2 class="page-title">{{ $t('通知设置') }}</h2>
+      <p class="page-desc">{{ $t('配置系统事件通知和通知方式') }}</p>
     </div>
 
     <el-card class="settings-card" v-loading="loading">
@@ -13,53 +13,53 @@
         label-position="left"
       >
         <div class="form-section">
-          <h3 class="section-title">事件通知</h3>
+          <h3 class="section-title">{{ $t('事件通知') }}</h3>
           <el-divider />
-          <el-form-item label="视频审核完成">
+          <el-form-item :label="$t('视频审核完成')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.videoAuditComplete" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">视频审核完成后通知上传者</span>
+              <el-switch v-model="form.videoAuditComplete" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('视频审核完成后通知上传者') }}</span>
             </div>
           </el-form-item>
-          <el-form-item label="评论被回复">
+          <el-form-item :label="$t('评论被回复')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.commentReplied" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">用户的评论被回复时发送通知</span>
+              <el-switch v-model="form.commentReplied" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('用户的评论被回复时发送通知') }}</span>
             </div>
           </el-form-item>
-          <el-form-item label="评论被举报">
+          <el-form-item :label="$t('评论被举报')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.commentReported" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">评论被举报时通知管理员</span>
+              <el-switch v-model="form.commentReported" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('评论被举报时通知管理员') }}</span>
             </div>
           </el-form-item>
-          <el-form-item label="视频被举报">
+          <el-form-item :label="$t('视频被举报')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.videoReported" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">视频被举报时通知管理员</span>
+              <el-switch v-model="form.videoReported" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('视频被举报时通知管理员') }}</span>
             </div>
           </el-form-item>
-          <el-form-item label="用户注册">
+          <el-form-item :label="$t('用户注册')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.userRegistered" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">新用户注册时通知管理员</span>
+              <el-switch v-model="form.userRegistered" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('新用户注册时通知管理员') }}</span>
             </div>
           </el-form-item>
         </div>
 
         <div class="form-section">
-          <h3 class="section-title">通知方式</h3>
+          <h3 class="section-title">{{ $t('通知方式') }}</h3>
           <el-divider />
-          <el-form-item label="站内通知">
+          <el-form-item :label="$t('站内通知')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.siteNotification" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">在系统内部消息中心显示通知</span>
+              <el-switch v-model="form.siteNotification" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('在系统内部消息中心显示通知') }}</span>
             </div>
           </el-form-item>
-          <el-form-item label="邮件通知">
+          <el-form-item :label="$t('邮件通知')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.emailNotification" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">通过邮件发送通知信息</span>
+              <el-switch v-model="form.emailNotification" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('通过邮件发送通知信息') }}</span>
             </div>
           </el-form-item>
         </div>
@@ -67,7 +67,7 @@
         <div class="form-actions">
           <el-button type="primary" :loading="saving" @click="handleSave">
             <el-icon v-if="!saving"><Check /></el-icon>
-            保存设置
+            {{ $t('保存设置') }}
           </el-button>
         </div>
       </el-form>
@@ -80,6 +80,9 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Check } from '@element-plus/icons-vue'
 import { getNotificationSettings, updateNotificationSettings } from '@/api/system'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const formRef = ref(null)
 const loading = ref(false)
@@ -111,7 +114,7 @@ const handleSave = async () => {
   saving.value = true
   try {
     await updateNotificationSettings(form.value)
-    ElMessage.success('通知设置已保存')
+    ElMessage.success(t('通知设置已保存'))
   } finally {
     saving.value = false
   }

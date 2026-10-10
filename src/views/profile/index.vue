@@ -16,23 +16,23 @@
             <h2 class="profile-name">{{ form.nickname || form.username }}</h2>
             <p class="profile-email">{{ form.email }}</p>
             <div class="profile-tags">
-              <el-tag type="danger" effect="dark" round size="small">管理员</el-tag>
-              <el-tag type="warning" effect="dark" round size="small">VIP 会员</el-tag>
+              <el-tag type="danger" effect="dark" round size="small">{{ $t('管理员') }}</el-tag>
+              <el-tag type="warning" effect="dark" round size="small">{{ $t('VIP 会员') }}</el-tag>
             </div>
           </div>
           <el-divider />
           <div class="profile-stats">
             <div class="stat-item">
               <span class="stat-value">128</span>
-              <span class="stat-label">登录次数</span>
+              <span class="stat-label">{{ $t('登录次数') }}</span>
             </div>
             <div class="stat-item">
               <span class="stat-value">32</span>
-              <span class="stat-label">操作记录</span>
+              <span class="stat-label">{{ $t('操作记录') }}</span>
             </div>
             <div class="stat-item">
               <span class="stat-value">15</span>
-              <span class="stat-label">天前修改</span>
+              <span class="stat-label">{{ $t('天前修改') }}</span>
             </div>
           </div>
         </el-card>
@@ -41,7 +41,7 @@
       <el-col :span="16">
         <el-card shadow="never" class="form-card fade-in" style="animation-delay: 0.1s">
           <el-tabs v-model="activeTab" class="profile-tabs">
-            <el-tab-pane label="基本信息" name="info">
+            <el-tab-pane :label="$t('基本信息')" name="info">
               <el-form
                 ref="infoFormRef"
                 :model="form"
@@ -49,46 +49,46 @@
                 label-width="80px"
                 class="info-form"
               >
-                <el-form-item label="昵称" prop="nickname">
-                  <el-input v-model="form.nickname" placeholder="请输入昵称" maxlength="20" show-word-limit />
+                <el-form-item :label="$t('昵称')" prop="nickname">
+                  <el-input v-model="form.nickname" :placeholder="$t('请输入昵称')" maxlength="20" show-word-limit />
                 </el-form-item>
-                <el-form-item label="邮箱" prop="email">
+                <el-form-item :label="$t('邮箱')" prop="email">
                   <div class="email-input-group">
-                    <el-input v-model="form.email" placeholder="请输入邮箱" />
+                    <el-input v-model="form.email" :placeholder="$t('请输入邮箱')" />
                     <el-button type="primary" plain :disabled="codeCountdown > 0" @click="sendCode">
-                      {{ codeCountdown > 0 ? `${codeCountdown}s` : '获取验证码' }}
+                      {{ codeCountdown > 0 ? `${codeCountdown}s` : $t('获取验证码') }}
                     </el-button>
                   </div>
                 </el-form-item>
-                <el-form-item v-if="showEmailCode" label="验证码" prop="emailCode">
-                  <el-input v-model="form.emailCode" placeholder="请输入验证码" maxlength="6" />
+                <el-form-item v-if="showEmailCode" :label="$t('验证码')" prop="emailCode">
+                  <el-input v-model="form.emailCode" :placeholder="$t('请输入验证码')" maxlength="6" />
                 </el-form-item>
-                <el-form-item label="性别">
+                <el-form-item :label="$t('性别')">
                   <el-radio-group v-model="form.gender">
-                    <el-radio :value="1">男</el-radio>
-                    <el-radio :value="2">女</el-radio>
-                    <el-radio :value="0">保密</el-radio>
+                    <el-radio :value="1">{{ $t('男') }}</el-radio>
+                    <el-radio :value="2">{{ $t('女') }}</el-radio>
+                    <el-radio :value="0">{{ $t('保密') }}</el-radio>
                   </el-radio-group>
                 </el-form-item>
-                <el-form-item label="签名">
+                <el-form-item :label="$t('签名')">
                   <el-input
                     v-model="form.signature"
                     type="textarea"
                     :rows="3"
-                    placeholder="写点什么介绍下自己..."
+                    :placeholder="$t('写点什么介绍下自己...')"
                     maxlength="100"
                     show-word-limit
                   />
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" :loading="saving" @click="handleSaveInfo">保存修改</el-button>
+                  <el-button type="primary" :loading="saving" @click="handleSaveInfo">{{ $t('保存修改') }}</el-button>
                 </el-form-item>
               </el-form>
             </el-tab-pane>
 
-            <el-tab-pane label="安全设置" name="security">
+            <el-tab-pane :label="$t('安全设置')" name="security">
               <div class="security-section">
-                <h4 class="section-title">修改密码</h4>
+                <h4 class="section-title">{{ $t('修改密码') }}</h4>
                 <el-form
                   ref="pwdFormRef"
                   :model="pwdForm"
@@ -96,17 +96,17 @@
                   label-width="100px"
                   class="security-form"
                 >
-                  <el-form-item label="当前密码" prop="oldPassword">
-                    <el-input v-model="pwdForm.oldPassword" type="password" placeholder="请输入当前密码" show-password />
+                  <el-form-item :label="$t('当前密码')" prop="oldPassword">
+                    <el-input v-model="pwdForm.oldPassword" type="password" :placeholder="$t('请输入当前密码')" show-password />
                   </el-form-item>
-                  <el-form-item label="新密码" prop="newPassword">
-                    <el-input v-model="pwdForm.newPassword" type="password" placeholder="请输入新密码" show-password />
+                  <el-form-item :label="$t('新密码')" prop="newPassword">
+                    <el-input v-model="pwdForm.newPassword" type="password" :placeholder="$t('请输入新密码')" show-password />
                   </el-form-item>
-                  <el-form-item label="确认密码" prop="confirmPassword">
-                    <el-input v-model="pwdForm.confirmPassword" type="password" placeholder="请再次输入新密码" show-password />
+                  <el-form-item :label="$t('确认密码')" prop="confirmPassword">
+                    <el-input v-model="pwdForm.confirmPassword" type="password" :placeholder="$t('请再次输入新密码')" show-password />
                   </el-form-item>
                   <el-form-item>
-                    <el-button type="primary" :loading="pwdSaving" @click="handleChangePassword">修改密码</el-button>
+                    <el-button type="primary" :loading="pwdSaving" @click="handleChangePassword">{{ $t('修改密码') }}</el-button>
                   </el-form-item>
                 </el-form>
               </div>
@@ -114,7 +114,7 @@
               <el-divider />
 
               <div class="security-section">
-                <h4 class="section-title">更换邮箱</h4>
+                <h4 class="section-title">{{ $t('更换邮箱') }}</h4>
                 <el-form
                   ref="emailFormRef"
                   :model="emailForm"
@@ -122,22 +122,22 @@
                   label-width="100px"
                   class="security-form"
                 >
-                  <el-form-item label="当前邮箱">
+                  <el-form-item :label="$t('当前邮箱')">
                     <span class="current-email">{{ form.email }}</span>
                   </el-form-item>
-                  <el-form-item label="新邮箱" prop="newEmail">
-                    <el-input v-model="emailForm.newEmail" placeholder="请输入新邮箱" />
+                  <el-form-item :label="$t('新邮箱')" prop="newEmail">
+                    <el-input v-model="emailForm.newEmail" :placeholder="$t('请输入新邮箱')" />
                   </el-form-item>
-                  <el-form-item label="验证码" prop="code">
+                  <el-form-item :label="$t('验证码')" prop="code">
                     <div class="email-input-group">
-                      <el-input v-model="emailForm.code" placeholder="请输入验证码" maxlength="6" />
+                      <el-input v-model="emailForm.code" :placeholder="$t('请输入验证码')" maxlength="6" />
                       <el-button type="primary" plain :disabled="emailCodeCountdown > 0" @click="sendEmailCode">
-                        {{ emailCodeCountdown > 0 ? `${emailCodeCountdown}s` : '获取验证码' }}
+                        {{ emailCodeCountdown > 0 ? `${emailCodeCountdown}s` : $t('获取验证码') }}
                       </el-button>
                     </div>
                   </el-form-item>
                   <el-form-item>
-                    <el-button type="primary" :loading="emailSaving" @click="handleChangeEmail">确认更换</el-button>
+                    <el-button type="primary" :loading="emailSaving" @click="handleChangeEmail">{{ $t('确认更换') }}</el-button>
                   </el-form-item>
                 </el-form>
               </div>
@@ -151,8 +151,11 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Camera } from '@element-plus/icons-vue'
+
+const { t } = useI18n()
 
 const activeTab = ref('info')
 const saving = ref(false)
@@ -168,10 +171,10 @@ const emailFormRef = ref(null)
 
 const form = reactive({
   username: 'admin',
-  nickname: '管理员',
+  nickname: '管理员', // i18n-key 昵称属纯数据，不翻译
   email: 'admin@example.com',
   gender: 1,
-  signature: '这是个人简介，介绍一下自己吧',
+  signature: '这是个人简介，介绍一下自己吧', // i18n-key 简介属纯数据，不翻译
   avatar: ''
 })
 
@@ -188,38 +191,38 @@ const emailForm = reactive({
 
 const validateConfirmPwd = (rule, value, callback) => {
   if (value !== pwdForm.newPassword) {
-    callback(new Error('两次输入的密码不一致'))
+    callback(new Error(t('两次输入的密码不一致')))
   } else {
     callback()
   }
 }
 
 const infoRules = {
-  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  nickname: [{ required: true, message: t('请输入昵称'), trigger: 'blur' }],
   email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+    { required: true, message: t('请输入邮箱'), trigger: 'blur' },
+    { type: 'email', message: t('请输入正确的邮箱格式'), trigger: 'blur' }
   ]
 }
 
 const pwdRules = {
-  oldPassword: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
+  oldPassword: [{ required: true, message: t('请输入当前密码'), trigger: 'blur' }],
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, message: '密码至少 6 位', trigger: 'blur' }
+    { required: true, message: t('请输入新密码'), trigger: 'blur' },
+    { min: 6, message: t('密码至少 6 位'), trigger: 'blur' }
   ],
   confirmPassword: [
-    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    { required: true, message: t('请再次输入新密码'), trigger: 'blur' },
     { validator: validateConfirmPwd, trigger: 'blur' }
   ]
 }
 
 const emailRules = {
   newEmail: [
-    { required: true, message: '请输入新邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+    { required: true, message: t('请输入新邮箱'), trigger: 'blur' },
+    { type: 'email', message: t('请输入正确的邮箱格式'), trigger: 'blur' }
   ],
-  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+  code: [{ required: true, message: t('请输入验证码'), trigger: 'blur' }]
 }
 
 const startCountdown = (target) => {
@@ -233,12 +236,12 @@ const startCountdown = (target) => {
 const sendCode = () => {
   showEmailCode.value = true
   startCountdown(codeCountdown)
-  ElMessage.success('验证码已发送')
+  ElMessage.success(t('验证码已发送'))
 }
 
 const sendEmailCode = () => {
   startCountdown(emailCodeCountdown)
-  ElMessage.success('验证码已发送')
+  ElMessage.success(t('验证码已发送'))
 }
 
 const handleAvatarChange = (e) => {
@@ -247,7 +250,7 @@ const handleAvatarChange = (e) => {
   const reader = new FileReader()
   reader.onload = (ev) => {
     form.avatar = ev.target.result
-    ElMessage.success('头像已更新')
+    ElMessage.success(t('头像已更新'))
   }
   reader.readAsDataURL(file)
 }
@@ -257,7 +260,7 @@ const handleSaveInfo = async () => {
   saving.value = true
   try {
     await new Promise(r => setTimeout(r, 600))
-    ElMessage.success('保存成功')
+    ElMessage.success(t('保存成功'))
   } finally {
     saving.value = false
   }
@@ -268,7 +271,7 @@ const handleChangePassword = async () => {
   pwdSaving.value = true
   try {
     await new Promise(r => setTimeout(r, 600))
-    ElMessage.success('密码修改成功')
+    ElMessage.success(t('密码修改成功'))
     pwdForm.oldPassword = ''
     pwdForm.newPassword = ''
     pwdForm.confirmPassword = ''
@@ -283,7 +286,7 @@ const handleChangeEmail = async () => {
   try {
     await new Promise(r => setTimeout(r, 600))
     form.email = emailForm.newEmail
-    ElMessage.success('邮箱更换成功')
+    ElMessage.success(t('邮箱更换成功'))
     emailForm.newEmail = ''
     emailForm.code = ''
   } finally {

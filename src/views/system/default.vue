@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">默认设置</h2>
-      <p class="page-desc">配置系统中各项功能的默认值</p>
+      <h2 class="page-title">{{ $t('默认设置') }}</h2>
+      <p class="page-desc">{{ $t('配置系统中各项功能的默认值') }}</p>
     </div>
 
     <el-card class="settings-card" v-loading="loading">
@@ -13,56 +13,56 @@
         label-position="left"
       >
         <div class="form-section">
-          <h3 class="section-title">用户设置</h3>
+          <h3 class="section-title">{{ $t('用户设置') }}</h3>
           <el-divider />
-          <el-form-item label="默认角色">
-            <el-select v-model="form.defaultRole" placeholder="请选择默认角色" style="width: 100%">
-              <el-option label="普通用户" value="user" />
-              <el-option label="内容编辑" value="editor" />
-              <el-option label="审核员" value="reviewer" />
+          <el-form-item :label="$t('默认角色')">
+            <el-select v-model="form.defaultRole" :placeholder="$t('请选择默认角色')" style="width: 100%">
+              <el-option :label="$t('普通用户')" value="user" />
+              <el-option :label="$t('内容编辑')" value="editor" />
+              <el-option :label="$t('审核员')" value="reviewer" />
             </el-select>
           </el-form-item>
-          <el-form-item label="新用户默认启用">
+          <el-form-item :label="$t('新用户默认启用')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.userEnabled" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">新注册的用户账号默认为启用状态</span>
+              <el-switch v-model="form.userEnabled" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('新注册的用户账号默认为启用状态') }}</span>
             </div>
           </el-form-item>
         </div>
 
         <div class="form-section">
-          <h3 class="section-title">内容设置</h3>
+          <h3 class="section-title">{{ $t('内容设置') }}</h3>
           <el-divider />
-          <el-form-item label="默认分类">
-            <el-select v-model="form.defaultCategory" placeholder="视频未指定分类时的兜底分类" style="width: 100%">
-              <el-option label="未分类" value="uncategorized" />
-              <el-option label="综合" value="general" />
-              <el-option label="热门" value="popular" />
-              <el-option label="推荐" value="recommended" />
+          <el-form-item :label="$t('默认分类')">
+            <el-select v-model="form.defaultCategory" :placeholder="$t('视频未指定分类时的兜底分类')" style="width: 100%">
+              <el-option :label="$t('未分类')" value="uncategorized" />
+              <el-option :label="$t('综合')" value="general" />
+              <el-option :label="$t('热门')" value="popular" />
+              <el-option :label="$t('推荐')" value="recommended" />
             </el-select>
           </el-form-item>
-          <el-form-item label="默认视频状态">
-            <el-select v-model="form.defaultVideoStatus" placeholder="请选择默认视频状态" style="width: 100%">
-              <el-option label="待发布" value="pending" />
-              <el-option label="已发布" value="published" />
-              <el-option label="草稿" value="draft" />
+          <el-form-item :label="$t('默认视频状态')">
+            <el-select v-model="form.defaultVideoStatus" :placeholder="$t('请选择默认视频状态')" style="width: 100%">
+              <el-option :label="$t('待发布')" value="pending" />
+              <el-option :label="$t('已发布')" value="published" />
+              <el-option :label="$t('草稿')" value="draft" />
             </el-select>
           </el-form-item>
         </div>
 
         <div class="form-section">
-          <h3 class="section-title">互动设置</h3>
+          <h3 class="section-title">{{ $t('互动设置') }}</h3>
           <el-divider />
-          <el-form-item label="评论默认状态">
-            <el-select v-model="form.defaultCommentStatus" placeholder="请选择评论默认状态" style="width: 100%">
-              <el-option label="正常" value="normal" />
-              <el-option label="待审核" value="pending" />
+          <el-form-item :label="$t('评论默认状态')">
+            <el-select v-model="form.defaultCommentStatus" :placeholder="$t('请选择评论默认状态')" style="width: 100%">
+              <el-option :label="$t('正常')" value="normal" />
+              <el-option :label="$t('待审核')" value="pending" />
             </el-select>
           </el-form-item>
-          <el-form-item label="弹幕默认状态">
-            <el-select v-model="form.defaultDanmakuStatus" placeholder="请选择弹幕默认状态" style="width: 100%">
-              <el-option label="正常" value="normal" />
-              <el-option label="待审核" value="pending" />
+          <el-form-item :label="$t('弹幕默认状态')">
+            <el-select v-model="form.defaultDanmakuStatus" :placeholder="$t('请选择弹幕默认状态')" style="width: 100%">
+              <el-option :label="$t('正常')" value="normal" />
+              <el-option :label="$t('待审核')" value="pending" />
             </el-select>
           </el-form-item>
         </div>
@@ -70,7 +70,7 @@
         <div class="form-actions">
           <el-button type="primary" :loading="saving" @click="handleSave">
             <el-icon v-if="!saving"><Check /></el-icon>
-            保存设置
+            {{ $t('保存设置') }}
           </el-button>
         </div>
       </el-form>
@@ -81,8 +81,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { Check } from '@element-plus/icons-vue'
 import { getDefaultSettings, updateDefaultSettings } from '@/api/system'
+
+const { t } = useI18n()
 
 const formRef = ref(null)
 const loading = ref(false)
@@ -113,7 +116,7 @@ const handleSave = async () => {
   saving.value = true
   try {
     await updateDefaultSettings(form.value)
-    ElMessage.success('默认设置已保存')
+    ElMessage.success(t('默认设置已保存'))
   } finally {
     saving.value = false
   }

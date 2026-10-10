@@ -1,5 +1,6 @@
 import SparkMD5 from 'spark-md5'
 import { checkFile, uploadChunk, mergeChunks, uploadFile as apiUploadFile } from '@/api/file'
+import i18n from '@/locales'
 
 const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB
 const DIRECT_UPLOAD_THRESHOLD = 5 * 1024 * 1024
@@ -26,7 +27,7 @@ export function calculateFileHash(file) {
       }
     }
 
-    reader.onerror = () => reject(new Error('文件读取失败'))
+    reader.onerror = () => reject(new Error(i18n.global.t('文件读取失败')))
 
     function loadNext() {
       const start = currentChunk * chunkSize

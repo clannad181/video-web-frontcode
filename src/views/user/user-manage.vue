@@ -1,47 +1,47 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">用户管理</h2>
-      <span class="page-sub">管理系统用户与管理员账号</span>
+      <h2 class="page-title">{{ $t('用户管理') }}</h2>
+      <span class="page-sub">{{ $t('管理系统用户与管理员账号') }}</span>
     </div>
 
     <div class="tab-bar">
       <div class="tab-track full-width">
         <div class="tab-slider" :style="{ transform: activeTab === 'admin' ? 'translateX(0)' : 'translateX(100%)' }">
         </div>
-        <button class="tab-item" :class="{ active: activeTab === 'admin' }" @click="switchTab('admin')">管理人员</button>
-        <button class="tab-item" :class="{ active: activeTab === 'user' }" @click="switchTab('user')">用户</button>
+        <button class="tab-item" :class="{ active: activeTab === 'admin' }" @click="switchTab('admin')">{{ $t('管理人员') }}</button>
+        <button class="tab-item" :class="{ active: activeTab === 'user' }" @click="switchTab('user')">{{ $t('用户') }}</button>
       </div>
     </div>
 
     <div class="filter-card">
       <div class="filter-grid">
         <div class="filter-item">
-          <label class="filter-label">用户名</label>
-          <input v-model="filter.userName" class="filter-input" placeholder="输入用户名" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('用户名') }}</label>
+          <input v-model="filter.userName" class="filter-input" :placeholder="$t('输入用户名')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">昵称</label>
-          <input v-model="filter.nikeName" class="filter-input" placeholder="输入昵称" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('昵称') }}</label>
+          <input v-model="filter.nikeName" class="filter-input" :placeholder="$t('输入昵称')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">邮箱</label>
-          <input v-model="filter.email" class="filter-input" placeholder="输入邮箱" @keyup.enter="onSearch" />
+          <label class="filter-label">{{ $t('邮箱') }}</label>
+          <input v-model="filter.email" class="filter-input" :placeholder="$t('输入邮箱')" @keyup.enter="onSearch" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">状态</label>
+          <label class="filter-label">{{ $t('状态') }}</label>
           <div class="select-wrap" :class="{ open: statusOpen }">
             <select v-model="filter.status" class="filter-select" @mousedown="statusOpen = true" @blur="statusOpen = false">
-              <option value="">全部</option>
-              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ $t(d.label) }}</option>
             </select>
           </div>
         </div>
         <div v-if="activeTab === 'admin'" class="filter-item filter-item-role">
-          <label class="filter-label">角色</label>
+          <label class="filter-label">{{ $t('角色') }}</label>
           <div class="select-wrap" :class="{ open: roleOpen }">
             <select v-model="filter.roleId" class="filter-select" @mousedown="roleOpen = true" @blur="roleOpen = false">
-              <option value="">全部</option>
+              <option value="">{{ $t('全部') }}</option>
               <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
             </select>
           </div>
@@ -53,7 +53,7 @@
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
               <path d="M3 3v5h5" />
             </svg>
-            重置
+            {{ $t('重置') }}
           </button>
           <button class="btn btn-primary" @click="onSearch">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -61,7 +61,7 @@
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            搜索
+            {{ $t('搜索') }}
           </button>
         </div>
       </div>
@@ -72,7 +72,7 @@
             <path d="M12 5v14" />
             <path d="M5 12h14" />
           </svg>
-          新增用户
+          {{ $t('新增用户') }}
         </button>
       </div>
     </div>
@@ -83,15 +83,15 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>头像</th>
-              <th>用户名</th>
-              <th>昵称</th>
-              <th>邮箱</th>
-              <th v-if="activeTab === 'admin'">角色</th>
-              <th v-if="activeTab === 'user'">大会员</th>
-              <th>状态</th>
-              <th>创建时间</th>
-              <th>操作</th>
+              <th>{{ $t('头像') }}</th>
+              <th>{{ $t('用户名') }}</th>
+              <th>{{ $t('昵称') }}</th>
+              <th>{{ $t('邮箱') }}</th>
+              <th v-if="activeTab === 'admin'">{{ $t('角色') }}</th>
+              <th v-if="activeTab === 'user'">{{ $t('大会员') }}</th>
+              <th>{{ $t('状态') }}</th>
+              <th>{{ $t('创建时间') }}</th>
+              <th>{{ $t('操作') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -106,28 +106,28 @@
               <td>{{ row.email || '-' }}</td>
               <td v-if="activeTab === 'admin'">{{ row.roleName || '-' }}</td>
               <td v-if="activeTab === 'user'">
-                <span class="vip-pill" :class="{ active: row.isVip }">{{ row.isVip ? '是' : '否' }}</span>
+                <span class="vip-pill" :class="{ active: row.isVip }">{{ row.isVip ? $t('是') : $t('否') }}</span>
               </td>
               <td>
-                <span class="status-pill" :class="row.status === 0 ? 'active' : 'disabled'">{{ row.status === 0 ? '启用' :
-                  '禁用' }}</span>
+                <span class="status-pill" :class="row.status === 0 ? 'active' : 'disabled'">{{ row.status === 0 ? $t('启用') :
+                  $t('禁用') }}</span>
               </td>
               <td>{{ row.createTime }}</td>
               <td>
                 <div v-if="canOperate(row)" class="action-group">
-                  <button class="act-btn act-amber" @click="openEdit(row)">编辑</button>
-                  <button class="act-btn act-pink" @click="handleResetPwd(row)">重置密码</button>
-                  <button class="act-btn act-red" @click="handleDelete(row)">删除</button>
+                  <button class="act-btn act-amber" @click="openEdit(row)">{{ $t('编辑') }}</button>
+                  <button class="act-btn act-pink" @click="handleResetPwd(row)">{{ $t('重置密码') }}</button>
+                  <button class="act-btn act-red" @click="handleDelete(row)">{{ $t('删除') }}</button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div v-if="!loading && list.length === 0" class="empty-state">暂无数据</div>
+      <div v-if="!loading && list.length === 0" class="empty-state">{{ $t('暂无数据') }}</div>
 
       <div class="pagination">
-        <div class="page-info">共 {{ pagination.total }} 个用户</div>
+        <div class="page-info">{{ $t('共 {total} 个用户', { total: pagination.total }) }}</div>
         <div class="page-btns">
           <button class="pg-btn" :disabled="pagination.page <= 1" @click="goPage(pagination.page - 1)">&#8249;</button>
           <button v-for="p in visiblePages" :key="p" class="pg-btn" :class="{ active: p === pagination.page }"
@@ -136,10 +136,10 @@
             @click="goPage(pagination.page + 1)">&#8250;</button>
         </div>
         <select v-model="pagination.size" class="size-sel" @change="onPageSizeChange">
-          <option :value="10">10 条/页</option>
-          <option :value="20">20 条/页</option>
-          <option :value="50">50 条/页</option>
-          <option :value="100">100 条/页</option>
+          <option :value="10">{{ $t('10 条/页') }}</option>
+          <option :value="20">{{ $t('20 条/页') }}</option>
+          <option :value="50">{{ $t('50 条/页') }}</option>
+          <option :value="100">{{ $t('100 条/页') }}</option>
         </select>
       </div>
     </div>
@@ -149,99 +149,99 @@
         <div v-if="editVisible" class="modal-overlay" @click.self="closeEdit">
           <div class="modal-card modal-std" :class="{ closing: editClosing }" @click.stop>
             <div class="modal-header">
-              <h3>{{ isEditing ? '编辑用户' : '新增用户' }}</h3>
+              <h3>{{ isEditing ? $t('编辑用户') : $t('新增用户') }}</h3>
               <button class="modal-close" @click="closeEdit">&times;</button>
             </div>
             <div class="modal-body">
               <div class="form-section">
-                <div class="section-title">基础信息</div>
+                <div class="section-title">{{ $t('基础信息') }}</div>
                 <div class="fg">
-                  <label class="fl">用户名 <span class="req">*</span></label>
-                  <input v-model="editForm.userName" class="fi" placeholder="请输入用户名" :disabled="isEditing" />
-                  <span v-if="isEditing" class="field-hint">用户名创建后不可修改</span>
+                  <label class="fl">{{ $t('用户名') }} <span class="req">*</span></label>
+                  <input v-model="editForm.userName" class="fi" :placeholder="$t('请输入用户名')" :disabled="isEditing" />
+                  <span v-if="isEditing" class="field-hint">{{ $t('用户名创建后不可修改') }}</span>
                 </div>
                 <div v-if="!isEditing" class="fg">
-                  <label class="fl">密码 <span class="req">*</span></label>
-                  <input v-model="editForm.password" type="password" class="fi" placeholder="请输入密码" />
+                  <label class="fl">{{ $t('密码') }} <span class="req">*</span></label>
+                  <input v-model="editForm.password" type="password" class="fi" :placeholder="$t('请输入密码')" />
                 </div>
                 <div class="form-row">
                   <div class="fg half">
-                    <label class="fl">昵称</label>
-                    <input v-model="editForm.nikeName" class="fi" placeholder="请输入昵称" />
+                    <label class="fl">{{ $t('昵称') }}</label>
+                    <input v-model="editForm.nikeName" class="fi" :placeholder="$t('请输入昵称')" />
                   </div>
                   <div class="fg half">
-                    <label class="fl">邮箱</label>
-                    <input v-model="editForm.email" class="fi" placeholder="请输入邮箱" />
+                    <label class="fl">{{ $t('邮箱') }}</label>
+                    <input v-model="editForm.email" class="fi" :placeholder="$t('请输入邮箱')" />
                   </div>
                 </div>
               </div>
 
               <div class="form-section">
-                <div class="section-title">账号设置</div>
+                <div class="section-title">{{ $t('账号设置') }}</div>
                 <div class="form-row">
                   <div v-if="isEditing && activeTab === 'admin'" class="fg half">
-                    <label class="fl">角色</label>
+                    <label class="fl">{{ $t('角色') }}</label>
                     <select v-model="editForm.roleId" class="fi">
                       <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
                     </select>
                   </div>
                   <div v-if="activeTab === 'user'" class="fg half">
-                    <label class="fl">是否大会员</label>
+                    <label class="fl">{{ $t('是否大会员') }}</label>
                     <div class="toggle-wrap">
                       <button class="toggle-btn" :class="{ on: editForm.isVip }" @click="editForm.isVip = editForm.isVip ? 0 : 1">
                         <span class="toggle-knob"></span>
                       </button>
-                      <span class="toggle-label">{{ editForm.isVip ? '是' : '否' }}</span>
+                      <span class="toggle-label">{{ editForm.isVip ? $t('是') : $t('否') }}</span>
                     </div>
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="fg half">
-                    <label class="fl">性别</label>
+                    <label class="fl">{{ $t('性别') }}</label>
                     <select v-model="editForm.sex" class="fi">
-                      <option :value="true">男</option>
-                      <option :value="false">女</option>
+                      <option :value="true">{{ $t('男') }}</option>
+                      <option :value="false">{{ $t('女') }}</option>
                     </select>
                   </div>
                   <div class="fg half">
-                    <label class="fl">账号状态</label>
+                    <label class="fl">{{ $t('账号状态') }}</label>
                     <div class="toggle-wrap">
                       <button class="toggle-btn" :class="{ on: editForm.status === 0 }" @click="editForm.status = editForm.status === 0 ? 1 : 0">
                         <span class="toggle-knob"></span>
                       </button>
-                      <span class="toggle-label">{{ editForm.status === 0 ? '启用' : '禁用' }}</span>
+                      <span class="toggle-label">{{ editForm.status === 0 ? $t('启用') : $t('禁用') }}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div v-if="activeTab === 'user'" class="form-section">
-                <div class="section-title">用户资料</div>
+                <div class="section-title">{{ $t('用户资料') }}</div>
                 <div class="fg">
-                  <label class="fl">个性签名</label>
-                  <input v-model="editForm.descript" class="fi" placeholder="请输入个性签名" />
+                  <label class="fl">{{ $t('个性签名') }}</label>
+                  <input v-model="editForm.descript" class="fi" :placeholder="$t('请输入个性签名')" />
                 </div>
                 <div class="fg">
-                  <label class="fl">头像</label>
+                  <label class="fl">{{ $t('头像') }}</label>
                   <div class="avatar-editor">
                     <div class="cover-upload" @click="$refs.avatarInput.click()">
                       <input ref="avatarInput" type="file" accept="image/*" style="display:none" @change="onAvatarChange" />
                       <img v-if="editForm.avatar" :src="editForm.avatar" class="cover-preview" />
                       <div v-else class="cover-ph">
                         <el-icon :size="28"><Plus /></el-icon>
-                        <span>上传头像</span>
+                        <span>{{ $t('上传头像') }}</span>
                       </div>
                     </div>
-                    <button v-if="editForm.avatar" class="btn btn-sm btn-outline btn-danger-text" @click.stop="editForm.avatar = ''">更换头像</button>
+                    <button v-if="editForm.avatar" class="btn btn-sm btn-outline btn-danger-text" @click.stop="editForm.avatar = ''">{{ $t('更换头像') }}</button>
                   </div>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="closeEdit" :disabled="saving">取消</button>
+              <button class="btn btn-secondary" @click="closeEdit" :disabled="saving">{{ $t('取消') }}</button>
               <button class="btn btn-primary" @click="onSave" :disabled="saving">
                 <span v-if="saving" class="spinner"></span>
-                {{ saving ? '保存中...' : '保存修改' }}
+                {{ saving ? $t('保存中...') : $t('保存修改') }}
               </button>
             </div>
           </div>
@@ -254,24 +254,24 @@
         <div v-if="resetPwdVisible" class="modal-overlay" @click.self="resetPwdVisible = false">
           <div class="modal-card modal-sm" @click.stop>
             <div class="modal-header">
-              <h3>重置密码确认</h3>
+              <h3>{{ $t('重置密码确认') }}</h3>
               <button class="modal-close" @click="resetPwdVisible = false">&times;</button>
             </div>
             <div class="modal-body">
               <div class="confirm-icon warn"><el-icon :size="24"><WarningFilled /></el-icon></div>
-              <p class="confirm-msg">确定要重置以下用户的密码？</p>
+              <p class="confirm-msg">{{ $t('确定要重置以下用户的密码？') }}</p>
               <div class="confirm-field">
-                <span class="field-label">用户名</span>
+                <span class="field-label">{{ $t('用户名') }}</span>
                 <span class="field-val">{{ resetPwdUser?.userName }}</span>
               </div>
-              <p class="confirm-warn">重置密码后，原密码将立即失效。</p>
-              <p class="confirm-warn">请确认是否继续。</p>
+              <p class="confirm-warn">{{ $t('重置密码后，原密码将立即失效。') }}</p>
+              <p class="confirm-warn">{{ $t('请确认是否继续。') }}</p>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="resetPwdVisible = false">取消</button>
+              <button class="btn btn-secondary" @click="resetPwdVisible = false">{{ $t('取消') }}</button>
               <button class="btn btn-danger" @click="confirmResetPwd" :disabled="resetPwdLoading">
                 <span v-if="resetPwdLoading" class="spinner"></span>
-                {{ resetPwdLoading ? '重置中...' : '确认重置' }}
+                {{ resetPwdLoading ? $t('重置中...') : $t('确认重置') }}
               </button>
             </div>
           </div>
@@ -284,27 +284,27 @@
         <div v-if="deleteVisible" class="modal-overlay" @click.self="deleteVisible = false">
           <div class="modal-card modal-sm" @click.stop>
             <div class="modal-header">
-              <h3>删除用户</h3>
+              <h3>{{ $t('删除用户') }}</h3>
               <button class="modal-close" @click="deleteVisible = false">&times;</button>
             </div>
             <div class="modal-body">
               <div class="confirm-icon danger"><el-icon :size="24"><WarningFilled /></el-icon></div>
-              <p class="confirm-msg">确定删除用户「{{ deleteTarget?.userName }}」？</p>
+              <p class="confirm-msg">{{ $t('确定删除用户「{name}」？', { name: deleteTarget?.userName }) }}</p>
               <div class="confirm-consequences">
-                <p>删除后：</p>
+                <p>{{ $t('删除后：') }}</p>
                 <ul>
-                  <li>用户将无法登录</li>
-                  <li>用户将从人员列表中移除</li>
-                  <li>相关数据可能受到影响</li>
+                  <li>{{ $t('用户将无法登录') }}</li>
+                  <li>{{ $t('用户将从人员列表中移除') }}</li>
+                  <li>{{ $t('相关数据可能受到影响') }}</li>
                 </ul>
               </div>
-              <p class="confirm-warn">此操作请谨慎执行。</p>
+              <p class="confirm-warn">{{ $t('此操作请谨慎执行。') }}</p>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="deleteVisible = false">取消</button>
+              <button class="btn btn-secondary" @click="deleteVisible = false">{{ $t('取消') }}</button>
               <button class="btn btn-danger" @click="confirmDelete" :disabled="deleteLoading">
                 <span v-if="deleteLoading" class="spinner"></span>
-                {{ deleteLoading ? '删除中...' : '确认删除' }}
+                {{ deleteLoading ? $t('删除中...') : $t('确认删除') }}
               </button>
             </div>
           </div>
@@ -321,6 +321,9 @@ import { Plus, WarningFilled } from '@element-plus/icons-vue'
 import { getUserList, addUser, updateUser, deleteUser, resetPassword, getRoleList } from '@/api/user'
 import { getEnabledDictData } from '@/api/dict'
 import { uploadFile } from '@/api/file'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const loading = ref(false)
 const statusOpen = ref(false)
@@ -403,7 +406,7 @@ const fetchData = async () => {
 
 const onSearch = () => { pagination.value.page = 1; fetchData() }
 const onReset = () => { Object.assign(filter, { userName: '', nikeName: '', email: '', status: '', roleId: '' }); onSearch() }
-const switchTab = (t) => { activeTab.value = t; pagination.value.page = 1; Object.assign(filter, { userName: '', nikeName: '', email: '', status: '', roleId: '' }); fetchData() }
+const switchTab = (tab) => { activeTab.value = tab; pagination.value.page = 1; Object.assign(filter, { userName: '', nikeName: '', email: '', status: '', roleId: '' }); fetchData() }
 
 const editVisible = ref(false)
 const editClosing = ref(false)
@@ -431,26 +434,26 @@ const closeEdit = () => { editClosing.value = true; setTimeout(() => { editVisib
 
 const onAvatarChange = async (e) => {
   const file = e.target.files?.[0]; if (!file) return
-  try { const r = await uploadFile(file, { category: 'image' }); editForm.avatar = r.url } catch (err) { ElMessage.error(err.message || '上传失败') }
+  try { const r = await uploadFile(file, { category: 'image' }); editForm.avatar = r.url } catch (err) { ElMessage.error(err.message || t('上传失败')) }
 }
 
 const md5 = (str) => { let h = 0; for (let i = 0; i < str.length; i++) { h = ((h << 5) - h + str.charCodeAt(i)) | 0 } return Math.abs(h).toString(16).padStart(8, '0') }
 
 const onSave = async () => {
-  if (!editForm.userName) return ElMessage.warning('请填写用户名')
-  if (!isEditing.value && !editForm.password) return ElMessage.warning('请填写密码')
+  if (!editForm.userName) return ElMessage.warning(t('请填写用户名'))
+  if (!isEditing.value && !editForm.password) return ElMessage.warning(t('请填写密码'))
   if (saving.value) return
   saving.value = true
   try {
     if (isEditing.value) {
       const d = { id: editingId.value, nikeName: editForm.nikeName || undefined, email: editForm.email || undefined, roleId: editForm.roleId || undefined, avatar: editForm.avatar || undefined, isVip: editForm.isVip, sex: editForm.sex, descript: editForm.descript || undefined, status: editForm.status }
-      await updateUser(d); ElMessage.success('用户更新成功')
+      await updateUser(d); ElMessage.success(t('用户更新成功'))
     } else {
       const d = { userName: editForm.userName, password: md5(editForm.password), nikeName: editForm.nikeName || undefined, email: editForm.email || undefined, roleId: editForm.roleId || undefined, avatar: editForm.avatar || undefined, isVip: editForm.isVip, sex: editForm.sex, descript: editForm.descript || undefined, type: activeTab.value === 'admin' ? 1 : 0, status: editForm.status }
-      await addUser(d); ElMessage.success('用户创建成功')
+      await addUser(d); ElMessage.success(t('用户创建成功'))
     }
     closeEdit(); fetchData()
-  } catch (e) { console.error('保存用户失败'); ElMessage.error(e.message || '保存失败') } finally { saving.value = false }
+  } catch (e) { console.error('保存用户失败'); ElMessage.error(e.message || t('保存失败')) } finally { saving.value = false }
 }
 
 const resetPwdVisible = ref(false)
@@ -463,9 +466,9 @@ const confirmResetPwd = async () => {
   resetPwdLoading.value = true
   try {
     await resetPassword(resetPwdUser.value.id, activeTab.value === 'admin' ? 1 : 0)
-    ElMessage.success('密码重置成功')
+    ElMessage.success(t('密码重置成功'))
     resetPwdVisible.value = false
-  } catch (e) { ElMessage.error(e.message || '重置失败') } finally { resetPwdLoading.value = false }
+  } catch (e) { ElMessage.error(e.message || t('重置失败')) } finally { resetPwdLoading.value = false }
 }
 
 const deleteVisible = ref(false)
@@ -478,10 +481,10 @@ const confirmDelete = async () => {
   deleteLoading.value = true
   try {
     await deleteUser(deleteTarget.value.id)
-    ElMessage.success('用户删除成功')
+    ElMessage.success(t('用户删除成功'))
     deleteVisible.value = false
     fetchData()
-  } catch (e) { ElMessage.error(e.message || '删除失败') } finally { deleteLoading.value = false }
+  } catch (e) { ElMessage.error(e.message || t('删除失败')) } finally { deleteLoading.value = false }
 }
 </script>
 

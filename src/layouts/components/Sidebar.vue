@@ -35,7 +35,7 @@
         <!-- 主导航组 -->
         <div v-if="mainMenus.length" class="menu-group">
           <!-- 组标题，收缩时显示省略号 -->
-          <div v-show="!appStore.sidebar.collapsed" class="group-title">主导航</div>
+          <div v-show="!appStore.sidebar.collapsed" class="group-title">{{ $t('主导航') }}</div>
           <TransitionGroup name="menu-item" tag="div">
             <template v-for="item in mainMenus" :key="item.id || item.path">
               <!-- 有子菜单的项 -->
@@ -48,7 +48,7 @@
                 <span class="menu-icon">
                   <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
                 </span>
-                <span class="menu-text">{{ item.menuName || item.name }}</span>
+                <span class="menu-text">{{ $t(item.menuName || item.name || '') }}</span>
                 <Transition name="fade">
                   <span v-if="getBadge(item.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(item.id) }}</span>
                 </Transition>
@@ -70,7 +70,7 @@
                   <span class="sub-icon" :class="{ active: isPathMatch(child.path, activeMenu) }">
                     <el-icon :size="14"><component :is="resolveIcon(child.icon)" /></el-icon>
                   </span>
-                  <span class="menu-text">{{ child.menuName || child.name }}</span>
+                  <span class="menu-text">{{ $t(child.menuName || child.name || '') }}</span>
                   <Transition name="fade">
                     <span v-if="getBadge(child.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(child.id) }}</span>
                   </Transition>
@@ -88,7 +88,7 @@
               <span class="menu-icon">
                 <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
               </span>
-              <span class="menu-text">{{ item.menuName || item.name }}</span>
+              <span class="menu-text">{{ $t(item.menuName || item.name || '') }}</span>
               <Transition name="fade">
                 <span v-if="getBadge(item.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(item.id) }}</span>
               </Transition>
@@ -100,7 +100,7 @@
 
         <!-- 次导航组（系统管理） -->
         <div v-if="otherMenus.length" class="menu-group">
-          <div v-show="!appStore.sidebar.collapsed" class="group-title">系统管理</div>
+          <div v-show="!appStore.sidebar.collapsed" class="group-title">{{ $t('系统管理') }}</div>
           <TransitionGroup name="menu-item" tag="div">
             <template v-for="item in otherMenus" :key="item.id || item.path">
             <div v-if="item.children?.length" class="menu-submenu" :class="{ expanded: expandedMenuIds.has(item.id) }">
@@ -112,7 +112,7 @@
                 <span class="menu-icon">
                   <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
                 </span>
-                <span class="menu-text">{{ item.menuName || item.name }}</span>
+                <span class="menu-text">{{ $t(item.menuName || item.name || '') }}</span>
                 <Transition name="fade">
                   <span v-if="getBadge(item.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(item.id) }}</span>
                 </Transition>
@@ -132,7 +132,7 @@
                   <span class="sub-icon" :class="{ active: isPathMatch(child.path, activeMenu) }">
                     <el-icon :size="14"><component :is="resolveIcon(child.icon)" /></el-icon>
                   </span>
-                  <span class="menu-text">{{ child.menuName || child.name }}</span>
+                  <span class="menu-text">{{ $t(child.menuName || child.name || '') }}</span>
                   <Transition name="fade">
                     <span v-if="getBadge(child.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(child.id) }}</span>
                   </Transition>
@@ -149,7 +149,7 @@
               <span class="menu-icon">
                 <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
               </span>
-              <span class="menu-text">{{ item.menuName || item.name }}</span>
+              <span class="menu-text">{{ $t(item.menuName || item.name || '') }}</span>
               <Transition name="fade">
                 <span v-if="getBadge(item.id) && !appStore.sidebar.collapsed" class="nav-badge">{{ getBadge(item.id) }}</span>
               </Transition>
@@ -179,8 +179,8 @@
         <!-- 用户信息，收缩时隐藏 -->
         <transition name="fade-text">
           <div v-show="!appStore.sidebar.collapsed" class="user-info">
-            <div class="user-name">{{ userStore.userInfo?.nikeName || userStore.user?.name || '管理员' }}</div>
-            <div class="user-role">{{ userStore.userInfo?.roleName || '超级管理员' }}</div>
+            <div class="user-name">{{ userStore.userInfo?.nikeName || userStore.user?.name || $t('管理员') }}</div>
+            <div class="user-role">{{ $t(userStore.userInfo?.roleName || '') || $t('超级管理员') }}</div>
           </div>
         </transition>
         <!-- 登出按钮，收缩时隐藏 -->

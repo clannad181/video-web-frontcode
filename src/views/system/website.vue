@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">系统设置</h2>
-      <span class="page-sub">管理网站基本信息和全局配置</span>
+      <h2 class="page-title">{{ $t('系统设置') }}</h2>
+      <span class="page-sub">{{ $t('管理网站基本信息和全局配置') }}</span>
     </div>
 
     <div class="settings-grid">
@@ -10,42 +10,42 @@
         <div v-for="item in navItems" :key="item.key" class="nav-item" :class="{ active: activeNav === item.key }" @click="activeNav = item.key">
           <span class="nav-indicator"></span>
           <span class="nav-icon" v-html="item.icon"></span>
-          <span class="nav-label">{{ item.label }}</span>
+          <span class="nav-label">{{ $t(item.label) }}</span>
         </div>
       </div>
 
       <div class="settings-panel">
         <div class="panel-header">
-          <h3 class="panel-title">{{ currentPanel.title }}</h3>
-          <p class="panel-desc">{{ currentPanel.desc }}</p>
+          <h3 class="panel-title">{{ $t(currentPanel.title) }}</h3>
+          <p class="panel-desc">{{ $t(currentPanel.desc) }}</p>
         </div>
         <div class="panel-divider"></div>
 
         <div class="panel-body" v-if="activeNav === 'basic'">
           <div class="form-group">
-            <label class="form-label">网站名称</label>
-            <input v-model="form.siteName" class="form-input" placeholder="请输入网站名称" />
+            <label class="form-label">{{ $t('网站名称') }}</label>
+            <input v-model="form.siteName" class="form-input" :placeholder="$t('请输入网站名称')" />
           </div>
           <div class="form-group">
-            <label class="form-label">网站描述</label>
-            <textarea v-model="form.siteDesc" class="form-textarea" rows="3" placeholder="请输入网站描述"></textarea>
+            <label class="form-label">{{ $t('网站描述') }}</label>
+            <textarea v-model="form.siteDesc" class="form-textarea" rows="3" :placeholder="$t('请输入网站描述')"></textarea>
           </div>
           <div class="form-group">
-            <label class="form-label">网站地址</label>
+            <label class="form-label">{{ $t('网站地址') }}</label>
             <input v-model="form.siteUrl" class="form-input" placeholder="https://example.com" />
           </div>
           <div class="form-row">
             <div class="form-half">
-              <label class="form-label">语言</label>
+              <label class="form-label">{{ $t('语言') }}</label>
               <div class="select-wrap">
                 <select v-model="form.language" class="form-select">
-                  <option value="zh-CN">中文</option>
+                  <option value="zh-CN">{{ $t('中文') }}</option>
                   <option value="en-US">English</option>
                 </select>
               </div>
             </div>
             <div class="form-half">
-              <label class="form-label">时区</label>
+              <label class="form-label">{{ $t('时区') }}</label>
               <div class="select-wrap">
                 <select v-model="form.timezone" class="form-select">
                   <option value="Asia/Shanghai">Asia/Shanghai</option>
@@ -62,22 +62,22 @@
         <div class="panel-body" v-if="activeNav === 'security'">
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">修改密码</div>
-              <div class="setting-desc">定期修改密码以保证账户安全</div>
+              <div class="setting-title">{{ $t('修改密码') }}</div>
+              <div class="setting-desc">{{ $t('定期修改密码以保证账户安全') }}</div>
             </div>
-            <button class="setting-btn" @click="showPasswordModal = true">修改</button>
+            <button class="setting-btn" @click="showPasswordModal = true">{{ $t('修改') }}</button>
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">默认密码</div>
-              <div class="setting-desc">新建用户或重置密码时的初始密码</div>
+              <div class="setting-title">{{ $t('默认密码') }}</div>
+              <div class="setting-desc">{{ $t('新建用户或重置密码时的初始密码') }}</div>
             </div>
-            <input v-model="form.default_password" type="text" class="pwd-input" placeholder="请输入默认密码" maxlength="32" />
+            <input v-model="form.default_password" type="text" class="pwd-input" :placeholder="$t('请输入默认密码')" maxlength="32" />
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">登录通知</div>
-              <div class="setting-desc">新设备登录时发送邮件通知</div>
+              <div class="setting-title">{{ $t('登录通知') }}</div>
+              <div class="setting-desc">{{ $t('新设备登录时发送邮件通知') }}</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.loginNotify }" @click="form.loginNotify = !form.loginNotify">
               <span class="toggle-thumb"></span>
@@ -85,60 +85,60 @@
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">会话超时</div>
-              <div class="setting-desc">无操作后自动登出的时间</div>
+              <div class="setting-title">{{ $t('会话超时') }}</div>
+              <div class="setting-desc">{{ $t('无操作后自动登出的时间') }}</div>
             </div>
             <div class="suffix-input-wrapper">
               <input v-model.number="form.sessionTimeout" type="number" class="suffix-input" min="1" max="1440" />
-              <span class="suffix-text">分钟</span>
+              <span class="suffix-text">{{ $t('分钟') }}</span>
             </div>
           </div>
         </div>
 
         <div class="panel-body" v-if="activeNav === 'token'">
           <div class="section-block">
-            <div class="section-title-bar">前台令牌</div>
+            <div class="section-title-bar">{{ $t('前台令牌') }}</div>
             <div class="setting-item">
               <div class="setting-info">
-                <div class="setting-title">前台认证令牌有效期</div>
-                <div class="setting-desc">前台 Access Token 过期时间</div>
+                <div class="setting-title">{{ $t('前台认证令牌有效期') }}</div>
+                <div class="setting-desc">{{ $t('前台 Access Token 过期时间') }}</div>
               </div>
               <div class="suffix-input-wrapper">
                 <input v-model.number="form.front_access_token_expiry" type="number" class="suffix-input" min="1" max="1440" />
-                <span class="suffix-text">分钟</span>
+                <span class="suffix-text">{{ $t('分钟') }}</span>
               </div>
             </div>
             <div class="setting-item">
               <div class="setting-info">
-                <div class="setting-title">前台刷新令牌有效期</div>
-                <div class="setting-desc">前台 Refresh Token 过期时间</div>
+                <div class="setting-title">{{ $t('前台刷新令牌有效期') }}</div>
+                <div class="setting-desc">{{ $t('前台 Refresh Token 过期时间') }}</div>
               </div>
               <div class="suffix-input-wrapper">
                 <input v-model.number="form.front_refresh_token_expiry" type="number" class="suffix-input" min="1" max="365" />
-                <span class="suffix-text">天</span>
+                <span class="suffix-text">{{ $t('天') }}</span>
               </div>
             </div>
           </div>
           <div class="section-block">
-            <div class="section-title-bar">后台令牌</div>
+            <div class="section-title-bar">{{ $t('后台令牌') }}</div>
             <div class="setting-item">
               <div class="setting-info">
-                <div class="setting-title">后台认证令牌有效期</div>
-                <div class="setting-desc">后台管理端 Access Token 过期时间</div>
+                <div class="setting-title">{{ $t('后台认证令牌有效期') }}</div>
+                <div class="setting-desc">{{ $t('后台管理端 Access Token 过期时间') }}</div>
               </div>
               <div class="suffix-input-wrapper">
                 <input v-model.number="form.backend_access_token_expiry" type="number" class="suffix-input" min="1" max="1440" />
-                <span class="suffix-text">分钟</span>
+                <span class="suffix-text">{{ $t('分钟') }}</span>
               </div>
             </div>
             <div class="setting-item">
               <div class="setting-info">
-                <div class="setting-title">后台刷新令牌有效期</div>
-                <div class="setting-desc">后台管理端 Refresh Token 过期时间</div>
+                <div class="setting-title">{{ $t('后台刷新令牌有效期') }}</div>
+                <div class="setting-desc">{{ $t('后台管理端 Refresh Token 过期时间') }}</div>
               </div>
               <div class="suffix-input-wrapper">
                 <input v-model.number="form.backend_refresh_token_expiry" type="number" class="suffix-input" min="1" max="365" />
-                <span class="suffix-text">天</span>
+                <span class="suffix-text">{{ $t('天') }}</span>
               </div>
             </div>
           </div>
@@ -147,8 +147,8 @@
         <div class="panel-body" v-if="activeNav === 'notification'">
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">审核通知</div>
-              <div class="setting-desc">视频审核完成时通知</div>
+              <div class="setting-title">{{ $t('审核通知') }}</div>
+              <div class="setting-desc">{{ $t('视频审核完成时通知') }}</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.videoReviewNotify }" @click="form.videoReviewNotify = !form.videoReviewNotify">
               <span class="toggle-thumb"></span>
@@ -156,8 +156,8 @@
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">评论通知</div>
-              <div class="setting-desc">有新评论时通知</div>
+              <div class="setting-title">{{ $t('评论通知') }}</div>
+              <div class="setting-desc">{{ $t('有新评论时通知') }}</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.commentNotify }" @click="form.commentNotify = !form.commentNotify">
               <span class="toggle-thumb"></span>
@@ -165,8 +165,8 @@
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">举报通知</div>
-              <div class="setting-desc">有新的举报时通知</div>
+              <div class="setting-title">{{ $t('举报通知') }}</div>
+              <div class="setting-desc">{{ $t('有新的举报时通知') }}</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.reportNotify }" @click="form.reportNotify = !form.reportNotify">
               <span class="toggle-thumb"></span>
@@ -177,8 +177,8 @@
         <div class="panel-body" v-if="activeNav === 'audit'">
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">视频审核</div>
-              <div class="setting-desc">新上传的视频需要审核后才能发布</div>
+              <div class="setting-title">{{ $t('视频审核') }}</div>
+              <div class="setting-desc">{{ $t('新上传的视频需要审核后才能发布') }}</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.video_review }" @click="form.video_review = !form.video_review">
               <span class="toggle-thumb"></span>
@@ -186,8 +186,8 @@
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">评论审核</div>
-              <div class="setting-desc">新发布的评论需要审核后才能显示</div>
+              <div class="setting-title">{{ $t('评论审核') }}</div>
+              <div class="setting-desc">{{ $t('新发布的评论需要审核后才能显示') }}</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.comment_review }" @click="form.comment_review = !form.comment_review">
               <span class="toggle-thumb"></span>
@@ -195,8 +195,8 @@
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">敏感词过滤</div>
-              <div class="setting-desc">自动过滤包含敏感词的内容</div>
+              <div class="setting-title">{{ $t('敏感词过滤') }}</div>
+              <div class="setting-desc">{{ $t('自动过滤包含敏感词的内容') }}</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.sensitive_word_filter }" @click="form.sensitive_word_filter = !form.sensitive_word_filter">
               <span class="toggle-thumb"></span>
@@ -206,22 +206,22 @@
 
         <div class="panel-body" v-if="activeNav === 'appearance'">
           <div class="form-group">
-            <h3 class="form-label">主题色</h3>
+            <h3 class="form-label">{{ $t('主题色') }}</h3>
             <div class="color-palette">
               <div v-for="c in presetColors" :key="c.value" class="color-option"
                 :class="{ active: form.primaryColor === c.value }"
-                :style="{ background: c.value }" :title="c.name"
+                    :style="{ background: c.value }" :title="$t(c.name)"
                 @click="form.primaryColor = c.value">
                 <svg v-if="form.primaryColor === c.value" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
             </div>
             <transition name="fade-slide">
               <div v-if="serverPrimaryColor && serverPrimaryColor !== form.primaryColor" class="persist-palette">
-                <div class="persist-label">主题色-持久化</div>
+                <div class="persist-label">{{ $t('主题色-持久化') }}</div>
                 <div class="color-palette">
                   <div v-for="c in presetColors" :key="c.value" class="color-option"
                     :class="{ active: serverPrimaryColor === c.value }"
-                    :style="{ background: c.value }" :title="c.name"
+                :style="{ background: c.value }" :title="$t(c.name)"
                     @click="form.primaryColor = c.value">
                     <svg v-if="serverPrimaryColor === c.value" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                   </div>
@@ -231,8 +231,8 @@
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">深色模式</div>
-              <div class="setting-desc">切换深色/浅色主题</div>
+              <div class="setting-title">{{ $t('深色模式') }}</div>
+              <div class="setting-desc">{{ $t('切换深色/浅色主题') }}</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.darkMode }" @click="form.darkMode = !form.darkMode">
               <span class="toggle-thumb"></span>
@@ -240,8 +240,8 @@
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">紧凑模式</div>
-              <div class="setting-desc">减少界面间距以显示更多内容</div>
+              <div class="setting-title">{{ $t('紧凑模式') }}</div>
+              <div class="setting-desc">{{ $t('减少界面间距以显示更多内容') }}</div>
             </div>
             <div class="toggle-switch" :class="{ on: form.compactMode }" @click="form.compactMode = !form.compactMode">
               <span class="toggle-thumb"></span>
@@ -249,15 +249,15 @@
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-title">侧边栏样式</div>
-              <div class="setting-desc">切换侧边栏深浅皮肤</div>
+              <div class="setting-title">{{ $t('侧边栏样式') }}</div>
+              <div class="setting-desc">{{ $t('切换侧边栏深浅皮肤') }}</div>
             </div>
             <div class="radio-group">
               <div class="radio-item" :class="{ active: form.sidebarStyle === 'dark' }" @click="form.sidebarStyle = 'dark'">
-                <span class="radio-dot"></span>深色
+                <span class="radio-dot"></span>{{ $t('深色') }}
               </div>
               <div class="radio-item" :class="{ active: form.sidebarStyle === 'light' }" @click="form.sidebarStyle = 'light'">
-                <span class="radio-dot"></span>浅色
+                <span class="radio-dot"></span>{{ $t('浅色') }}
               </div>
             </div>
           </div>
@@ -265,21 +265,21 @@
 
         <div class="panel-body" v-if="activeNav === 'default'">
           <div class="form-group">
-            <h3 class="form-label">默认角色</h3>
-            <p class="form-desc">当用户角色被删除时，自动分配此默认角色</p>
+            <h3 class="form-label">{{ $t('默认角色') }}</h3>
+            <p class="form-desc">{{ $t('当用户角色被删除时，自动分配此默认角色') }}</p>
             <div class="select-wrap">
               <select v-model="form.default_role" class="form-select">
-                <option value="">请选择默认角色</option>
+                <option value="">{{ $t('请选择默认角色') }}</option>
                 <option v-for="r in roleList" :key="r.id" :value="r.id">{{ r.name }}</option>
               </select>
             </div>
           </div>
           <div class="form-group">
-            <h3 class="form-label">默认分类</h3>
-            <p class="form-desc">新建内容未指定分类时，使用此默认分类</p>
+            <h3 class="form-label">{{ $t('默认分类') }}</h3>
+            <p class="form-desc">{{ $t('新建内容未指定分类时，使用此默认分类') }}</p>
             <div class="select-wrap">
               <select v-model="form.default_category" class="form-select">
-                <option value="">请选择默认分类</option>
+                <option value="">{{ $t('请选择默认分类') }}</option>
                 <option v-for="c in categoryList" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
             </div>
@@ -288,11 +288,11 @@
 
         <div class="panel-divider"></div>
         <div class="settings-footer">
-          <button class="btn btn-outline" @click="resetToDefault">重置默认</button>
+          <button class="btn btn-outline" @click="resetToDefault">{{ $t('重置默认') }}</button>
           <div v-if="activeNav === 'appearance'" class="save-btn-group">
             <button class="btn btn-primary save-main" @click="saveSettings('global')" :disabled="saving">
               <svg v-if="saving" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-              {{ saving ? '保存中...' : '保存' }}
+              {{ saving ? $t('保存中...') : $t('保存') }}
             </button>
             <button class="btn btn-primary save-arrow" @click.stop="showSaveMenu = !showSaveMenu">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
@@ -302,15 +302,15 @@
                 <div class="save-dropdown-item" @click="saveSettings('local')">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                   <div class="save-dropdown-text">
-                    <div class="save-dropdown-label">本地生效</div>
-                    <div class="save-dropdown-desc">仅保存到浏览器</div>
+                    <div class="save-dropdown-label">{{ $t('本地生效') }}</div>
+                    <div class="save-dropdown-desc">{{ $t('仅保存到浏览器') }}</div>
                   </div>
                 </div>
                 <div class="save-dropdown-item" @click="saveSettings('global')">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                   <div class="save-dropdown-text">
-                    <div class="save-dropdown-label">全局生效</div>
-                    <div class="save-dropdown-desc">同步到服务器</div>
+                    <div class="save-dropdown-label">{{ $t('全局生效') }}</div>
+                    <div class="save-dropdown-desc">{{ $t('同步到服务器') }}</div>
                   </div>
                 </div>
               </div>
@@ -318,7 +318,7 @@
           </div>
           <button v-else class="btn btn-primary" @click="saveSettings('global')" :disabled="saving">
             <svg v-if="saving" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-            {{ saving ? '保存中...' : '保存' }}
+            {{ saving ? $t('保存中...') : $t('保存') }}
           </button>
         </div>
       </div>
@@ -329,38 +329,38 @@
         <div v-if="showPasswordModal" class="modal-overlay" @click.self="showPasswordModal = false">
           <div class="modal-card modal-password" @click.stop>
             <div class="modal-header">
-              <h3>修改密码</h3>
+              <h3>{{ $t('修改密码') }}</h3>
               <button class="modal-close" @click="showPasswordModal = false">&times;</button>
             </div>
             <div class="modal-body">
               <div class="form-group">
-                <label class="form-label">当前密码</label>
-                <input v-model="passwordForm.oldPassword" type="password" class="form-input" placeholder="请输入当前密码" />
+                <label class="form-label">{{ $t('当前密码') }}</label>
+                <input v-model="passwordForm.oldPassword" type="password" class="form-input" :placeholder="$t('请输入当前密码')" />
               </div>
               <div class="form-group">
-                <label class="form-label">新密码</label>
-                <input v-model="passwordForm.newPassword" type="password" class="form-input" placeholder="请输入新密码" />
+                <label class="form-label">{{ $t('新密码') }}</label>
+                <input v-model="passwordForm.newPassword" type="password" class="form-input" :placeholder="$t('请输入新密码')" />
               </div>
               <div class="form-group">
-                <label class="form-label">确认密码</label>
-                <input v-model="passwordForm.confirmPassword" type="password" class="form-input" placeholder="请再次输入新密码" />
-                <span v-if="passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword" class="form-hint error">两次密码不一致</span>
+                <label class="form-label">{{ $t('确认密码') }}</label>
+                <input v-model="passwordForm.confirmPassword" type="password" class="form-input" :placeholder="$t('请再次输入新密码')" />
+                <span v-if="passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword" class="form-hint error">{{ $t('两次密码不一致') }}</span>
               </div>
               <div class="form-group">
-                <label class="form-label">验证码</label>
+                <label class="form-label">{{ $t('验证码') }}</label>
                 <div class="captcha-row">
-                  <input v-model="passwordForm.captcha" class="form-input" placeholder="请输入验证码" style="flex:1" />
+                  <input v-model="passwordForm.captcha" class="form-input" :placeholder="$t('请输入验证码')" style="flex:1" />
                   <div class="captcha-img" @click="refreshCaptcha" :class="{ loading: captchaLoading }">
-                    <img v-if="captchaUrl" :src="captchaUrl" alt="验证码" />
-                    <span v-else class="captcha-placeholder">加载中</span>
+                    <img v-if="captchaUrl" :src="captchaUrl" :alt="$t('验证码')" />
+                    <span v-else class="captcha-placeholder">{{ $t('加载中') }}</span>
                   </div>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-outline" @click="showPasswordModal = false">取消</button>
+              <button class="btn btn-outline" @click="showPasswordModal = false">{{ $t('取消') }}</button>
               <button class="btn btn-primary" @click="submitPassword" :disabled="passwordSaving || !canSubmitPassword">
-                {{ passwordSaving ? '提交中...' : '确认' }}
+                {{ passwordSaving ? $t('提交中...') : $t('确认') }}
               </button>
             </div>
           </div>
@@ -378,6 +378,9 @@ import { getRoleList } from '@/api/role'
 import { getEnabledCategories } from '@/api/category'
 import sparkMD5 from 'spark-md5'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const activeNav = ref('basic')
 const appStore = useAppStore()
@@ -389,28 +392,28 @@ const captchaUrl = ref('')
 const captchaKey = ref('')
 
 const navItems = [
-  { key: 'basic', label: '网站设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>' },
-  { key: 'security', label: '安全设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' },
-  { key: 'token', label: '令牌安全', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>' },
-  { key: 'notification', label: '通知设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>' },
-  { key: 'audit', label: '审核设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' },
-  { key: 'appearance', label: '外观设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>' },
-  { key: 'default', label: '默认设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>' }
+  { key: 'basic', label: '网站设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>' }, // i18n-key
+  { key: 'security', label: '安全设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' }, // i18n-key
+  { key: 'token', label: '令牌安全', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>' }, // i18n-key
+  { key: 'notification', label: '通知设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>' }, // i18n-key
+  { key: 'audit', label: '审核设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' }, // i18n-key
+  { key: 'appearance', label: '外观设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>' }, // i18n-key
+  { key: 'default', label: '默认设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>' } // i18n-key
 ]
 
 const panelConfig = {
-  basic: { title: '网站设置', desc: '配置网站基本信息' },
-  security: { title: '安全设置', desc: '管理密码策略和登录安全' },
-  token: { title: '令牌安全', desc: '配置令牌有效期和策略' },
-  notification: { title: '通知设置', desc: '管理系统通知方式' },
-  audit: { title: '审核设置', desc: '配置内容审核策略' },
-  appearance: { title: '外观设置', desc: '自定义系统外观主题' },
-  default: { title: '默认设置', desc: '配置系统默认行为' }
+  basic: { title: '网站设置', desc: '配置网站基本信息' }, // i18n-key
+  security: { title: '安全设置', desc: '管理密码策略和登录安全' }, // i18n-key
+  token: { title: '令牌安全', desc: '配置令牌有效期和策略' }, // i18n-key
+  notification: { title: '通知设置', desc: '管理系统通知方式' }, // i18n-key
+  audit: { title: '审核设置', desc: '配置内容审核策略' }, // i18n-key
+  appearance: { title: '外观设置', desc: '自定义系统外观主题' }, // i18n-key
+  default: { title: '默认设置', desc: '配置系统默认行为' } // i18n-key
 }
 const currentPanel = computed(() => panelConfig[activeNav.value] || panelConfig.basic)
 
 const defaults = {
-  siteName: 'VideoHub', siteDesc: '视频平台管理后台', siteUrl: 'https://videohub.com',
+  siteName: 'VideoHub', siteDesc: t('视频平台管理后台'), siteUrl: 'https://videohub.com',
   language: 'zh-CN', timezone: 'Asia/Shanghai',
   primaryColor: '#fb7299', darkMode: false, compactMode: false, sidebarStyle: 'dark',
   video_review: false, comment_review: false, sensitive_word_filter: false,
@@ -450,11 +453,11 @@ const serverPrimaryColor = ref('')
 const showSaveMenu = ref(false)
 
 const presetColors = [
-  { name: '品牌粉', value: '#fb7299' },
-  { name: '科技蓝', value: '#00a1d6' },
-  { name: '优雅紫', value: '#7c5cfc' },
-  { name: '活力橙', value: '#ff8c42' },
-  { name: '成功绿', value: '#4caf50' }
+  { name: '品牌粉', value: '#fb7299' }, // i18n-key
+  { name: '科技蓝', value: '#00a1d6' }, // i18n-key
+  { name: '优雅紫', value: '#7c5cfc' }, // i18n-key
+  { name: '活力橙', value: '#ff8c42' }, // i18n-key
+  { name: '成功绿', value: '#4caf50' } // i18n-key
 ]
 
 const passwordForm = reactive({ oldPassword: '', newPassword: '', confirmPassword: '', captcha: '' })
@@ -545,7 +548,7 @@ async function saveSettings(scope = 'global') {
     localStorage.setItem('app_settings', JSON.stringify({ ...form }))
     appStore.setSiteName(form.siteName)
     document.dispatchEvent(new CustomEvent('settings-updated'))
-    ElMessage.success('已保存到本地浏览器')
+    ElMessage.success(t('已保存到本地浏览器'))
     return
   }
   saving.value = true
@@ -571,7 +574,7 @@ async function saveSettings(scope = 'global') {
     serverPrimaryColor.value = form.primaryColor
     appStore.setSiteName(form.siteName)
     document.dispatchEvent(new CustomEvent('settings-updated'))
-    ElMessage.success('设置保存成功')
+    ElMessage.success(t('设置保存成功'))
   } catch (e) {
     console.error(e)
   } finally { saving.value = false }
@@ -605,11 +608,11 @@ async function submitPassword() {
       captcha: passwordForm.captcha,
       type:1
     })
-    ElMessage.success('密码修改成功')
+    ElMessage.success(t('密码修改成功'))
     showPasswordModal.value = false
     passwordForm.oldPassword = ''; passwordForm.newPassword = ''; passwordForm.confirmPassword = ''; passwordForm.captcha = ''
   } catch (e) {
-    ElMessage.error(e.message || '密码修改失败')
+    ElMessage.error(e.message || t('密码修改失败'))
     refreshCaptcha()
     passwordForm.captcha = ''
   }

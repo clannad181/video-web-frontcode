@@ -1,32 +1,32 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h1 class="page-title">分类管理</h1>
-      <p class="page-subtitle">管理内容分类标签</p>
+      <h1 class="page-title">{{ $t('分类管理') }}</h1>
+      <p class="page-subtitle">{{ $t('管理内容分类标签') }}</p>
     </div>
 
     <div class="filter-card">
       <div class="filter-grid">
         <div class="filter-item">
-          <label class="filter-label">分类名称</label>
-          <input v-model="query.name" class="filter-input" placeholder="请输入分类名称" @keyup.enter="search" />
+          <label class="filter-label">{{ $t('分类名称') }}</label>
+          <input v-model="query.name" class="filter-input" :placeholder="$t('请输入分类名称')" @keyup.enter="search" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">状态</label>
+          <label class="filter-label">{{ $t('状态') }}</label>
           <div class="select-wrap" :class="{ open: statusOpen }">
             <select v-model="query.status" class="filter-select" @mousedown="statusOpen = true" @blur="statusOpen = false">
-              <option value="">全部</option>
-              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ $t(d.label) }}</option>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">是否展示</label>
+          <label class="filter-label">{{ $t('是否展示') }}</label>
           <div class="select-wrap" :class="{ open: showOpen }">
             <select v-model="query.isShow" class="filter-select" @mousedown="showOpen = true" @blur="showOpen = false">
-              <option value="">全部</option>
-              <option :value="true">展示</option>
-              <option :value="false">隐藏</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option :value="true">{{ $t('展示') }}</option>
+              <option :value="false">{{ $t('隐藏') }}</option>
             </select>
           </div>
         </div>
@@ -34,17 +34,17 @@
       <div class="filter-actions">
         <button class="btn btn-secondary" @click="resetQuery">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
-          重置
+          {{ $t('重置') }}
         </button>
         <button class="btn btn-primary" @click="search">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-          搜索
+          {{ $t('搜索') }}
         </button>
       </div>
       <div class="filter-bottom">
         <button class="btn btn-add" @click="openAddModal">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
-          新增分类
+          {{ $t('新增分类') }}
         </button>
       </div>
     </div>
@@ -55,30 +55,30 @@
           <thead>
             <tr>
               <th class="col-index">#</th>
-              <th>分类名称</th>
+              <th>{{ $t('分类名称') }}</th>
               <th class="sortable" @click="toggleSort('sort')">
-                排序
+                {{ $t('排序') }}
                 <span class="sort-icon" :class="{ active: sortField === 'sort' }">
                   <span class="tri tri-up" :class="{ highlight: sortField === 'sort' && sortDir === 'asc' }">▲</span>
                   <span class="tri tri-down" :class="{ highlight: sortField === 'sort' && sortDir === 'desc' }">▼</span>
                 </span>
               </th>
-              <th>是否展示</th>
-              <th>系统分类</th>
-              <th>状态</th>
+              <th>{{ $t('是否展示') }}</th>
+              <th>{{ $t('系统分类') }}</th>
+              <th>{{ $t('状态') }}</th>
               <th class="sortable" @click="toggleSort('createTime')">
-                创建时间
+                {{ $t('创建时间') }}
                 <span class="sort-icon" :class="{ active: sortField === 'createTime' }">
                   <span class="tri tri-up" :class="{ highlight: sortField === 'createTime' && sortDir === 'asc' }">▲</span>
                   <span class="tri tri-down" :class="{ highlight: sortField === 'createTime' && sortDir === 'desc' }">▼</span>
                 </span>
               </th>
-              <th class="sticky-col">操作</th>
+              <th class="sticky-col">{{ $t('操作') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="records.length === 0 && !loading">
-              <td colspan="8" class="empty-row">暂无数据</td>
+              <td colspan="8" class="empty-row">{{ $t('暂无数据') }}</td>
             </tr>
             <tr v-for="(row, idx) in records" :key="row.id" class="table-row">
               <td class="col-index">{{ (query.page - 1) * query.size + idx + 1 }}</td>
@@ -86,24 +86,24 @@
               <td><span class="sort-num">{{ row.sort }}</span></td>
               <td>
                 <span class="status-badge" :class="row.isShow ? 'badge-show' : 'badge-hide'">
-                  {{ row.isShow ? '展示' : '隐藏' }}
+                  {{ row.isShow ? $t('展示') : $t('隐藏') }}
                 </span>
               </td>
               <td>
                 <span class="status-badge" :class="row.isSystem ? 'badge-sys' : 'badge-normal'">
-                  {{ row.isSystem ? '是' : '否' }}
+                  {{ row.isSystem ? $t('是') : $t('否') }}
                 </span>
               </td>
               <td>
                 <span class="status-badge" :class="row.status ? 'badge-on' : 'badge-off'">
-                  {{ row.status ? '启用' : '禁用' }}
+                  {{ row.status ? $t('启用') : $t('禁用') }}
                 </span>
               </td>
               <td class="cell-muted">{{ row.createTime }}</td>
               <td class="sticky-col">
                 <div class="action-group">
-                  <button class="btn-action btn-edit" @click="openEditModal(row)">编辑</button>
-                  <button class="btn-action btn-delete" @click="confirmDelete(row)">删除</button>
+                  <button class="btn-action btn-edit" @click="openEditModal(row)">{{ $t('编辑') }}</button>
+                  <button class="btn-action btn-delete" @click="confirmDelete(row)">{{ $t('删除') }}</button>
                 </div>
               </td>
             </tr>
@@ -112,7 +112,7 @@
       </div>
 
       <div v-if="total > 0" class="pagination-wrap">
-        <div class="page-info">共 {{ total }} 条</div>
+        <div class="page-info">{{ $t('共 {total} 条', { total }) }}</div>
         <div class="page-btns">
           <button class="pg-btn" :disabled="query.page <= 1" @click="goPage(query.page - 1)">&#8249;</button>
           <template v-for="p in pageNumbers" :key="p">
@@ -122,9 +122,9 @@
           <button class="pg-btn" :disabled="query.page >= totalPages" @click="goPage(query.page + 1)">&#8250;</button>
         </div>
         <select v-model.number="query.size" class="page-size-sel" @change="onPageSizeChange">
-          <option :value="10">10 条/页</option>
-          <option :value="20">20 条/页</option>
-          <option :value="50">50 条/页</option>
+          <option :value="10">{{ $t('10 条/页') }}</option>
+          <option :value="20">{{ $t('20 条/页') }}</option>
+          <option :value="50">{{ $t('50 条/页') }}</option>
         </select>
       </div>
     </div>
@@ -135,40 +135,40 @@
         <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
           <div class="modal-card modal-std" @click.stop>
             <div class="modal-header">
-              <h3>{{ isEdit ? '编辑分类' : '新增分类' }}</h3>
+              <h3>{{ isEdit ? $t('编辑分类') : $t('新增分类') }}</h3>
               <button class="modal-close" @click="closeModal">&times;</button>
             </div>
             <div class="modal-body">
               <div class="fg">
-                <label class="fl">分类名称 <span class="req">*</span></label>
-                <input v-model="editForm.name" class="fi" placeholder="请输入分类名称" />
+                <label class="fl">{{ $t('分类名称') }} <span class="req">*</span></label>
+                <input v-model="editForm.name" class="fi" :placeholder="$t('请输入分类名称')" />
               </div>
               <div class="fg">
-                <label class="fl">排序</label>
-                <input v-model.number="editForm.sort" class="fi" type="number" min="0" placeholder="请输入排序值" />
+                <label class="fl">{{ $t('排序') }}</label>
+                <input v-model.number="editForm.sort" class="fi" type="number" min="0" :placeholder="$t('请输入排序值')" />
               </div>
               <div class="fg">
-                <label class="fl">状态</label>
+                <label class="fl">{{ $t('状态') }}</label>
                 <div class="toggle-wrap" @click="editForm.status = !editForm.status">
                   <button class="toggle-btn" :class="{ on: editForm.status }">
                     <span class="toggle-knob"></span>
                   </button>
-                  <span class="toggle-label">{{ editForm.status ? '启用' : '禁用' }}</span>
+                  <span class="toggle-label">{{ editForm.status ? $t('启用') : $t('禁用') }}</span>
                 </div>
               </div>
               <div class="fg">
-                <label class="fl">是否展示</label>
+                <label class="fl">{{ $t('是否展示') }}</label>
                 <div class="toggle-wrap" @click="editForm.isShow = !editForm.isShow">
                   <button class="toggle-btn" :class="{ on: editForm.isShow }">
                     <span class="toggle-knob"></span>
                   </button>
-                  <span class="toggle-label">{{ editForm.isShow ? '展示' : '隐藏' }}</span>
+                  <span class="toggle-label">{{ editForm.isShow ? $t('展示') : $t('隐藏') }}</span>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="closeModal">取消</button>
-              <button class="btn btn-primary" @click="handleSave">确认</button>
+              <button class="btn btn-secondary" @click="closeModal">{{ $t('取消') }}</button>
+              <button class="btn btn-primary" @click="handleSave">{{ $t('确认') }}</button>
             </div>
           </div>
         </div>
@@ -182,6 +182,9 @@ import { ref, reactive, computed, onMounted, onActivated, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCategoryList, addCategory, updateCategory, deleteCategory } from '@/api/category'
 import { getEnabledDictData } from '@/api/dict'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const loading = ref(false)
 const records = ref([])
@@ -309,7 +312,7 @@ function closeModal() { showModal.value = false }
 
 async function handleSave() {
   if (!editForm.name || editForm.name.trim() === '') {
-    ElMessage.warning('请填写必填项')
+    ElMessage.warning(t('请填写必填项'))
     return
   }
   try {
@@ -322,7 +325,7 @@ async function handleSave() {
         isShow: editForm.isShow,
         isSystem: editForm.isSystem
       })
-      ElMessage.success('分类更新成功')
+      ElMessage.success(t('分类更新成功'))
     } else {
       await addCategory({
         name: editForm.name,
@@ -330,7 +333,7 @@ async function handleSave() {
         status: editForm.status,
         isShow: editForm.isShow
       })
-      ElMessage.success('分类创建成功')
+      ElMessage.success(t('分类创建成功'))
     }
     showModal.value = false
     fetchData()
@@ -342,13 +345,13 @@ async function handleSave() {
 // --- 删除 ---
 async function confirmDelete(row) {
   try {
-    await ElMessageBox.confirm(`确定要删除分类「${row.name}」吗？`, '删除确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('确定要删除分类「{name}」吗？', { name: row.name }), t('删除确认'), {
+      confirmButtonText: t('确定'),
+      cancelButtonText: t('取消'),
       type: 'warning'
     })
     await deleteCategory(row.id)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('删除成功'))
     fetchData()
   } catch (e) {
     if (e !== 'cancel') console.error('删除失败', e)

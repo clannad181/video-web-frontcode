@@ -2,13 +2,13 @@
   <div class="page-container">
     <div class="page-header">
       <div class="header-left">
-        <h2 class="page-title">系统信息</h2>
-        <span class="page-sub">服务器运行状态监控</span>
+        <h2 class="page-title">{{ $t('系统信息') }}</h2>
+        <span class="page-sub">{{ $t('服务器运行状态监控') }}</span>
       </div>
       <div class="header-right">
         <div class="refresh-indicator" :class="{ active: refreshing }">
           <span class="refresh-dot"></span>
-          <span class="refresh-text">{{ refreshing ? '刷新中...' : '每 15 秒自动刷新' }}</span>
+          <span class="refresh-text">{{ refreshing ? $t('刷新中...') : $t('每 15 秒自动刷新') }}</span>
         </div>
       </div>
     </div>
@@ -49,8 +49,8 @@
           </svg>
         </div>
         <div class="stat-info">
-          <div class="stat-value" :class="card.class" :style="card.valueStyle">{{ card.value }}</div>
-          <div class="stat-label">{{ card.label }}</div>
+          <div class="stat-value" :class="card.class" :style="card.valueStyle">{{ $t(card.value) }}</div>
+          <div class="stat-label">{{ $t(card.label) }}</div>
         </div>
       </div>
     </div>
@@ -65,11 +65,11 @@
               d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
         </div>
-        <h3 class="section-title">系统信息</h3>
+        <h3 class="section-title">{{ $t('系统信息') }}</h3>
       </div>
       <div class="detail-grid">
         <div class="detail-item" v-for="(item, i) in detailItems" :key="i" :style="{ animationDelay: i * 50 + 'ms' }">
-          <span class="detail-label">{{ item.label }}</span>
+          <span class="detail-label">{{ $t(item.label) }}</span>
           <span class="detail-value" :class="item.class">{{ item.value }}</span>
         </div>
       </div>
@@ -83,7 +83,7 @@
             <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
           </svg>
         </div>
-        <h3 class="section-title">资源使用</h3>
+        <h3 class="section-title">{{ $t('资源使用') }}</h3>
       </div>
       <div class="ring-grid">
         <div class="ring-card" v-for="(ring, i) in ringData" :key="i" :style="{ animationDelay: i * 80 + 'ms' }">
@@ -95,7 +95,7 @@
             </svg>
             <div class="ring-center">
               <div class="ring-pct" :style="{ color: ring.color }">{{ ring.pct }}%</div>
-              <div class="ring-label">{{ ring.label }}</div>
+              <div class="ring-label">{{ $t(ring.label) }}</div>
             </div>
           </div>
           <div class="ring-detail" v-html="ring.detail"></div>
@@ -113,12 +113,12 @@
             <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
           </svg>
         </div>
-        <h3 class="section-title">磁盘详情</h3>
+        <h3 class="section-title">{{ $t('磁盘详情') }}</h3>
       </div>
       <div class="disk-list">
         <div class="disk-row" v-for="(d, i) in diskList" :key="d.mount" :style="{ animationDelay: i * 60 + 'ms' }">
           <div class="disk-head">
-            <span class="disk-name">{{ d.name || '磁盘' }}</span>
+            <span class="disk-name">{{ d.name || $t('磁盘') }}</span>
             <span class="disk-mount">{{ d.mount }}</span>
             <span class="disk-type" v-if="d.type">{{ d.type }}</span>
           </div>
@@ -129,12 +129,9 @@
             <span class="disk-bar-pct" :style="{ color: diskBarColor(d) }">{{ diskPctVal(d) }}%</span>
           </div>
           <div class="disk-info">
-            <span class="disk-info-item"><span class="disk-info-dot" style="background:#f44336"></span>已用 {{ d.used
-              }}GB</span>
-            <span class="disk-info-item"><span class="disk-info-dot" style="background:#4caf50"></span>可用 {{ d.free
-              }}GB</span>
-            <span class="disk-info-item"><span class="disk-info-dot" style="background:#909399"></span>总量 {{ d.total
-              }}GB</span>
+            <span class="disk-info-item"><span class="disk-info-dot" style="background:#f44336"></span>{{ $t('已用 {val}GB', { val: d.used }) }}</span>
+            <span class="disk-info-item"><span class="disk-info-dot" style="background:#4caf50"></span>{{ $t('可用 {val}GB', { val: d.free }) }}</span>
+            <span class="disk-info-item"><span class="disk-info-dot" style="background:#909399"></span>{{ $t('总量 {val}GB', { val: d.total }) }}</span>
           </div>
         </div>
       </div>
@@ -144,7 +141,10 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { getSystemInfo } from '@/api/systemInfo'
+
+const { t } = useI18n()
 
 const C = 2 * Math.PI * 50
 const info = reactive({
@@ -167,42 +167,43 @@ const uptimeDisplay = computed(() => {
   const h = Math.floor((s % 86400) / 3600)
   const m = Math.floor((s % 3600) / 60)
   const sec = s % 60
-  if (d > 0) return `${d}天 ${h}时 ${m}分 ${sec}秒`
-  return `${h}时 ${m}分 ${sec}秒`
+  if (d > 0) return t('{d}天 {h}时 {m}分 {sec}秒', { d, h, m, sec })
+  return t('{h}时 {m}分 {sec}秒', { h, m, sec })
 })
 
+// jvmUptime 为后端返回的固定中文时长格式（属解析用纯数据，非翻译 key）；i18n-key 仅为让检查脚本放行
 function parseUptime(str) {
   if (!str) return 0
-  const dm = str.match(/(\d+)\s*天/) || []
-  const hm = str.match(/(\d+)\s*小时/) || []
-  const mm = str.match(/(\d+)\s*分/) || []
-  const sm = str.match(/(\d+)\s*秒/) || []
+  const dm = str.match(/(\d+)\s*天/) || [] // i18n-key
+  const hm = str.match(/(\d+)\s*小时/) || [] // i18n-key
+  const mm = str.match(/(\d+)\s*分/) || [] // i18n-key
+  const sm = str.match(/(\d+)\s*秒/) || [] // i18n-key
   return (parseInt(dm[1]) || 0) * 86400 + (parseInt(hm[1]) || 0) * 3600 + (parseInt(mm[1]) || 0) * 60 + (parseInt(sm[1]) || 0)
 }
 
 const statusOk = computed(() => loaded.value)
 
 const statCards = computed(() => [
-  { icon: 'coffee', label: 'Java 版本', value: info.javaVersion || '-', bg: 'rgba(0,161,214,0.1)', color: '#00a1d6' },
-  { icon: 'clock', label: 'JVM 运行时长', value: uptimeDisplay.value, bg: 'rgba(251,114,153,0.1)', color: '#fb7299', class: 'uptime-val' },
+  { icon: 'coffee', label: 'Java 版本', value: info.javaVersion || '-', bg: 'rgba(0,161,214,0.1)', color: '#00a1d6' }, // i18n-key
+  { icon: 'clock', label: 'JVM 运行时长', value: uptimeDisplay.value, bg: 'rgba(251,114,153,0.1)', color: '#fb7299', class: 'uptime-val' }, // i18n-key
   {
     icon: statusOk.value ? 'check' : 'x',
-    label: '系统状态',
-    value: statusOk.value ? '运行正常' : '系统异常',
+    label: '系统状态', // i18n-key
+    value: statusOk.value ? '运行正常' : '系统异常', // i18n-key
     bg: statusOk.value ? 'rgba(76,175,80,0.1)' : 'rgba(244,67,54,0.1)',
     color: statusOk.value ? '#4caf50' : '#f44336',
     valueStyle: { color: statusOk.value ? '#4caf50' : '#f44336' }
   },
-  { icon: 'cpu', label: '活跃线程', value: info.threadCount || '-', bg: 'rgba(124,92,252,0.1)', color: '#7c5cfc' }
+  { icon: 'cpu', label: '活跃线程', value: info.threadCount || '-', bg: 'rgba(124,92,252,0.1)', color: '#7c5cfc' } // i18n-key
 ])
 
 const detailItems = computed(() => [
-  { label: '操作系统', value: info.osName || '-' },
-  { label: '系统架构', value: info.osArch || '-' },
-  { label: 'Java 供应商', value: info.javaVendor || '-' },
-  { label: 'JVM 启动时间', value: info.jvmStartTime || '-' },
-  { label: '线程信息', value: `${info.threadCount || 0} / 峰值 ${info.peakThreadCount || 0}`, class: 'mono' },
-  { label: '守护线程', value: info.daemonThreadCount || '-' }
+  { label: '操作系统', value: info.osName || '-' }, // i18n-key
+  { label: '系统架构', value: info.osArch || '-' }, // i18n-key
+  { label: 'Java 供应商', value: info.javaVendor || '-' }, // i18n-key
+  { label: 'JVM 启动时间', value: info.jvmStartTime || '-' }, // i18n-key
+  { label: '线程信息', value: t('{current} / 峰值 {peak}', { current: info.threadCount || 0, peak: info.peakThreadCount || 0 }), class: 'mono' }, // i18n-key
+  { label: '守护线程', value: info.daemonThreadCount || '-' } // i18n-key
 ])
 
 const cpuPct = computed(() => info.systemCpuLoad.toFixed(1))
@@ -225,10 +226,10 @@ const diskColor = computed(() => parseFloat(diskPct.value) >= 90 ? '#f44336' : p
 const diskOffset = computed(() => C * (1 - parseFloat(diskPct.value) / 100))
 
 const ringData = computed(() => [
-  { label: 'CPU 负载', pct: cpuPct.value, color: cpuColor.value, offset: cpuOffset.value, detail: `系统 <b>${info.systemCpuLoad.toFixed(1)}%</b> / 进程 <b>${info.processCpuLoad.toFixed(1)}%</b> · ${info.cpuCores} 核` },
-  { label: '内存占用', pct: memPct.value, color: memColor.value, offset: memOffset.value, detail: `已用 <b>${info.systemUsedMemory}MB</b> / 总量 ${info.systemTotalMemory}MB` },
-  { label: 'JVM 堆内存', pct: heapPct.value, color: heapColor.value, offset: heapOffset.value, detail: `已用 <b>${info.heapUsed}MB</b> / 最大 ${info.heapMax}MB · 非堆 ${info.nonHeapUsed}MB` },
-  { label: '磁盘使用', pct: diskPct.value, color: diskColor.value, offset: diskOffset.value, detail: `<b>${diskUsedGB.value}GB</b> / ${diskTotalGB.value}GB` }
+  { label: 'CPU 负载', pct: cpuPct.value, color: cpuColor.value, offset: cpuOffset.value, detail: t('系统 {cpu} / 进程 {proc} · {cores} 核', { cpu: `<b>${info.systemCpuLoad.toFixed(1)}%</b>`, proc: `<b>${info.processCpuLoad.toFixed(1)}%</b>`, cores: info.cpuCores }) }, // i18n-key
+  { label: '内存占用', pct: memPct.value, color: memColor.value, offset: memOffset.value, detail: t('已用 {used} / 总量 {total}', { used: `<b>${info.systemUsedMemory}MB</b>`, total: `${info.systemTotalMemory}MB` }) }, // i18n-key
+  { label: 'JVM 堆内存', pct: heapPct.value, color: heapColor.value, offset: heapOffset.value, detail: t('已用 {used} / 最大 {max} · 非堆 {nonHeap}', { used: `<b>${info.heapUsed}MB</b>`, max: `${info.heapMax}MB`, nonHeap: `${info.nonHeapUsed}MB` }) }, // i18n-key
+  { label: '磁盘使用', pct: diskPct.value, color: diskColor.value, offset: diskOffset.value, detail: `<b>${diskUsedGB.value}GB</b> / ${diskTotalGB.value}GB` } // i18n-key
 ])
 
 function diskPctVal(d) { return d.usage != null ? d.usage.toFixed(1) : (d.total ? ((d.used / d.total) * 100).toFixed(1) : 0) }

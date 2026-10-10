@@ -8,7 +8,7 @@
       @click="handleAction(action)"
     >
       <span class="action-icon">{{ action.emoji }}</span>
-      <span class="action-text">{{ action.label }}</span>
+      <span class="action-text">{{ $t(action.label) }}</span>
     </button>
   </div>
 </template>
@@ -19,10 +19,10 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const actions = [
-  { label: '上传视频', emoji: '📤', color: '#fb7299', path: '/video-manage' },
-  { label: '批量审核', emoji: '✅', color: '#00a1d6', path: '/review' },
-  { label: '数据报告', emoji: '📊', color: '#7c5cfc', path: '/data-analysis' },
-  { label: '用户反馈', emoji: '💬', color: '#ff8c42', path: '/comment-manage' }
+  { label: '上传视频', emoji: '📤', color: '#fb7299', path: '/video-manage' }, // i18n-key
+  { label: '批量审核', emoji: '✅', color: '#00a1d6', path: '/review' }, // i18n-key
+  { label: '数据报告', emoji: '📊', color: '#7c5cfc', path: '/data-analysis' }, // i18n-key
+  { label: '用户反馈', emoji: '💬', color: '#ff8c42', path: '/comment-manage' } // i18n-key
 ]
 
 function handleAction(action) {

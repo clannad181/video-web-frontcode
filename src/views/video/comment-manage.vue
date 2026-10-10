@@ -1,57 +1,57 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h1 class="page-title">评论管理</h1>
-      <p class="page-subtitle">管理用户评论与互动内容</p>
+      <h1 class="page-title">{{ $t('评论管理') }}</h1>
+      <p class="page-subtitle">{{ $t('管理用户评论与互动内容') }}</p>
     </div>
 
     <div class="filter-card">
       <div class="filter-grid">
         <div class="filter-item">
-          <label class="filter-label">内容关键词</label>
-          <input v-model="query.keyword" class="filter-input" placeholder="搜索评论内容" @keyup.enter="search" />
+          <label class="filter-label">{{ $t('内容关键词') }}</label>
+          <input v-model="query.keyword" class="filter-input" :placeholder="$t('搜索评论内容')" @keyup.enter="search" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">评论者昵称</label>
-          <input v-model="query.nickName" class="filter-input" placeholder="搜索评论者昵称" @keyup.enter="search" />
+          <label class="filter-label">{{ $t('评论者昵称') }}</label>
+          <input v-model="query.nickName" class="filter-input" :placeholder="$t('搜索评论者昵称')" @keyup.enter="search" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">视频ID</label>
-          <input v-model="query.videoId" class="filter-input" placeholder="输入视频ID" @keyup.enter="search" />
+          <label class="filter-label">{{ $t('视频ID') }}</label>
+          <input v-model="query.videoId" class="filter-input" :placeholder="$t('输入视频ID')" @keyup.enter="search" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">状态</label>
+          <label class="filter-label">{{ $t('状态') }}</label>
           <div class="select-wrap" :class="{ open: statusOpen }">
             <select v-model="query.status" class="filter-select" @mousedown="statusOpen = true" @blur="statusOpen = false">
-              <option value="">全部</option>
-              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ d.label }}</option>
+              <option value="">{{ $t('全部') }}</option>
+              <option v-for="d in statusOptions" :key="d.id ?? d.value" :value="d.value">{{ $t(d.label) }}</option>
             </select>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">开始时间</label>
+          <label class="filter-label">{{ $t('开始时间') }}</label>
           <input v-model="query.startTime" type="datetime-local" class="filter-input" />
         </div>
         <div class="filter-item">
-          <label class="filter-label">结束时间</label>
+          <label class="filter-label">{{ $t('结束时间') }}</label>
           <input v-model="query.endTime" type="datetime-local" class="filter-input" />
         </div>
       </div>
       <div class="filter-actions">
         <button class="btn btn-secondary" @click="resetQuery">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
-          重置
+          {{ $t('重置') }}
         </button>
         <button class="btn btn-primary" @click="search">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-          搜索
+          {{ $t('搜索') }}
         </button>
       </div>
       <div v-if="selectedIds.length > 0" class="filter-bottom">
-        <span class="selected-count">已选择 {{ selectedIds.length }} 条</span>
+        <span class="selected-count">{{ $t('已选择 {count} 条', { count: selectedIds.length }) }}</span>
         <button class="btn btn-danger" @click="handleBatchDelete">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
-          批量删除
+          {{ $t('批量删除') }}
         </button>
       </div>
     </div>
@@ -65,19 +65,19 @@
                 <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
               </th>
               <th class="col-index">#</th>
-              <th>评论内容</th>
-              <th>评论用户</th>
-              <th>视频信息</th>
-              <th>点赞数</th>
-              <th>回复数</th>
-              <th>状态</th>
-              <th>评论时间</th>
-              <th class="sticky-col">操作</th>
+              <th>{{ $t('评论内容') }}</th>
+              <th>{{ $t('评论用户') }}</th>
+              <th>{{ $t('视频信息') }}</th>
+              <th>{{ $t('点赞数') }}</th>
+              <th>{{ $t('回复数') }}</th>
+              <th>{{ $t('状态') }}</th>
+              <th>{{ $t('评论时间') }}</th>
+              <th class="sticky-col">{{ $t('操作') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="records.length === 0 && !loading">
-              <td colspan="10" class="empty-row">暂无数据</td>
+              <td colspan="10" class="empty-row">{{ $t('暂无数据') }}</td>
             </tr>
             <tr v-for="(row, idx) in records" :key="row.id" class="table-row">
               <td class="checkbox-col">
@@ -106,22 +106,22 @@
               <td class="cell-center">{{ row.likeCount || 0 }}</td>
               <td class="cell-center">{{ row.replyCount || 0 }}</td>
               <td>
-                <span class="status-badge" :class="statusClass(row.status)">{{ statusText(row.status) }}</span>
+                <span class="status-badge" :class="statusClass(row.status)">{{ $t(statusText(row.status)) }}</span>
               </td>
               <td class="cell-muted">{{ row.createTime }}</td>
               <td class="sticky-col">
                 <div class="action-group">
-                  <button class="btn-action btn-detail" @click="openDetail(row)">详情</button>
+                  <button class="btn-action btn-detail" @click="openDetail(row)">{{ $t('详情') }}</button>
                   <button
                     v-if="row.status === 2"
                     class="btn-action btn-recover"
                     @click="handleToggleStatus(row)"
-                  >恢复</button>
+                  >{{ $t('恢复') }}</button>
                   <button
                     v-else
                     class="btn-action btn-block"
                     @click="handleToggleStatus(row)"
-                  >屏蔽</button>
+                  >{{ $t('屏蔽') }}</button>
                 </div>
               </td>
             </tr>
@@ -130,7 +130,7 @@
       </div>
 
       <div v-if="total > 0" class="pagination-wrap">
-        <div class="page-info">共 {{ total }} 条</div>
+        <div class="page-info">{{ $t('共 {total} 条', { total }) }}</div>
         <div class="page-btns">
           <button class="pg-btn" :disabled="query.page <= 1" @click="goPage(query.page - 1)">&#8249;</button>
           <template v-for="p in pageNumbers" :key="p">
@@ -140,9 +140,9 @@
           <button class="pg-btn" :disabled="query.page >= totalPages" @click="goPage(query.page + 1)">&#8250;</button>
         </div>
         <select v-model.number="query.size" class="page-size-sel" @change="onPageSizeChange">
-          <option :value="10">10 条/页</option>
-          <option :value="20">20 条/页</option>
-          <option :value="50">50 条/页</option>
+          <option :value="10">{{ $t('{n} 条/页', { n: 10 }) }}</option>
+          <option :value="20">{{ $t('{n} 条/页', { n: 20 }) }}</option>
+          <option :value="50">{{ $t('{n} 条/页', { n: 50 }) }}</option>
         </select>
       </div>
     </div>
@@ -153,7 +153,7 @@
         <div v-if="showDetailModal" class="modal-overlay" @click.self="showDetailModal = false">
           <div class="modal-card detail-modal" @click.stop>
             <div class="modal-header">
-              <h3>评论详情</h3>
+              <h3>{{ $t('评论详情') }}</h3>
               <button class="modal-close" @click="showDetailModal = false">&times;</button>
             </div>
             <div class="modal-body" v-loading="detailLoading">
@@ -168,13 +168,13 @@
                 </div>
                 <div class="video-info-text">
                   <div class="detail-video-title">{{ detailData.rootComment.videoTitle }}</div>
-                  <div class="video-link-hint">点击查看详情 ›</div>
+                  <div class="video-link-hint">{{ $t('点击查看详情') }} ›</div>
                 </div>
               </div>
 
               <!-- 评论树 -->
               <div v-if="detailData.rootComment" class="comment-tree">
-                <div class="tree-label">评论上下文</div>
+                <div class="tree-label">{{ $t('评论上下文') }}</div>
                 <comment-node
                   :comment="detailData.rootComment"
                   :target-id="detailData.targetId"
@@ -186,7 +186,7 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="showDetailModal = false">关闭</button>
+              <button class="btn btn-secondary" @click="showDetailModal = false">{{ $t('关闭') }}</button>
             </div>
           </div>
         </div>
@@ -199,7 +199,7 @@
         <div v-if="showVideoModal" class="modal-overlay" @click.self="showVideoModal = false">
           <div class="modal-card video-modal" @click.stop>
             <div class="modal-header">
-              <h3>视频详情</h3>
+              <h3>{{ $t('视频详情') }}</h3>
               <button class="modal-close" @click="showVideoModal = false">&times;</button>
             </div>
             <div class="modal-body video-modal-body">
@@ -207,7 +207,7 @@
                 <div v-if="videoUrl" class="video-player-container">
                   <video ref="videoRef" :src="videoUrl" controls class="video-player"></video>
                 </div>
-                <div v-else class="video-player-placeholder">暂无播放源</div>
+                <div v-else class="video-player-placeholder">{{ $t('暂无播放源') }}</div>
               </div>
               <div class="video-info-panel">
                 <h2 class="video-detail-title">{{ videoInfo.title }}</h2>
@@ -223,12 +223,12 @@
                     <span class="author-uid">UID: {{ videoInfo.uid }}</span>
                   </div>
                 </div>
-                <div class="video-desc">{{ videoInfo.description || '暂无简介' }}</div>
+                <div class="video-desc">{{ videoInfo.description || $t('暂无简介') }}</div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" @click="showVideoModal = false">关闭</button>
-              <button class="btn btn-primary" @click="goToVideoManage">前往视频管理</button>
+              <button class="btn btn-secondary" @click="showVideoModal = false">{{ $t('关闭') }}</button>
+              <button class="btn btn-primary" @click="goToVideoManage">{{ $t('前往视频管理') }}</button>
             </div>
           </div>
         </div>
@@ -240,10 +240,12 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onActivated, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCommentList, getCommentDetail, batchDeleteComments, toggleCommentStatus, getVideoDetail } from '@/api/comment'
 import { getEnabledDictData } from '@/api/dict'
 
+const { t } = useI18n()
 const router = useRouter()
 const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
 
@@ -268,7 +270,7 @@ function statusClass(s) {
   return { 0: 'badge-success', 1: 'badge-info', 2: 'badge-danger', 3: 'badge-pending' }[s] || ''
 }
 function statusText(s) {
-  return { 0: '正常', 1: '用户删除', 2: '运营屏蔽', 3: '待审核' }[s] || '未知'
+  return { 0: '正常', 1: '用户删除', 2: '运营屏蔽', 3: '待审核' }[s] || '未知' // i18n-key
 }
 
 // --- 分页 ---
@@ -351,13 +353,13 @@ async function fetchData() {
 // --- 批量删除 ---
 async function handleBatchDelete() {
   try {
-    await ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 条评论吗？`, '批量删除', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('确定要删除选中的 {count} 条评论吗？', { count: selectedIds.value.length }), t('批量删除'), {
+      confirmButtonText: t('确定'),
+      cancelButtonText: t('取消'),
       type: 'warning'
     })
     await batchDeleteComments(selectedIds.value)
-    ElMessage.success('批量删除成功')
+    ElMessage.success(t('批量删除成功'))
     selectedIds.value = []
     fetchData()
   } catch (e) {
@@ -368,13 +370,13 @@ async function handleBatchDelete() {
 // --- 屏蔽/恢复 ---
 async function handleToggleStatus(row) {
   const isBlock = row.status !== 2
-  const title = isBlock ? '屏蔽' : '恢复'
+  const title = isBlock ? t('屏蔽') : t('恢复')
   const type = isBlock ? 'warning' : 'info'
-  const msg = isBlock ? '确定要屏蔽该评论吗？' : '确定要恢复该评论吗？'
+  const msg = isBlock ? t('确定要屏蔽该评论吗？') : t('确定要恢复该评论吗？')
   try {
-    await ElMessageBox.confirm(msg, title, { confirmButtonText: '确定', cancelButtonText: '取消', type })
+    await ElMessageBox.confirm(msg, title, { confirmButtonText: t('确定'), cancelButtonText: t('取消'), type })
     await toggleCommentStatus(row.id)
-    ElMessage.success(`${title}成功`)
+    ElMessage.success(isBlock ? t('屏蔽成功') : t('恢复成功'))
     fetchData()
   } catch (e) {
     if (e !== 'cancel') console.error(`${title}失败`, e)
@@ -443,7 +445,7 @@ async function openVideoDetail(row) {
     showDetailModal.value = false
     showVideoModal.value = true
   } catch (e) {
-    ElMessage.error('加载视频信息失败')
+    ElMessage.error(t('加载视频信息失败'))
     console.error('加载视频详情失败', e)
   }
 }
@@ -813,6 +815,7 @@ html.dark-mode {
 
 <script>
 import { defineComponent, h } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export default { name: 'CommentManage' }
 
@@ -827,6 +830,7 @@ export const CommentNode = defineComponent({
     statusText: Function
   },
   setup(props) {
+    const { t } = useI18n()
     return () => {
       const c = props.comment
       if (!c) return null
@@ -837,9 +841,9 @@ export const CommentNode = defineComponent({
         ? h('div', { class: 'comment-node-avatar' }, [h('img', { src: c.avatar, alt: '' })])
         : h('div', { class: 'comment-node-avatar comment-node-avatar-placeholder' }, (c.nickName || 'A')[0].toUpperCase())
 
-      const headerNodes = [h('span', { class: 'comment-node-name' }, c.nickName || '匿名用户')]
+      const headerNodes = [h('span', { class: 'comment-node-name' }, c.nickName || t('匿名用户'))]
       if (c.status !== undefined && c.status !== 0) {
-        headerNodes.push(h('span', { class: `status-badge ${props.statusClass(c.status)}` }, props.statusText(c.status)))
+        headerNodes.push(h('span', { class: `status-badge ${props.statusClass(c.status)}` }, t(props.statusText(c.status))))
       }
       headerNodes.push(h('span', { class: 'comment-node-time' }, c.createTime))
 
@@ -853,7 +857,7 @@ export const CommentNode = defineComponent({
 
       const contentNode = c.content
         ? h('div', { class: 'comment-node-text' }, c.content)
-        : h('div', { class: 'comment-node-text empty' }, '暂无评论内容')
+        : h('div', { class: 'comment-node-text empty' }, t('暂无评论内容'))
 
       const bodyNode = h('div', { class: ['comment-node-body', { 'target-highlight': isTarget }] }, [
         avatarNode,

@@ -14,10 +14,10 @@
             :to="item.path"
             class="breadcrumb-link"
           >
-            {{ item.meta.title }}
+            {{ $t(item.meta.title) }}
           </router-link>
           <span v-else-if="item.meta?.title" class="breadcrumb-text">
-            {{ item.meta.title }}
+            {{ $t(item.meta.title) }}
           </span>
         </div>
       </el-breadcrumb-item>
@@ -36,7 +36,7 @@ const isLast = (index) => index === breadcrumbs.value.length - 1
 
 const getBreadcrumbs = () => {
   const matched = route.matched.filter((item) => item.meta && item.meta.title)
-  const homeRoute = { path: '/', meta: { title: '首页' } }
+  const homeRoute = { path: '/', meta: { title: '首页' } } // i18n-key
   breadcrumbs.value = [homeRoute, ...matched]
 }
 

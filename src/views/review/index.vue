@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">内容审核</h2>
-      <span class="page-sub">管理和审核平台内容，确保内容质量和合规性</span>
+      <h2 class="page-title">{{ $t('内容审核') }}</h2>
+      <span class="page-sub">{{ $t('管理和审核平台内容，确保内容质量和合规性') }}</span>
     </div>
 
     <div class="stats-row">
@@ -10,21 +10,21 @@
         <div class="stat-icon">📋</div>
         <div class="stat-info">
           <div class="stat-value">{{ pendingVideoCount + pendingCommentCount }}</div>
-          <div class="stat-label">总待审核</div>
+          <div class="stat-label">{{ $t('总待审核') }}</div>
         </div>
       </div>
       <div class="stat-card stat-video">
         <div class="stat-icon">🎬</div>
         <div class="stat-info">
           <div class="stat-value">{{ pendingVideoCount }}</div>
-          <div class="stat-label">待审核视频</div>
+          <div class="stat-label">{{ $t('待审核视频') }}</div>
         </div>
       </div>
       <div class="stat-card stat-comment">
         <div class="stat-icon">💬</div>
         <div class="stat-info">
           <div class="stat-value">{{ pendingCommentCount }}</div>
-          <div class="stat-label">待审核评论</div>
+          <div class="stat-label">{{ $t('待审核评论') }}</div>
         </div>
       </div>
     </div>
@@ -33,10 +33,10 @@
       <div class="tab-track full-width">
         <div class="tab-slider" :style="{ transform: activeTab === 'video' ? 'translateX(0)' : 'translateX(100%)' }"></div>
         <button class="tab-item" :class="{ active: activeTab === 'video' }" @click="switchTab('video')">
-          待审核视频<span class="tab-badge">{{ pendingVideoCount }}</span>
+          {{ $t('待审核视频') }}<span class="tab-badge">{{ pendingVideoCount }}</span>
         </button>
         <button class="tab-item" :class="{ active: activeTab === 'comment' }" @click="switchTab('comment')">
-          待审核评论<span class="tab-badge">{{ pendingCommentCount }}</span>
+          {{ $t('待审核评论') }}<span class="tab-badge">{{ pendingCommentCount }}</span>
         </button>
       </div>
     </div>
@@ -45,25 +45,25 @@
       <div class="filter-card">
         <div class="filter-grid">
           <div class="filter-item">
-            <label class="filter-label">视频标题</label>
-            <input v-model="videoFilter.title" class="filter-input" placeholder="搜索视频标题" @keyup.enter="searchVideo" />
+            <label class="filter-label">{{ $t('视频标题') }}</label>
+            <input v-model="videoFilter.title" class="filter-input" :placeholder="$t('搜索视频标题')" @keyup.enter="searchVideo" />
           </div>
           <div class="filter-item">
-            <label class="filter-label">UP主昵称</label>
-            <input v-model="videoFilter.nickName" class="filter-input" placeholder="输入UP主昵称" @keyup.enter="searchVideo" />
+            <label class="filter-label">{{ $t('UP主昵称') }}</label>
+            <input v-model="videoFilter.nickName" class="filter-input" :placeholder="$t('输入UP主昵称')" @keyup.enter="searchVideo" />
           </div>
           <div class="filter-actions">
             <button class="btn btn-outline" @click="resetVideoFilter">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
               </svg>
-              重置
+              {{ $t('重置') }}
             </button>
             <button class="btn btn-primary" @click="searchVideo">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
-              搜索
+              {{ $t('搜索') }}
             </button>
           </div>
         </div>
@@ -75,18 +75,18 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>封面</th>
-                <th>标题</th>
-                <th>UP主</th>
-                <th>剧集状态</th>
-                <th>视频状态</th>
-                <th>创建时间</th>
-                <th>操作</th>
+                <th>{{ $t('封面') }}</th>
+                <th>{{ $t('标题') }}</th>
+                <th>{{ $t('UP主') }}</th>
+                <th>{{ $t('剧集状态') }}</th>
+                <th>{{ $t('视频状态') }}</th>
+                <th>{{ $t('创建时间') }}</th>
+                <th>{{ $t('操作') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="videoTableData.length === 0 && !videoLoading">
-                <td colspan="8" class="empty-cell"><div class="empty-state"><p>暂无数据</p></div></td>
+                <td colspan="8" class="empty-cell"><div class="empty-state"><p>{{ $t('暂无数据') }}</p></div></td>
               </tr>
               <tr v-for="(row, idx) in videoTableData" :key="row.id" class="table-row">
                 <td>{{ (videoPagination.page - 1) * videoPagination.size + idx + 1 }}</td>
@@ -101,17 +101,17 @@
                   <div class="user-cell">
                     <img v-if="row.avatarUrl" :src="row.avatarUrl" class="user-avatar" />
                     <div v-else class="user-avatar avatar-fb">{{ (row.nickName || '?')[0].toUpperCase() }}</div>
-                    <span class="user-name">{{ row.nickName || '匿名用户' }}</span>
+                    <span class="user-name">{{ row.nickName || $t('匿名用户') }}</span>
                   </div>
                 </td>
-                <td><span class="badge" :class="reviewBadgeCls(row.reviewStatus)">{{ reviewLbl(row.reviewStatus) }}</span></td>
-                <td><span class="badge" :class="videoStatusBadgeCls(row.videoStatus)">{{ videoStatusLbl(row.videoStatus) }}</span></td>
+                <td><span class="badge" :class="reviewBadgeCls(row.reviewStatus)">{{ $t(reviewLbl(row.reviewStatus)) }}</span></td>
+                <td><span class="badge" :class="videoStatusBadgeCls(row.videoStatus)">{{ $t(videoStatusLbl(row.videoStatus)) }}</span></td>
                 <td class="mono">{{ row.createTime }}</td>
                 <td>
                   <div class="action-group">
-                    <button class="act-btn act-blue" @click="previewVideo(row)">预览</button>
-                    <button class="act-btn act-green" :disabled="row.reviewStatus !== 2" @click="approveVideo(row)">通过</button>
-                    <button class="act-btn act-red" :disabled="row.reviewStatus !== 2" @click="rejectVideo(row)">驳回</button>
+                    <button class="act-btn act-blue" @click="previewVideo(row)">{{ $t('预览') }}</button>
+                    <button class="act-btn act-green" :disabled="row.reviewStatus !== 2" @click="approveVideo(row)">{{ $t('通过') }}</button>
+                    <button class="act-btn act-red" :disabled="row.reviewStatus !== 2" @click="rejectVideo(row)">{{ $t('驳回') }}</button>
                   </div>
                 </td>
               </tr>
@@ -119,7 +119,7 @@
           </table>
         </div>
         <div class="pagination">
-          <div class="page-info">共 {{ videoPagination.total }} 个视频</div>
+          <div class="page-info">{{ $t('共 {total} 个视频', { total: videoPagination.total }) }}</div>
           <div class="page-btns">
             <button class="pg-btn" :disabled="videoPagination.page <= 1" @click="goVideoPage(videoPagination.page - 1)">&#8249;</button>
             <template v-for="p in videoVisiblePages" :key="p">
@@ -128,9 +128,13 @@
             </template>
             <button class="pg-btn" :disabled="videoPagination.page >= videoTotalPages" @click="goVideoPage(videoPagination.page + 1)">&#8250;</button>
           </div>
-          <div class="page-size">每页 <select v-model.number="videoPagination.size" class="size-sel" @change="onVideoPageSizeChange">
-            <option :value="10">10</option><option :value="20">20</option><option :value="50">50</option>
-          </select> 条</div>
+          <div class="page-size"><i18n-t keypath="每页 {size} 条" tag="span"><!-- i18n-key: keypath 由 i18n-t 消费 -->
+            <template #size>
+              <select v-model.number="videoPagination.size" class="size-sel" @change="onVideoPageSizeChange">
+                <option :value="10">10</option><option :value="20">20</option><option :value="50">50</option>
+              </select>
+            </template>
+          </i18n-t></div>
         </div>
       </div>
     </div>
@@ -139,29 +143,29 @@
       <div class="filter-card">
         <div class="filter-grid">
           <div class="filter-item">
-            <label class="filter-label">评论内容</label>
-            <input v-model="commentFilter.content" class="filter-input" placeholder="搜索评论内容" @keyup.enter="searchComment" />
+            <label class="filter-label">{{ $t('评论内容') }}</label>
+            <input v-model="commentFilter.content" class="filter-input" :placeholder="$t('搜索评论内容')" @keyup.enter="searchComment" />
           </div>
           <div class="filter-item">
-            <label class="filter-label">评论者昵称</label>
-            <input v-model="commentFilter.nickName" class="filter-input" placeholder="输入评论者昵称" @keyup.enter="searchComment" />
+            <label class="filter-label">{{ $t('评论者昵称') }}</label>
+            <input v-model="commentFilter.nickName" class="filter-input" :placeholder="$t('输入评论者昵称')" @keyup.enter="searchComment" />
           </div>
           <div class="filter-item">
-            <label class="filter-label">相关视频标题</label>
-            <input v-model="commentFilter.videoTitle" class="filter-input" placeholder="搜索视频标题" @keyup.enter="searchComment" />
+            <label class="filter-label">{{ $t('相关视频标题') }}</label>
+            <input v-model="commentFilter.videoTitle" class="filter-input" :placeholder="$t('搜索视频标题')" @keyup.enter="searchComment" />
           </div>
           <div class="filter-actions">
             <button class="btn btn-outline" @click="resetCommentFilter">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
               </svg>
-              重置
+              {{ $t('重置') }}
             </button>
             <button class="btn btn-primary" @click="searchComment">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
-              搜索
+              {{ $t('搜索') }}
             </button>
           </div>
         </div>
@@ -173,16 +177,16 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>评论用户</th>
-                <th>评论内容</th>
-                <th>相关视频</th>
-                <th>评论时间</th>
-                <th>操作</th>
+                <th>{{ $t('评论用户') }}</th>
+                <th>{{ $t('评论内容') }}</th>
+                <th>{{ $t('相关视频') }}</th>
+                <th>{{ $t('评论时间') }}</th>
+                <th>{{ $t('操作') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="commentTableData.length === 0 && !commentLoading">
-                <td colspan="6" class="empty-cell"><div class="empty-state"><p>暂无数据</p></div></td>
+                <td colspan="6" class="empty-cell"><div class="empty-state"><p>{{ $t('暂无数据') }}</p></div></td>
               </tr>
               <tr v-for="(row, idx) in commentTableData" :key="row.id" class="table-row">
                 <td>{{ (commentPagination.page - 1) * commentPagination.size + idx + 1 }}</td>
@@ -190,7 +194,7 @@
                   <div class="user-cell">
                     <img v-if="row.avatarUrl || row.avatar" :src="row.avatarUrl || row.avatar" class="user-avatar" />
                     <div v-else class="user-avatar avatar-fb">{{ (row.nickName || '?')[0].toUpperCase() }}</div>
-                    <span class="user-name">{{ row.nickName || '匿名用户' }}</span>
+                    <span class="user-name">{{ row.nickName || $t('匿名用户') }}</span>
                   </div>
                 </td>
                 <td class="col-title"><span class="title-text">{{ row.content }}</span></td>
@@ -203,8 +207,8 @@
                 <td class="mono">{{ row.createTime }}</td>
                 <td>
                   <div class="action-group">
-                    <button class="act-btn act-green" @click="approveComment(row)">通过</button>
-                    <button class="act-btn act-red" @click="rejectComment(row)">驳回</button>
+                    <button class="act-btn act-green" @click="approveComment(row)">{{ $t('通过') }}</button>
+                    <button class="act-btn act-red" @click="rejectComment(row)">{{ $t('驳回') }}</button>
                   </div>
                 </td>
               </tr>
@@ -212,7 +216,7 @@
           </table>
         </div>
         <div class="pagination">
-          <div class="page-info">共 {{ commentPagination.total }} 条评论</div>
+          <div class="page-info">{{ $t('共 {total} 条评论', { total: commentPagination.total }) }}</div>
           <div class="page-btns">
             <button class="pg-btn" :disabled="commentPagination.page <= 1" @click="goCommentPage(commentPagination.page - 1)">&#8249;</button>
             <template v-for="p in commentVisiblePages" :key="p">
@@ -221,9 +225,13 @@
             </template>
             <button class="pg-btn" :disabled="commentPagination.page >= commentTotalPages" @click="goCommentPage(commentPagination.page + 1)">&#8250;</button>
           </div>
-          <div class="page-size">每页 <select v-model.number="commentPagination.size" class="size-sel" @change="onCommentPageSizeChange">
-            <option :value="10">10</option><option :value="20">20</option><option :value="50">50</option>
-          </select> 条</div>
+          <div class="page-size"><i18n-t keypath="每页 {size} 条" tag="span"><!-- i18n-key: keypath 由 i18n-t 消费 -->
+            <template #size>
+              <select v-model.number="commentPagination.size" class="size-sel" @change="onCommentPageSizeChange">
+                <option :value="10">10</option><option :value="20">20</option><option :value="50">50</option>
+              </select>
+            </template>
+          </i18n-t></div>
         </div>
       </div>
     </div>
@@ -233,7 +241,7 @@
         <div v-if="episodeVisible" class="modal-overlay" @click.self="episodeVisible = false">
           <div class="modal-card modal-wide" @click.stop>
             <div class="modal-header">
-              <h3>剧集审核</h3>
+              <h3>{{ $t('剧集审核') }}</h3>
               <button class="modal-close" @click="episodeVisible = false">&times;</button>
             </div>
             <div class="modal-body" style="padding:0;">
@@ -244,39 +252,39 @@
                   </div>
                   <div v-else class="player-empty">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    <p>暂无剧集</p>
+                    <p>{{ $t('暂无剧集') }}</p>
                   </div>
                   <div v-if="currentEpisode" class="episode-meta">
                     <div class="detail-title-row">
-                      <span class="detail-vtitle">{{ currentEpisode.title || `第${currentEpisodeIndex + 1}集` }}</span>
-                      <span class="badge" :class="epReviewBadgeCls(currentEpisode.reviewStatus)">{{ epReviewLbl(currentEpisode.reviewStatus) }}</span>
+                      <span class="detail-vtitle">{{ currentEpisode.title || $t('第 {n} 集', { n: currentEpisodeIndex + 1 }) }}</span>
+                      <span class="badge" :class="epReviewBadgeCls(currentEpisode.reviewStatus)">{{ $t(epReviewLbl(currentEpisode.reviewStatus)) }}</span>
                     </div>
                     <div class="episode-info-row">
-                      <span class="il">集数</span><span class="iv">{{ currentEpisodeIndex + 1 }}</span>
-                      <span v-if="currentEpisode.duration" class="il" style="margin-left:16px;">时长</span>
+                      <span class="il">{{ $t('集数') }}</span><span class="iv">{{ currentEpisodeIndex + 1 }}</span>
+                      <span v-if="currentEpisode.duration" class="il" style="margin-left:16px;">{{ $t('时长') }}</span>
                       <span v-if="currentEpisode.duration" class="iv mono">{{ formatDuration(currentEpisode.duration) }}</span>
                     </div>
                     <div class="episode-actions">
-                      <button v-if="currentEpisode.reviewStatus === 0 || currentEpisode.reviewStatus === undefined" class="btn btn-primary" @click="approveEpisode(currentEpisode)">通过</button>
-                      <button class="btn btn-danger" @click="rejectEpisode(currentEpisode)">驳回</button>
+                      <button v-if="currentEpisode.reviewStatus === 0 || currentEpisode.reviewStatus === undefined" class="btn btn-primary" @click="approveEpisode(currentEpisode)">{{ $t('通过') }}</button>
+                      <button class="btn btn-danger" @click="rejectEpisode(currentEpisode)">{{ $t('驳回') }}</button>
                     </div>
                   </div>
                 </div>
                 <div class="episode-list-panel">
-                  <div class="episode-list-header">剧集列表</div>
+                  <div class="episode-list-header">{{ $t('剧集列表') }}</div>
                   <div class="episode-list-body">
                     <div v-for="(ep, idx) in episodeList" :key="ep.id" class="episode-item"
                       :class="{ active: idx === currentEpisodeIndex }" @click="selectEpisode(idx)">
                       <div class="ep-num-badge">{{ idx + 1 }}</div>
                       <div class="ep-item-info">
-                        <div class="ep-item-title">{{ ep.title || `第${idx + 1}集` }}</div>
+                        <div class="ep-item-title">{{ ep.title || $t('第 {n} 集', { n: idx + 1 }) }}</div>
                         <div class="ep-item-meta">
                           <span v-if="ep.duration" class="ep-dur">{{ formatDuration(ep.duration) }}</span>
-                          <span class="badge badge-sm" :class="epReviewBadgeCls(ep.reviewStatus)">{{ epReviewLbl(ep.reviewStatus) }}</span>
+                          <span class="badge badge-sm" :class="epReviewBadgeCls(ep.reviewStatus)">{{ $t(epReviewLbl(ep.reviewStatus)) }}</span>
                         </div>
                       </div>
                     </div>
-                    <div v-if="episodeList.length === 0" class="empty-state"><p>暂无剧集</p></div>
+                    <div v-if="episodeList.length === 0" class="empty-state"><p>{{ $t('暂无剧集') }}</p></div>
                   </div>
                 </div>
               </div>
@@ -300,6 +308,9 @@ import {
   reviewComment
 } from '@/api/review'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const activeTab = ref('video')
 const pendingVideoCount = ref(0)
@@ -348,11 +359,11 @@ const videoVisiblePages = computed(() => makePages(videoPagination.page, videoTo
 const commentVisiblePages = computed(() => makePages(commentPagination.page, commentTotalPages.value))
 
 function reviewBadgeCls(s) { return s === 0 ? 'badge-amber' : s === 1 ? 'badge-blue' : 'badge-green' }
-function reviewLbl(s) { return s === 0 ? '待审核' : s === 1 ? '部分审核' : '审核完成' }
+function reviewLbl(s) { return s === 0 ? '待审核' : s === 1 ? '部分审核' : '审核完成' } // i18n-key
 function videoStatusBadgeCls(s) { return s === 0 ? 'badge-gray' : s === 1 ? 'badge-amber' : s === 2 ? 'badge-green' : 'badge-red' }
-function videoStatusLbl(s) { return s === 0 ? '草稿' : s === 1 ? '待发布' : s === 2 ? '已发布' : '已下架' }
+function videoStatusLbl(s) { return s === 0 ? '草稿' : s === 1 ? '待发布' : s === 2 ? '已发布' : '已下架' } // i18n-key
 function epReviewBadgeCls(s) { return s === 1 ? 'badge-green' : s === 2 ? 'badge-red' : 'badge-amber' }
-function epReviewLbl(s) { return s === 1 ? '已通过' : s === 2 ? '已驳回' : '待审核' }
+function epReviewLbl(s) { return s === 1 ? '已通过' : s === 2 ? '已驳回' : '待审核' } // i18n-key
 
 function formatDuration(sec) {
   if (!sec) return '00:00'
@@ -414,9 +425,9 @@ function onCommentPageSizeChange() { commentPagination.page = 1; loadCommentList
 
 async function approveVideo(row) {
   try {
-    await ElMessageBox.confirm('确定要通过该视频吗？', '通过审核', { type: 'success', confirmButtonText: '确定', cancelButtonText: '取消' })
+    await ElMessageBox.confirm(t('确定要通过该视频吗？'), t('通过审核'), { type: 'success', confirmButtonText: t('确定'), cancelButtonText: t('取消') })
     await reviewVideo(row.id, 2)
-    ElMessage.success('审核通过')
+    ElMessage.success(t('审核通过'))
     dispatchReviewUpdated()
     loadVideoList()
   } catch (e) { if (e !== 'cancel') console.error(e) }
@@ -424,9 +435,9 @@ async function approveVideo(row) {
 
 async function rejectVideo(row) {
   try {
-    await ElMessageBox.confirm('确定要驳回该视频吗？', '驳回审核', { type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消' })
+    await ElMessageBox.confirm(t('确定要驳回该视频吗？'), t('驳回审核'), { type: 'warning', confirmButtonText: t('确定'), cancelButtonText: t('取消') })
     await reviewVideo(row.id, 3)
-    ElMessage.success('已驳回')
+    ElMessage.success(t('已驳回'))
     dispatchReviewUpdated()
     loadVideoList()
   } catch (e) { if (e !== 'cancel') console.error(e) }
@@ -455,10 +466,10 @@ function onPlayerEnded() {
 
 async function approveEpisode(ep) {
   try {
-    await ElMessageBox.confirm('确定要通过该集吗？', '通过审核', { type: 'success', confirmButtonText: '确定', cancelButtonText: '取消' })
+    await ElMessageBox.confirm(t('确定要通过该集吗？'), t('通过审核'), { type: 'success', confirmButtonText: t('确定'), cancelButtonText: t('取消') })
     await reviewEpisode(ep.id, 1)
     ep.reviewStatus = 1
-    ElMessage.success('审核通过')
+    ElMessage.success(t('审核通过'))
     dispatchReviewUpdated()
     checkAllReviewed()
   } catch (e) { if (e !== 'cancel') console.error(e) }
@@ -466,10 +477,10 @@ async function approveEpisode(ep) {
 
 async function rejectEpisode(ep) {
   try {
-    await ElMessageBox.confirm('确定要驳回该集吗？', '驳回审核', { type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消' })
+    await ElMessageBox.confirm(t('确定要驳回该集吗？'), t('驳回审核'), { type: 'warning', confirmButtonText: t('确定'), cancelButtonText: t('取消') })
     await reviewEpisode(ep.id, 2)
     ep.reviewStatus = 2
-    ElMessage.success('已驳回')
+    ElMessage.success(t('已驳回'))
     dispatchReviewUpdated()
     checkAllReviewed()
   } catch (e) { if (e !== 'cancel') console.error(e) }
@@ -484,9 +495,9 @@ function checkAllReviewed() {
 
 async function approveComment(row) {
   try {
-    await ElMessageBox.confirm('确定要通过该评论吗？', '通过审核', { type: 'success', confirmButtonText: '确定', cancelButtonText: '取消' })
+    await ElMessageBox.confirm(t('确定要通过该评论吗？'), t('通过审核'), { type: 'success', confirmButtonText: t('确定'), cancelButtonText: t('取消') })
     await reviewComment(row.id, 0)
-    ElMessage.success('审核通过')
+    ElMessage.success(t('审核通过'))
     dispatchReviewUpdated()
     loadCommentList()
   } catch (e) { if (e !== 'cancel') console.error(e) }
@@ -494,9 +505,9 @@ async function approveComment(row) {
 
 async function rejectComment(row) {
   try {
-    await ElMessageBox.confirm('确定要驳回该评论吗？', '驳回审核', { type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消' })
+    await ElMessageBox.confirm(t('确定要驳回该评论吗？'), t('驳回审核'), { type: 'warning', confirmButtonText: t('确定'), cancelButtonText: t('取消') })
     await reviewComment(row.id, 2)
-    ElMessage.success('已驳回')
+    ElMessage.success(t('已驳回'))
     dispatchReviewUpdated()
     loadCommentList()
   } catch (e) { if (e !== 'cancel') console.error(e) }

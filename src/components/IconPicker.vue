@@ -4,11 +4,11 @@
       <div v-if="visible" class="icon-picker-overlay" @click.self="emit('close')">
         <div class="icon-picker-card" @click.stop>
           <div class="icon-picker-header">
-            <h3>选择图标</h3>
+            <h3>{{ $t('选择图标') }}</h3>
             <button class="icon-picker-close" @click="emit('close')">&times;</button>
           </div>
           <div class="icon-picker-search">
-            <input v-model="keyword" class="icon-search-input" placeholder="搜索图标..." autofocus />
+            <input v-model="keyword" class="icon-search-input" :placeholder="$t('搜索图标...')" autofocus />
           </div>
           <div class="icon-picker-grid">
             <div
@@ -21,7 +21,7 @@
               <el-icon :size="20"><component :is="name" /></el-icon>
               <span class="icon-item-name">{{ name }}</span>
             </div>
-            <div v-if="filteredIcons.length === 0" class="icon-picker-empty">未找到匹配的图标</div>
+            <div v-if="filteredIcons.length === 0" class="icon-picker-empty">{{ $t('未找到匹配的图标') }}</div>
           </div>
         </div>
       </div>

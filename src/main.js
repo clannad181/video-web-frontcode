@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import { epConfig } from '@/utils/ep-config'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { createPinia } from 'pinia'
 import router from './router'
@@ -17,7 +17,8 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 
-app.use(ElementPlus, { locale: zhCn, size: 'default' })
+// 传响应式配置，语言切换时 Element Plus 组件文案才会跟着变
+app.use(ElementPlus, epConfig)
 app.use(createPinia())
 app.use(router)
 app.use(i18n)

@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">审核设置</h2>
-      <p class="page-desc">配置内容审核策略和敏感词过滤规则</p>
+      <h2 class="page-title">{{ $t('审核设置') }}</h2>
+      <p class="page-desc">{{ $t('配置内容审核策略和敏感词过滤规则') }}</p>
     </div>
 
     <el-card class="settings-card" v-loading="loading">
@@ -13,38 +13,38 @@
         label-position="left"
       >
         <div class="form-section">
-          <h3 class="section-title">内容审核</h3>
+          <h3 class="section-title">{{ $t('内容审核') }}</h3>
           <el-divider />
-          <el-form-item label="视频审核">
+          <el-form-item :label="$t('视频审核')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.videoAudit" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">开启后，新发布的视频需审核通过后才会公开显示；关闭则视频发布无需审核</span>
+              <el-switch v-model="form.videoAudit" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('开启后，新发布的视频需审核通过后才会公开显示；关闭则视频发布无需审核') }}</span>
             </div>
           </el-form-item>
-          <el-form-item label="评论审核">
+          <el-form-item :label="$t('评论审核')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.commentAudit" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">开启后，新发布的评论需审核通过后才会显示；关闭则评论发布无需审核</span>
+              <el-switch v-model="form.commentAudit" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('开启后，新发布的评论需审核通过后才会显示；关闭则评论发布无需审核') }}</span>
             </div>
           </el-form-item>
-          <el-form-item label="自动驳回违规内容">
+          <el-form-item :label="$t('自动驳回违规内容')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.autoReject" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">开启后，包含违规内容的提交将被自动驳回</span>
+              <el-switch v-model="form.autoReject" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('开启后，包含违规内容的提交将被自动驳回') }}</span>
             </div>
           </el-form-item>
         </div>
 
         <div class="form-section">
-          <h3 class="section-title">敏感词过滤</h3>
+          <h3 class="section-title">{{ $t('敏感词过滤') }}</h3>
           <el-divider />
-          <el-form-item label="敏感词过滤">
+          <el-form-item :label="$t('敏感词过滤')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.sensitiveWordFilter" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">开启后，系统将自动检测并过滤内容中的敏感词</span>
+              <el-switch v-model="form.sensitiveWordFilter" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('开启后，系统将自动检测并过滤内容中的敏感词') }}</span>
             </div>
           </el-form-item>
-          <el-form-item label="敏感词列表">
+          <el-form-item :label="$t('敏感词列表')">
             <div class="sensitive-words-area">
               <div class="tag-list" v-if="form.sensitiveWords.length">
                 <el-tag
@@ -61,23 +61,23 @@
               <div class="word-input-row">
                 <el-input
                   v-model="newWord"
-                  placeholder="输入敏感词后按 Enter 添加"
+                  :placeholder="$t('输入敏感词后按 Enter 添加')"
                   @keyup.enter="addWord"
                 />
-                <el-button type="danger" plain @click="addWord" :disabled="!newWord.trim()">添加</el-button>
+                <el-button type="danger" plain @click="addWord" :disabled="!newWord.trim()">{{ $t('添加') }}</el-button>
               </div>
-              <p class="field-hint">输入敏感词后按 Enter 键添加，点击标签上的 X 可删除</p>
+              <p class="field-hint">{{ $t('输入敏感词后按 Enter 键添加，点击标签上的 X 可删除') }}</p>
             </div>
           </el-form-item>
         </div>
 
         <div class="form-section">
-          <h3 class="section-title">审核通知</h3>
+          <h3 class="section-title">{{ $t('审核通知') }}</h3>
           <el-divider />
-          <el-form-item label="审核完成通知上传者">
+          <el-form-item :label="$t('审核完成通知上传者')">
             <div class="switch-with-desc">
-              <el-switch v-model="form.notifyOnAudit" active-text="启用" inactive-text="禁用" />
-              <span class="field-desc">审核完成后向视频上传者发送通知</span>
+              <el-switch v-model="form.notifyOnAudit" :active-text="$t('启用')" :inactive-text="$t('禁用')" />
+              <span class="field-desc">{{ $t('审核完成后向视频上传者发送通知') }}</span>
             </div>
           </el-form-item>
         </div>
@@ -85,7 +85,7 @@
         <div class="form-actions">
           <el-button type="primary" :loading="saving" @click="handleSave">
             <el-icon v-if="!saving"><Check /></el-icon>
-            保存设置
+            {{ $t('保存设置') }}
           </el-button>
         </div>
       </el-form>
@@ -97,7 +97,10 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Check } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import { getAuditConfig, updateAuditConfig } from '@/api/system'
+
+const { t } = useI18n()
 
 const formRef = ref(null)
 const loading = ref(false)
@@ -141,7 +144,7 @@ const handleSave = async () => {
   saving.value = true
   try {
     await updateAuditConfig(form.value)
-    ElMessage.success('审核设置已保存')
+    ElMessage.success(t('审核设置已保存'))
   } finally {
     saving.value = false
   }

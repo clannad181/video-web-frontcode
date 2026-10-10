@@ -8,6 +8,8 @@
  * 5. 深色模式设置
  */
 import { defineStore } from 'pinia'
+import i18n from '@/locales'
+import { applyEpLocale } from '@/utils/ep-config'
 
 // 主题切换过渡定时器（模块级，避免被 Pinia 响应式代理）
 let themeTransitionTimer = null
@@ -29,7 +31,7 @@ export const useAppStore = defineStore('app', {
     // 网站名称
     siteName: localStorage.getItem('siteName') || 'VideoHub',
     // 全局字体
-    fontFamily: localStorage.getItem('fontFamily') || '默认',
+    fontFamily: localStorage.getItem('fontFamily') || '默认', // i18n-key
     // 字体大小
     fontSize: localStorage.getItem('fontSize') || '14'
   }),
@@ -58,6 +60,10 @@ export const useAppStore = defineStore('app', {
     setLanguage(lang) {
       this.language = lang
       localStorage.setItem('language', lang)
+      // 同步 vue-i18n：否则所有 $t() 文案不会重新取语言包
+      if (i18n?.global?.locale) i18n.global.locale.value = lang
+      // 同步 Element Plus：分页/对话框/选择器等组件内置文案
+      applyEpLocale(lang)
     },
 
     /**
@@ -173,18 +179,18 @@ export const useAppStore = defineStore('app', {
      */
     applyFontFamily() {
       const fontMap = {
-        '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif",
-        '微软雅黑': "'Microsoft YaHei', sans-serif",
-        '宋体': "'SimSun', serif",
-        '黑体': "'SimHei', sans-serif",
-        '楷体': "'KaiTi', serif",
-        '仿宋': "'FangSong', serif",
-        '思源黑体': "'Noto Sans SC', sans-serif",
-        '思源宋体': "'Noto Serif SC', serif",
-        '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif",
-        '等线': "'DengXian', sans-serif"
+        '默认': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif", // i18n-key
+        '微软雅黑': "'Microsoft YaHei', sans-serif", // i18n-key
+        '宋体': "'SimSun', serif", // i18n-key
+        '黑体': "'SimHei', sans-serif", // i18n-key
+        '楷体': "'KaiTi', serif", // i18n-key
+        '仿宋': "'FangSong', serif", // i18n-key
+        '思源黑体': "'Noto Sans SC', sans-serif", // i18n-key
+        '思源宋体': "'Noto Serif SC', sans-serif", // i18n-key
+        '苹方': "'PingFang SC', 'Helvetica Neue', sans-serif", // i18n-key
+        '等线': "'DengXian', sans-serif" // i18n-key
       }
-      const fontFamily = fontMap[this.fontFamily] || fontMap['默认']
+      const fontFamily = fontMap[this.fontFamily] || fontMap['默认'] // i18n-key
       document.documentElement.style.setProperty('--font-family', fontFamily)
     },
 

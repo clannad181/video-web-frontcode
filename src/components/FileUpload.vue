@@ -18,15 +18,15 @@
       <div class="upload-icon">
         <el-icon :size="48" color="var(--color-primary)"><Upload /></el-icon>
       </div>
-      <div class="upload-text">点击或拖拽文件到此处</div>
-      <div class="upload-hint">支持大文件自动分片上传</div>
+      <div class="upload-text">{{ $t('点击或拖拽文件到此处') }}</div>
+      <div class="upload-hint">{{ $t('支持大文件自动分片上传') }}</div>
       <div v-if="uploading" class="upload-progress-overlay">
         <el-progress
           :percentage="progress"
           :stroke-width="8"
           :format="() => `${progress}%`"
         />
-        <div class="upload-progress-text">上传中 {{ progress }}%</div>
+        <div class="upload-progress-text">{{ $t('上传中 {progress}%', { progress }) }}</div>
       </div>
     </div>
 
@@ -71,10 +71,13 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Upload, Document, Close } from '@element-plus/icons-vue'
 import { uploadFile, probeVideoDuration } from '@/utils/upload'
 import { formatFileSize } from '@/utils/format'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: [Object, String, null], default: null },
@@ -132,7 +135,7 @@ const previewSrc = computed(() => {
 const fileName = computed(() => {
   const val = displayValue.value
   if (!val) return ''
-  return val.name || val.url?.split('/').pop() || '未知文件'
+  return val.name || val.url?.split('/').pop() || t('未知文件')
 })
 
 // 文件大小文本
@@ -174,14 +177,14 @@ async function processFile(file) {
       return file.type === a
     })
     if (!matched) {
-      ElMessage.error('文件类型不匹配')
+      ElMessage.error(t('文件类型不匹配'))
       return
     }
   }
 
   // 校验文件大小
   if (props.maxSize > 0 && file.size > props.maxSize) {
-    ElMessage.error(`文件大小不能超过 ${formatFileSize(props.maxSize)}`)
+    ElMessage.error(t('文件大小不能超过 {size}', { size: formatFileSize(props.maxSize) }))
     return
   }
 
@@ -211,9 +214,9 @@ async function processFile(file) {
 
     emit('update:modelValue', fileData)
     emit('success', fileData)
-    ElMessage.success('文件上传成功')
+    ElMessage.success(t('文件上传成功'))
   } catch (err) {
-    ElMessage.error(err.message || '文件上传失败')
+    ElMessage.error(err.message || t('文件上传失败'))
     emit('error', err)
   } finally {
     uploading.value = false

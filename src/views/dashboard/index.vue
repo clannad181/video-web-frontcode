@@ -1,20 +1,20 @@
 <template>
   <div class="dashboard">
     <div class="dashboard-header">
-      <h1 class="dashboard-title">工作台</h1>
-      <p class="dashboard-subtitle">欢迎回来，这是您的视频平台数据概览</p>
+      <h1 class="dashboard-title">{{ $t('工作台') }}</h1>
+      <p class="dashboard-subtitle">{{ $t('欢迎回来，这是您的视频平台数据概览') }}</p>
     </div>
 
     <div class="stats-grid">
       <StatCard
-        label="今日新增"
+        :label="$t('今日新增')"
         :value="stats.todayNewCount"
         :diff="stats.todayNewDiff"
         color="#fb7299"
         icon="plus"
       />
       <StatCard
-        label="今日待审核"
+        :label="$t('今日待审核')"
         :value="stats.todayPendingCount"
         :diff="stats.todayPendingDiff"
         color="#ff8c42"
