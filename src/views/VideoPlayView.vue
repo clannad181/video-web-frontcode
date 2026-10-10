@@ -336,6 +336,8 @@
             <div class="report-dialog-body">
               <div class="report-tip">请选择举报类型，为帮助审核人员更快处理，请补充违规内容出现位置</div>
 
+              <div v-if="reportTypesLoading && !reportCategories.length" class="report-tip">举报类型加载中...</div>
+
               <div v-for="cat in reportCategories" :key="cat.label" class="report-category">
                 <div class="category-label">{{ cat.label }}</div>
                 <div class="category-grid">
@@ -374,6 +376,9 @@
 
               <div class="report-detail-section">
                 <label class="detail-label">补充说明</label>
+                <div v-if="selectedTypeInfo?.controls?.length" class="detail-hint">
+                  请同时填写上方的「{{ selectedTypeInfo.controls.map(c => c.title || c.name).join('、') }}」，以便更快处理
+                </div>
                 <div class="report-textarea-wrap">
                   <textarea
                     v-model="reportForm.reason"
@@ -441,7 +446,7 @@ import { videoPlay } from 'vue3-video-play'
 import 'vue3-video-play/dist/style.css'
 import { followUser, unfollowUser, checkIsFollowed, getRelatedVideos, likeEpisode, coinEpisode, getEpisodeStatus, getFavoriteStatus, removeFavorite, recordWatchHistory, getWatchHistoryList } from '../api/video'
 import { getCommentTree, postComment, likeClientComment } from '../api/comment'
-import { createReport } from '../api/report'
+import { createReport, getDict } from '../api/report'
 import FavoriteFolderDialog from '../components/FavoriteFolderDialog.vue'
 import FloatingCommentBar from '../components/FloatingCommentBar.vue'
 import CommentItem from '../components/CommentItem.vue'
@@ -509,39 +514,38 @@ const reportForm = ref({
   reportScope: 'episode',
   extraFields: {}
 })
-const reportCategories = [
-  {
-    label: '侵犯合法权益',
-    items: [
-      { tid: 8, name: '与站内其他视频撞车', controls: [{ tid: 8, name: '撞车对象', title: '撞车对象', component: 'input', placeholder: '请输入BVID', required: 1 }] },
-      { tid: 52, name: '转载/自制错误', controls: [{ tid: 52, name: '出处', title: '原创视频出处', component: 'link', placeholder: '请填写链接', required: 1 }] },
-      { tid: 7, name: '人身攻击' },
-      { tid: 10023, name: '企业商誉侵权' },
-      { tid: 10024, name: '侵权申诉' }
-    ]
-  },
-  {
-    label: '违反社区规则',
-    items: [
-      { tid: 2, name: '违法违禁' },
-      { tid: 3, name: '色情低俗' },
-      { tid: 4, name: '低俗' },
-      { tid: 5, name: '赌博诈骗' },
-      { tid: 6, name: '血腥暴力' },
-      { tid: 10000, name: '青少年不良信息' },
-      { tid: 10013, name: '不良封面/标题' },
-      { tid: 10014, name: '涉政谣言' },
-      { tid: 10015, name: '涉社会事件谣言' },
-      { tid: 10017, name: '虚假不实信息' },
-      { tid: 10021, name: '观感不适' },
-      { tid: 9, name: '引战' },
-      { tid: 10018, name: '违规推广' },
-      { tid: 10020, name: '危险行为' },
-      { tid: 10019, name: '其他不规范行为' },
-      { tid: 10022, name: '其他' }
-    ]
-  }
+const REPORT_TYPE_GROUPS = [
+  { typeCode: 'report_type_equity', label: '侵犯合法权益' },
+  { typeCode: 'report_type_rule', label: '违反社区规则' }
 ]
+
+const reportCategories = ref([])
+const reportTypesLoading = ref(false)
+let reportTypesLoaded = false
+
+const loadReportTypes = async () => {
+  if (reportTypesLoaded || reportTypesLoading.value) return
+  reportTypesLoading.value = true
+  try {
+    const results = await Promise.all(REPORT_TYPE_GROUPS.map(g => getDict(g.typeCode)))
+    reportCategories.value = REPORT_TYPE_GROUPS.map((g, i) => ({
+      label: g.label,
+      items: [...(results[i] || [])]
+        .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+        .map(d => {
+          const tid = Number(d.value)
+          const normalizedTid = Number.isNaN(tid) ? d.value : tid
+          return { tid: normalizedTid, name: d.label, controls: d.controls }
+        })
+    }))
+    reportTypesLoaded = true
+  } catch (e) {
+    console.error('获取举报类型失败:', e)
+    ElMessage.error('举报类型加载失败，请稍后重试')
+  } finally {
+    reportTypesLoading.value = false
+  }
+}
 
 const toggleExpand = (commentId) => {
   const newState = { ...expandedComments.value }
@@ -957,10 +961,11 @@ const handleShare = async () => {
 const handleReport = () => {
   if (!isLoggedIn.value) { requireLogin(); return }
   showReportDialog.value = true
+  loadReportTypes()
 }
 
 const selectedTypeInfo = computed(() => {
-  for (const cat of reportCategories) {
+  for (const cat of reportCategories.value) {
     const found = cat.items.find(t => t.tid === reportForm.value.reportType)
     if (found) return found
   }
@@ -2483,6 +2488,12 @@ watch(currentEpisodeIndex, async (newIdx) => {
   font-size: 13px;
   font-weight: 500;
   color: var(--text1);
+}
+
+.detail-hint {
+  font-size: 12px;
+  color: var(--brand_pink);
+  line-height: 1.5;
 }
 
 .detail-input {
