@@ -76,6 +76,13 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/pay/result',
+    alias: '/payResult',
+    name: 'PayResult',
+    component: () => import('../views/PayResultView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:catchAll(.*)',
     name: 'NotFound',
     component: () => import('../views/NotFoundView.vue'),

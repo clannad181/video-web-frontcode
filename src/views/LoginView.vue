@@ -12,7 +12,7 @@
         </svg>
       </div>
       <div class="particles">
-        <div class="particle" v-for="i in 20" :key="i" :style="getParticleStyle(i)"></div>
+        <div class="particle" v-for="i in 20" :key="i" :style="particleStyles[i - 1]"></div>
       </div>
     </div>
 
@@ -210,14 +210,14 @@ const form = ref({
   remember: false
 })
 
-const getParticleStyle = (i) => ({
+const particleStyles = Array.from({ length: 20 }, () => ({
   left: `${Math.random() * 100}%`,
   top: `${Math.random() * 100}%`,
   animationDelay: `${Math.random() * 5}s`,
   animationDuration: `${8 + Math.random() * 7}s`,
   width: `${4 + Math.random() * 6}px`,
   height: `${4 + Math.random() * 6}px`
-})
+}))
 
 const handleSocialLogin = (type) => {
   ElMessage.info(`${type}登录功能开发中，敬请期待`)

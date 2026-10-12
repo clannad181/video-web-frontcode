@@ -90,6 +90,7 @@
               <div v-if="user?.isVip" class="vip-badge">
                 <IconVip :size="14" />
                 大会员
+                <span v-if="vipExpireText" class="vip-badge-expire">{{ vipExpireText }} 到期</span>
               </div>
               <div class="user-stats">
                 <div class="stat-item">
@@ -301,7 +302,7 @@
         <Transition name="vip-dialog-scale" appear>
           <div v-if="showVipDialog" class="vip-dialog">
             <div class="vip-dialog-header">
-              <h3>激活大会员</h3>
+              <h3>{{ vipDialogView === 'activate' ? '激活大会员' : '开通大会员' }}</h3>
               <button class="vip-dialog-close" @click="showVipDialog = false">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="18" y1="6" x2="6" y2="18"/>
@@ -309,28 +310,110 @@
                 </svg>
               </button>
             </div>
-            <div class="vip-dialog-body">
-              <p class="vip-dialog-tip">请输入您的激活码来开通大会员特权</p>
-              <input
-                v-model="vipCode"
-                type="text"
-                class="vip-dialog-input"
-                placeholder="请输入激活码"
-                maxlength="50"
-                @keydown.enter="handleActivateVip"
-              />
-            </div>
-            <div class="vip-dialog-footer">
-              <button class="vip-dialog-btn vip-dialog-btn-cancel" @click="showVipDialog = false">取消</button>
-              <button
-                class="vip-dialog-btn vip-dialog-btn-confirm"
-                :class="{ loading: activating }"
-                :disabled="activating"
-                @click="handleActivateVip"
-              >
-                {{ activating ? '激活中...' : '立即激活' }}
-              </button>
-            </div>
+
+            <template v-if="vipDialogView === 'buy'">
+              <div class="vip-dialog-body">
+                <div class="vip-status-strip" :class="{ 'is-free': !user?.isVip }">
+                  <div class="vip-status-main">
+                    <span class="vip-status-icon"><IconVip :size="30" /></span>
+                    <div class="vip-status-text">
+                      <div class="vip-status-title">{{ user?.isVip ? '大会员' : '你还不是大会员' }}</div>
+                      <div class="vip-status-sub">{{ user?.isVip ? '已享受大会员专属特权' : '开通即享专属特权' }}</div>
+                    </div>
+                  </div>
+                  <div v-if="user?.isVip && vipExpireDate" class="vip-status-expire">
+                    <span class="expire-label">有效期至</span>
+                    <span class="expire-date">{{ vipExpireDate }}</span>
+                  </div>
+                </div>
+
+                <div class="vip-section-label">选择开通时长</div>
+                <div class="vip-packages">
+                  <button
+                    v-for="pkg in vipPackages"
+                    :key="pkg.id"
+                    type="button"
+                    class="vip-package"
+                    :class="{ active: selectedVipPackageId === pkg.id }"
+                    @click="selectedVipPackageId = pkg.id"
+                  >
+                    <span class="vip-package-name">
+                      {{ pkg.name }}
+                      <em v-if="pkg.tag" class="vip-package-tag">{{ pkg.tag }}</em>
+                    </span>
+                    <span class="vip-package-price"><i>¥</i>{{ pkg.price }}</span>
+                    <span v-if="pkg.original" class="vip-package-original">原价¥{{ pkg.original }}</span>
+                    <span v-if="pkg.months > 1" class="vip-package-unit">约¥{{ getUnitPrice(pkg) }}/月</span>
+                  </button>
+                </div>
+
+                <div class="vip-section-label">支付方式</div>
+                <div class="vip-payments">
+                  <button
+                    type="button"
+                    class="vip-payment"
+                    :class="{ active: payMethod === 'alipay' }"
+                    @click="payMethod = 'alipay'"
+                  >
+                    <IconAlipay :size="20" />
+                    <span class="vip-payment-name">支付宝</span>
+                    <svg class="vip-payment-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="vip-payment"
+                    :class="{ active: payMethod === 'wechat' }"
+                    @click="payMethod = 'wechat'"
+                  >
+                    <IconWechat :size="20" color="#07C160" />
+                    <span class="vip-payment-name">微信支付</span>
+                    <em class="vip-payment-dev">开发中</em>
+                    <svg class="vip-payment-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="vip-dialog-footer">
+                <button type="button" class="vip-dialog-link" @click="vipDialogView = 'activate'">使用激活码开通</button>
+                <div class="vip-dialog-purchase">
+                  <span class="vip-total">合计<em>¥{{ selectedVipPackage.price }}</em></span>
+                  <button
+                    type="button"
+                    class="vip-dialog-btn vip-dialog-btn-confirm vip-buy-btn"
+                    :class="{ loading: buying }"
+                    :disabled="buying"
+                    @click="handleBuy"
+                  >
+                    {{ buying ? '正在发起支付…' : (user?.isVip ? '立即续费' : '立即开通') }}
+                  </button>
+                </div>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="vip-dialog-body">
+                <p class="vip-dialog-tip">请输入您的激活码来开通大会员特权</p>
+                <input
+                  v-model="vipCode"
+                  type="text"
+                  class="vip-dialog-input"
+                  placeholder="请输入激活码"
+                  maxlength="50"
+                  @keydown.enter="handleActivateVip"
+                />
+              </div>
+              <div class="vip-dialog-footer">
+                <button type="button" class="vip-dialog-link" @click="vipDialogView = 'buy'">返回选购</button>
+                <button
+                  type="button"
+                  class="vip-dialog-btn vip-dialog-btn-confirm"
+                  :class="{ loading: activating }"
+                  :disabled="activating"
+                  @click="handleActivateVip"
+                >
+                  {{ activating ? '激活中...' : '立即激活' }}
+                </button>
+              </div>
+            </template>
           </div>
         </Transition>
       </div>
@@ -342,18 +425,20 @@
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { clientLogout, getUserInfoByUid, activateVip } from '../../api/auth'
+import { createOrder, payOrder } from '../../api/order'
 import { followUser, unfollowUser } from '../../api/video'
 import { useAuthStore } from '../../stores/auth'
 import FavoriteHoverPanel from '../FavoriteHoverPanel.vue'
 import HistoryHoverPanel from '../HistoryHoverPanel.vue'
 import MessagePanel from '../MessagePanel.vue'
-import { IconVip } from '../../icons'
+import { IconVip, IconAlipay, IconWechat } from '../../icons'
 import { getCategoryList } from '../../api/category'
 import { updateUserProfile } from '../../api/video'
 import { ElMessage } from 'element-plus'
 import { getUnreadCount } from '../../api/message'
 import { useMessageWebSocket } from '../../composables/useMessageWebSocket'
 import config from '../../config'
+import { formatDate } from '../../utils/format'
 
 const router = useRouter()
 const route = useRoute()
@@ -389,13 +474,38 @@ const showMessagePanel = ref(false)
 const messageUnreadCount = ref(0)
 
 const showVipDialog = ref(false)
+const vipDialogView = ref('buy')
 const vipCode = ref('')
 const activating = ref(false)
+const vipExpireDate = computed(() => vipExpireText.value || '')
+const selectedVipPackageId = ref('month12')
+const payMethod = ref('alipay')
+const buying = ref(false)
+
+const vipPackages = [
+  { id: 'month1', name: '1个月', months: 1, price: 30 },
+  { id: 'month3', name: '3个月', months: 3, price: 89 },
+  { id: 'month6', name: '半年包', months: 6, price: 175, original: 180, tag: '特惠' },
+  { id: 'month12', name: '一年包', months: 12, price: 328, original: 360, tag: '推荐' }
+]
+
+const selectedVipPackage = computed(() =>
+  vipPackages.find(p => p.id === selectedVipPackageId.value) || vipPackages[0]
+)
+
+const getUnitPrice = (pkg) => (pkg.price / pkg.months).toFixed(1)
 
 const { isConnected, connect, disconnect, onMessage } = useMessageWebSocket()
 
 const isLoggedIn = computed(() => authStore.isLoggedIn)
 const user = computed(() => authStore.user)
+
+const vipExpireText = computed(() => {
+  const raw = user.value?.vipExpireTime
+  if (!raw) return ''
+  const ts = typeof raw === 'number' && raw < 1e12 ? raw * 1000 : raw
+  return formatDate(ts) || String(raw)
+})
 
 const upUserInfo = ref(null)
 const hoverUnfollowUp = ref(false)
@@ -535,8 +645,49 @@ const handleVipClick = () => {
     router.push({ path: '/login', query: { redirect: route.fullPath } })
     return
   }
-  showVipDialog.value = true
+  vipDialogView.value = 'buy'
   vipCode.value = ''
+  showVipDialog.value = true
+}
+
+const submitPayForm = (html) => {
+  const container = document.createElement('div')
+  container.style.display = 'none'
+  container.innerHTML = html
+  document.body.appendChild(container)
+  const form = container.querySelector('form')
+  if (form) {
+    if (!form.getAttribute('target')) form.target = '_self'
+    form.submit()
+    return true
+  }
+  document.body.removeChild(container)
+  return false
+}
+
+const handleBuy = async () => {
+  if (payMethod.value === 'wechat') {
+    ElMessage.info('微信支付开发中，敬请期待')
+    return
+  }
+  if (buying.value) return
+  buying.value = true
+  try {
+    const order = await createOrder(selectedVipPackage.value.months)
+    const orderNo = typeof order === 'string' ? order : order?.orderNo
+    if (!orderNo) {
+      ElMessage.error('创建订单失败')
+      return
+    }
+    const html = await payOrder(orderNo, 1)
+    if (!html || !submitPayForm(html)) {
+      ElMessage.error('获取支付页面失败，请稍后重试')
+    }
+  } catch (e) {
+    ElMessage.error(e.message || '发起支付失败')
+  } finally {
+    buying.value = false
+  }
 }
 
 const handleActivateVip = async () => {
@@ -1319,6 +1470,12 @@ onUnmounted(() => {
   color: #FB7299;
 }
 
+.vip-badge-expire {
+  font-weight: 400;
+  color: #FB7299;
+  opacity: 0.85;
+}
+
 .user-stats {
   display: flex;
   justify-content: center;
@@ -1584,7 +1741,7 @@ onUnmounted(() => {
   }
 }
 
-/* 大会员激活弹窗 */
+/* 大会员弹窗 */
 .vip-dialog-overlay {
   position: fixed;
   inset: 0;
@@ -1597,8 +1754,11 @@ onUnmounted(() => {
 }
 
 .vip-dialog {
-  width: 400px;
+  display: flex;
+  flex-direction: column;
+  width: 560px;
   max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 48px);
   background: var(--bg1);
   border-radius: 12px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
@@ -1611,6 +1771,7 @@ onUnmounted(() => {
   justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid var(--line_light);
+  flex-shrink: 0;
 }
 
 .vip-dialog-header h3 {
@@ -1641,6 +1802,226 @@ onUnmounted(() => {
 
 .vip-dialog-body {
   padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* 会员状态条 */
+.vip-status-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 10px;
+  background: linear-gradient(120deg, #FF6699 0%, #FF8CB0 52%, #FFC46B 100%);
+  color: #fff;
+}
+
+.vip-status-strip.is-free {
+  background: linear-gradient(120deg, #9A9EA6 0%, #B4B8BF 52%, #CDD0D5 100%);
+}
+
+.vip-status-strip.is-free .vip-status-icon {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.vip-status-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.vip-status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  flex-shrink: 0;
+}
+
+.vip-status-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.vip-status-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.vip-status-expire {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.expire-label {
+  display: block;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.expire-date {
+  display: block;
+  margin-top: 2px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.vip-section-label {
+  margin: 16px 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+/* 套餐选择 */
+.vip-packages {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.vip-package {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 6px 10px;
+  border: 1.5px solid var(--line_regular);
+  border-radius: 8px;
+  background: var(--bg1);
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.vip-package:hover {
+  border-color: var(--brand_pink_hover);
+}
+
+.vip-package.active {
+  border-color: var(--brand_pink);
+  background: var(--brand_pink_thin);
+}
+
+.vip-package-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+}
+
+.vip-package.active .vip-package-name {
+  color: var(--brand_pink_active);
+}
+
+.vip-package-tag {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #FF6699 0%, #FF8CB0 100%);
+  padding: 1px 5px;
+  border-radius: 3px;
+  line-height: 1.4;
+}
+
+.vip-package-price {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text1);
+  line-height: 1.2;
+}
+
+.vip-package.active .vip-package-price {
+  color: var(--brand_pink_active);
+}
+
+.vip-package-price i {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: 1px;
+}
+
+.vip-package-original {
+  font-size: 11px;
+  color: var(--text4);
+  text-decoration: line-through;
+  line-height: 1.4;
+}
+
+.vip-package-unit {
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.4;
+}
+
+/* 支付方式 */
+.vip-payments {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.vip-payment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 12px;
+  border: 1.5px solid var(--line_regular);
+  border-radius: 8px;
+  background: var(--bg1);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 13px;
+  color: var(--text2);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.vip-payment:hover {
+  border-color: var(--brand_pink_hover);
+}
+
+.vip-payment.active {
+  border-color: var(--brand_pink);
+  background: var(--brand_pink_thin);
+  color: var(--text1);
+}
+
+.vip-payment-name {
+  font-weight: 500;
+}
+
+.vip-payment-dev {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--text3);
+  background: var(--bg3);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.vip-payment-check {
+  margin-left: auto;
+  color: var(--brand_pink);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.vip-payment.active .vip-payment-check {
+  opacity: 1;
 }
 
 .vip-dialog-tip {
@@ -1674,9 +2055,47 @@ onUnmounted(() => {
 
 .vip-dialog-footer {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 12px 20px 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line_light);
+  flex-shrink: 0;
+}
+
+.vip-dialog-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-family);
+  font-size: 13px;
+  color: var(--text3);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.vip-dialog-link:hover {
+  color: var(--brand_pink);
+}
+
+.vip-dialog-purchase {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.vip-total {
+  font-size: 12px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+.vip-total em {
+  font-style: normal;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand_pink_active);
+  margin-left: 3px;
 }
 
 .vip-dialog-btn {
@@ -1686,17 +2105,9 @@ onUnmounted(() => {
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
+  font-family: var(--font-family);
   cursor: pointer;
   transition: all 0.2s;
-}
-
-.vip-dialog-btn-cancel {
-  background: var(--bg2);
-  color: var(--text2);
-}
-
-.vip-dialog-btn-cancel:hover {
-  background: var(--bg3);
 }
 
 .vip-dialog-btn-confirm {
@@ -1711,6 +2122,33 @@ onUnmounted(() => {
 .vip-dialog-btn-confirm:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.vip-buy-btn {
+  height: 40px;
+  padding: 0 26px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .vip-status-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .vip-status-expire {
+    text-align: left;
+  }
+
+  .vip-packages {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .vip-dialog-footer {
+    flex-wrap: wrap;
+  }
 }
 
 /* 弹窗动画 */

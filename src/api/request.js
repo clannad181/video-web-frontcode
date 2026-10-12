@@ -54,6 +54,7 @@ request.interceptors.response.use(
   (response) => {
     const res = response.data
     if (res.code === 200) {
+      if (response.config.returnFull) return res
       return res.data
     }
     // JWT过期或无效，清除登录状态
