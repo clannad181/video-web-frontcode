@@ -328,7 +328,9 @@
                 </div>
 
                 <div class="vip-section-label">选择开通时长</div>
-                <div class="vip-packages">
+                <div v-if="vipPlansLoading" class="vip-plans-status">套餐加载中…</div>
+                <div v-else-if="!vipPackages.length" class="vip-plans-status">暂无可用套餐，请稍后再试</div>
+                <div v-else class="vip-packages">
                   <button
                     v-for="pkg in vipPackages"
                     :key="pkg.id"
@@ -339,7 +341,6 @@
                   >
                     <span class="vip-package-name">
                       {{ pkg.name }}
-                      <em v-if="pkg.tag" class="vip-package-tag">{{ pkg.tag }}</em>
                     </span>
                     <span class="vip-package-price"><i>¥</i>{{ pkg.price }}</span>
                     <span v-if="pkg.original" class="vip-package-original">原价¥{{ pkg.original }}</span>
@@ -375,12 +376,12 @@
               <div class="vip-dialog-footer">
                 <button type="button" class="vip-dialog-link" @click="vipDialogView = 'activate'">使用激活码开通</button>
                 <div class="vip-dialog-purchase">
-                  <span class="vip-total">合计<em>¥{{ selectedVipPackage.price }}</em></span>
+                  <span v-if="selectedVipPackage" class="vip-total">合计<em>¥{{ selectedVipPackage.price }}</em></span>
                   <button
                     type="button"
                     class="vip-dialog-btn vip-dialog-btn-confirm vip-buy-btn"
                     :class="{ loading: buying }"
-                    :disabled="buying"
+                    :disabled="buying || vipPlansLoading || !selectedVipPackage"
                     @click="handleBuy"
                   >
                     {{ buying ? '正在发起支付…' : (user?.isVip ? '立即续费' : '立即开通') }}
@@ -425,7 +426,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { clientLogout, getUserInfoByUid, activateVip } from '../../api/auth'
-import { createOrder, payOrder } from '../../api/order'
+import { createOrder, payOrder, getVipPlans } from '../../api/order'
 import { followUser, unfollowUser } from '../../api/video'
 import { useAuthStore } from '../../stores/auth'
 import FavoriteHoverPanel from '../FavoriteHoverPanel.vue'
@@ -478,22 +479,54 @@ const vipDialogView = ref('buy')
 const vipCode = ref('')
 const activating = ref(false)
 const vipExpireDate = computed(() => vipExpireText.value || '')
-const selectedVipPackageId = ref('month12')
+const selectedVipPackageId = ref('')
 const payMethod = ref('alipay')
 const buying = ref(false)
 
-const vipPackages = [
-  { id: 'month1', name: '1个月', months: 1, price: 30 },
-  { id: 'month3', name: '3个月', months: 3, price: 89 },
-  { id: 'month6', name: '半年包', months: 6, price: 175, original: 180, tag: '特惠' },
-  { id: 'month12', name: '一年包', months: 12, price: 328, original: 360, tag: '推荐' }
-]
+const vipPackages = ref([])
+const vipPlansLoading = ref(false)
 
 const selectedVipPackage = computed(() =>
-  vipPackages.find(p => p.id === selectedVipPackageId.value) || vipPackages[0]
+  vipPackages.value.find(p => p.id === selectedVipPackageId.value) || vipPackages.value[0] || null
 )
 
-const getUnitPrice = (pkg) => (pkg.price / pkg.months).toFixed(1)
+const getUnitPrice = (pkg) => (Number(pkg.price) / pkg.months).toFixed(1)
+
+const loadVipPlans = async () => {
+  vipPlansLoading.value = true
+  try {
+    const res = await getVipPlans()
+    const monthly = res && !Array.isArray(res) ? res.vip_price_per_month : null
+    const list = Array.isArray(res)
+      ? res
+      : Array.isArray(res?.plans) ? res.plans : []
+    const rawPlans = []
+    if (monthly) rawPlans.push(monthly)
+    rawPlans.push(...list)
+    const plans = rawPlans
+      .filter(p => p && p.durationMonths > 0 && p.price != null && Number(p.price) >= 0)
+      .map((p, index) => {
+        const price = Number(p.price)
+        const original = p.originalPrice != null && p.originalPrice !== '' ? Number(p.originalPrice) : NaN
+        return {
+          id: `plan-${index}`,
+          name: p.name || `${p.durationMonths}个月`,
+          months: Number(p.durationMonths),
+          price: price.toFixed(2),
+          original: Number.isFinite(original) && original > price ? original.toFixed(2) : null
+        }
+      })
+    vipPackages.value = plans
+    const preferred = plans.reduce((best, p) => (p.months > best.months ? p : best), plans[0])
+    selectedVipPackageId.value = preferred ? preferred.id : ''
+  } catch (e) {
+    vipPackages.value = []
+    selectedVipPackageId.value = ''
+    ElMessage.error(e.message || '获取大会员套餐失败')
+  } finally {
+    vipPlansLoading.value = false
+  }
+}
 
 const { isConnected, connect, disconnect, onMessage } = useMessageWebSocket()
 
@@ -648,6 +681,7 @@ const handleVipClick = () => {
   vipDialogView.value = 'buy'
   vipCode.value = ''
   showVipDialog.value = true
+  loadVipPlans()
 }
 
 const submitPayForm = (html) => {
@@ -671,9 +705,14 @@ const handleBuy = async () => {
     return
   }
   if (buying.value) return
+  const plan = selectedVipPackage.value
+  if (!plan) {
+    ElMessage.warning('暂无可用套餐')
+    return
+  }
   buying.value = true
   try {
-    const order = await createOrder(selectedVipPackage.value.months)
+    const order = await createOrder(plan.months)
     const orderNo = typeof order === 'string' ? order : order?.orderNo
     if (!orderNo) {
       ElMessage.error('创建订单失败')
@@ -1884,8 +1923,18 @@ onUnmounted(() => {
 /* 套餐选择 */
 .vip-packages {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 10px;
+}
+
+.vip-plans-status {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text3);
+  background: var(--bg1);
+  border: 1.5px dashed var(--line_regular);
+  border-radius: 8px;
 }
 
 .vip-package {
@@ -1923,17 +1972,6 @@ onUnmounted(() => {
 
 .vip-package.active .vip-package-name {
   color: var(--brand_pink_active);
-}
-
-.vip-package-tag {
-  font-style: normal;
-  font-size: 10px;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #FF6699 0%, #FF8CB0 100%);
-  padding: 1px 5px;
-  border-radius: 3px;
-  line-height: 1.4;
 }
 
 .vip-package-price {

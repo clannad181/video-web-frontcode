@@ -10,3 +10,5 @@ export const payOrder = (orderNo, payMethod = 1) =>
 
 export const getOrderDetail = (orderNo) =>
   request.get(`/client/order/detail/${orderNo}`)
+
+export const getVipPlans = () => request.get('/client/vip/plans')
