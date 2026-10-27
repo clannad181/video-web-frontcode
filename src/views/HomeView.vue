@@ -25,7 +25,8 @@
                 <div v-for="(slide, idx) in bannerSlides" :key="idx" class="carousel-slide">
                   <a @click.prevent="handleVideoClick(slide)" class="carousel-item">
                     <div class="carousel-item__image">
-                      <img :src="slide.coverUrl" :alt="slide.title" loading="lazy" />
+                      <img :src="fileUrl(slide.coverUrl)" :alt="slide.title" loading="lazy" />
+                      <span v-if="slide.needVip" class="vip-corner-badge">大会员</span>
                     </div>
                   </a>
                 </div>
@@ -45,7 +46,8 @@
           <div v-for="(v, index) in topVideos" :key="'t'+v.id" class="bili-video-card" :style="{ animationDelay: `${index * 0.05}s` }">
             <a @click.prevent="handleVideoClick(v)" class="bili-video-card__wrap">
               <div class="bili-video-card__image">
-                <img :src="v.coverUrl" :alt="v.title" loading="lazy" class="bili-video-card__cover" />
+                <img :src="fileUrl(v.coverUrl)" :alt="v.title" loading="lazy" class="bili-video-card__cover" />
+                <span v-if="v.needVip" class="vip-corner-badge">大会员</span>
               </div>
               <div class="bili-video-card__mask">
                 <div class="bili-video-card__stats">
@@ -78,7 +80,8 @@
           <div v-for="(v, index) in videoList" :key="'r'+v.id" class="bili-video-card" :style="{ animationDelay: `${(index % 10) * 0.05}s` }">
             <a @click.prevent="handleVideoClick(v)" class="bili-video-card__wrap">
               <div class="bili-video-card__image">
-                <img :src="v.coverUrl" :alt="v.title" loading="lazy" class="bili-video-card__cover" />
+                <img :src="fileUrl(v.coverUrl)" :alt="v.title" loading="lazy" class="bili-video-card__cover" />
+                <span v-if="v.needVip" class="vip-corner-badge">大会员</span>
               </div>
               <div class="bili-video-card__mask">
                 <div class="bili-video-card__stats">
@@ -123,6 +126,7 @@ import { getCategoryList } from '../api/category'
 import { getClientVideoList, getRecommendVideos } from '../api/video'
 import { useRouter } from 'vue-router'
 import request from '../api/request'
+import { fileUrl } from '../config'
 import IconUp from '../icons/IconUp.vue'
 import { IconVideo } from '../icons'
 import { handleVideoClick } from '../utils/video'
@@ -459,6 +463,14 @@ onUnmounted(() => {
   object-fit: cover;
 }
 
+.carousel-item__image .vip-corner-badge {
+  top: 14px;
+  right: 14px;
+  font-size: 13px;
+  padding: 3px 10px;
+  border-radius: 5px;
+}
+
 .carousel-bottom {
   position: absolute;
   bottom: 0;
@@ -611,6 +623,22 @@ onUnmounted(() => {
   height: 42px;
   padding: 18px 10px 8px;
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85));
+}
+
+.vip-corner-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  padding: 2px 7px;
+  background: linear-gradient(135deg, var(--brand_pink) 0%, #ff8cb0 100%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
 }
 
 .bili-video-card__stats {

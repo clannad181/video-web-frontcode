@@ -48,7 +48,7 @@
               <div v-else-if="favoriteFolders.length > 0" class="folder-grid">
                 <div v-for="folder in favoriteFolders" :key="folder.folderUid" class="folder-card" @click="goToFolder(folder)">
                   <div class="folder-cover">
-                    <img v-if="folder.coverUrl" :src="folder.coverUrl" :alt="folder.name" />
+                    <img v-if="folder.coverUrl" :src="fileUrl(folder.coverUrl)" :alt="folder.name" />
                     <div v-else class="folder-cover-default">
                       <IconFavorite :size="32" color="rgba(255,255,255,0.6)" />
                     </div>
@@ -79,7 +79,7 @@
               <div v-else-if="coinVideos.length > 0" class="video-grid">
                 <div v-for="video in coinVideos" :key="video.episodeAvid" class="video-card" @click="handleVideoClick(video)">
                   <div class="video-cover">
-                    <img :src="video.videoCover" :alt="video.videoTitle" loading="lazy" />
+                    <img :src="fileUrl(video.videoCover)" :alt="video.videoTitle" loading="lazy" />
                     <div class="cover-stats">
                       <span class="stat">
                         <IconVideo :size="14" color="#fff" />
@@ -110,7 +110,7 @@
               <div v-else-if="likeVideos.length > 0" class="video-grid">
                 <div v-for="video in likeVideos" :key="video.episodeAvid" class="video-card" @click="handleVideoClick(video)">
                   <div class="video-cover">
-                    <img :src="video.videoCover" :alt="video.videoTitle" loading="lazy" />
+                    <img :src="fileUrl(video.videoCover)" :alt="video.videoTitle" loading="lazy" />
                     <div class="cover-stats">
                       <span class="stat">
                         <IconVideo :size="14" color="#fff" />
@@ -172,7 +172,7 @@
                   <div class="video-grid">
                     <div v-for="video in monthGroup.videos" :key="video.id" class="video-card" @click="handleVideoClick(video)">
                       <div class="video-cover">
-                        <img :src="video.coverUrl" :alt="video.title" />
+                        <img :src="fileUrl(video.coverUrl)" :alt="video.title" />
                         <div class="cover-stats">
                           <span class="stat">
                             <IconVideo :size="14" color="#fff" />
@@ -303,7 +303,7 @@
                 <div v-else-if="favoriteVideos.length > 0" class="video-grid">
                   <div v-for="video in favoriteVideos" :key="video.episodeAvid" class="video-card" @click="handleVideoClick(video)">
                     <div class="video-cover">
-                      <img :src="video.videoCover" :alt="video.videoTitle" />
+                      <img :src="fileUrl(video.videoCover)" :alt="video.videoTitle" />
                       <div class="cover-stats">
                         <span class="stat">
                           <IconVideo :size="14" color="#fff" />
@@ -382,7 +382,7 @@
               <div v-for="item in followList" :key="item.uid" class="follow-card">
                 <div class="follow-card-header">
                   <div class="follow-avatar" @click="goToUserProfile(item.uid)">
-                    <img v-if="item.avatar" :src="item.avatar" :alt="item.nikeName" />
+                    <img v-if="item.avatar" :src="fileUrl(item.avatar)" :alt="item.nikeName" />
                     <span v-else class="avatar-placeholder">{{ item.nikeName?.charAt(0) }}</span>
                     <span v-if="item.isVip" class="vip-icon-badge">
                       <IconVip :size="12" />
@@ -486,7 +486,7 @@
               <div v-for="item in fansList" :key="item.uid" class="follow-card">
                 <div class="follow-card-header">
                   <div class="follow-avatar" @click="goToUserProfile(item.uid)">
-                    <img v-if="item.avatar" :src="item.avatar" :alt="item.nikeName" />
+                    <img v-if="item.avatar" :src="fileUrl(item.avatar)" :alt="item.nikeName" />
                     <span v-else class="avatar-placeholder">{{ item.nikeName?.charAt(0) }}</span>
                     <span v-if="item.isVip" class="vip-icon-badge">
                       <IconVip :size="12" />
@@ -580,7 +580,7 @@
                 <div class="profile-avatar-section">
                   <input type="file" accept="image/*" id="edit-profile-avatar" class="cover-upload-input" @change="handleEditProfileAvatarUpload" />
                   <label for="edit-profile-avatar" class="profile-avatar-upload">
-                    <img v-if="editProfileAvatar" :src="editProfileAvatar" class="profile-avatar-preview" alt="头像预览" />
+                    <img v-if="editProfileAvatar" :src="fileUrl(editProfileAvatar)" class="profile-avatar-preview" alt="头像预览" />
                     <div v-else class="profile-avatar-placeholder">
                       <IconUser :size="32" />
                     </div>
@@ -705,7 +705,7 @@
                       @change="handleEditCoverUpload"
                     />
                     <label :for="'edit-cover-upload'" class="cover-upload-btn">
-                      <img v-if="editFolderCoverUrl" :src="editFolderCoverUrl" class="cover-preview" alt="封面预览" />
+                      <img v-if="editFolderCoverUrl" :src="fileUrl(editFolderCoverUrl)" class="cover-preview" alt="封面预览" />
                       <template v-else>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -854,7 +854,7 @@
                       @change="handleCreateCoverUpload"
                     />
                     <label :for="'create-cover-upload'" class="cover-upload-btn">
-                      <img v-if="newFolderCoverUrl" :src="newFolderCoverUrl" class="cover-preview" alt="封面预览" />
+                      <img v-if="newFolderCoverUrl" :src="fileUrl(newFolderCoverUrl)" class="cover-preview" alt="封面预览" />
                       <template v-else>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -943,6 +943,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
 import { getClientUserInfo } from '../api/auth'
+import { fileUrl } from '../config'
 import { getFavoriteFolderList, getFavoriteFolderDetail, getUserCoinVideos, getUserLikeVideos, getRecentLikeEpisodes, getRecentCoinEpisodes, getMyContributions, getFollowList, searchFollow, searchFans, searchFavorite, updateFavoriteFolder, deleteFavoriteFolder, createFavoriteFolder, unfollowUser, followUser, updateUserProfile } from '../api/video'
 import { uploadFile } from '../utils/fileUpload'
 import { IconFavorite, IconCoin, IconLike, IconVip, IconSecret, IconVideo } from '../icons'

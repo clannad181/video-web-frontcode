@@ -1,3 +1,5 @@
+import { openAppPage } from './navigation'
+
 /**
  * 处理视频点击跳转
  * @param {Object} video 视频对象
@@ -28,7 +30,7 @@ export const handleVideoClick = (video, router = null) => {
     } else {
       const queryString = new URLSearchParams(query).toString()
       const fullPath = queryString ? `${path}?${queryString}` : path
-      window.open(fullPath, '_blank')
+      openAppPage(fullPath)
     }
   }
 }
@@ -43,6 +45,6 @@ export const handleUserClick = (uid, router = null) => {
   if (router) {
     router.push(path)
   } else {
-    window.open(path, '_blank')
+    openAppPage(path)
   }
 }

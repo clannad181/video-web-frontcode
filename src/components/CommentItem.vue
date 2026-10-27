@@ -1,7 +1,7 @@
 <template>
   <div class="comment-item">
     <div class="comment-avatar">
-      <img v-if="comment.avatar" :src="comment.avatar" :alt="comment.nickName || '用户头像'" />
+      <img v-if="comment.avatar" :src="fileUrl(comment.avatar)" :alt="comment.nickName || '用户头像'" />
       <span v-else class="avatar-text">{{ comment.nickName?.charAt(0) || '?' }}</span>
     </div>
     <div class="comment-content">
@@ -33,6 +33,7 @@
 <script setup>
 import { computed } from 'vue'
 import twemoji from 'twemoji'
+import { fileUrl } from '../config'
 
 const props = defineProps({
   comment: {

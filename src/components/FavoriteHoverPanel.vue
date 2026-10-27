@@ -44,7 +44,7 @@
             @click="handleVideoClick(video, router)"
           >
             <div class="video-cover">
-              <img :src="video.videoCover" :alt="video.videoTitle" />
+              <img :src="fileUrl(video.videoCover)" :alt="video.videoTitle" />
               <span class="video-duration">{{ formatDuration(video.duration) }}</span>
             </div>
             <div class="video-info">
@@ -72,6 +72,7 @@ import { useRouter } from 'vue-router'
 import { getFavoriteFolderList, getFavoriteFolderDetail } from '../api/video'
 import { handleVideoClick } from '../utils/video'
 import { formatDuration } from '../utils/format'
+import { fileUrl } from '../config'
 
 const props = defineProps({
   visible: { type: Boolean, default: false }

@@ -74,7 +74,7 @@
             <div class="bili-video-card__wrap">
               <div class="bili-video-card__image">
                 <img
-                  :src="video.coverUrl || video.videoCover"
+                  :src="fileUrl(video.coverUrl || video.videoCover)"
                   :alt="video.title"
                   class="bili-video-card__cover"
                   loading="lazy"
@@ -126,7 +126,7 @@
             class="bili-user-card"
           >
             <div class="bili-user-card__avatar" @click="goToProfile(up)">
-              <img :src="up.avatar" :alt="up.nikeName" />
+              <img :src="fileUrl(up.avatar)" :alt="up.nikeName" />
               <span v-if="up.isVip" class="bili-user-card__vip">
                 <svg width="20" height="20" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                   <path d="M512 512m-416 0a416 416 0 1 0 832 0 416 416 0 1 0-832 0Z" fill="#FB7199"/>
@@ -218,6 +218,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { searchContent, followUser as followUserApi, unfollowUser as unfollowUserApi } from '../api/video'
 import { IconVideo } from '../icons'
 import { formatCount, formatDuration } from '../utils/format'
+import { fileUrl } from '../config'
+import { openAppPage } from '../utils/navigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -332,13 +334,13 @@ const goToVideo = (video) => {
     path = `/client/video/${video.id}/episode/${video.currentEpisode?.id || video.id}`
   }
   if (path) {
-    window.open(path, '_blank')
+    openAppPage(path)
   }
 }
 
 const goToProfile = (up) => {
   if (up.uid) {
-    window.open(`/up/${up.uid}`, '_blank')
+    openAppPage(`/up/${up.uid}`)
   }
 }
 

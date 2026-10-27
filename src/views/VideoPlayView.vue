@@ -1,30 +1,40 @@
 <template>
-  <div class="video-page" v-if="video">
+  <div class="video-page">
     <div class="page-container">
       <div class="video-header">
-        <div class="video-info-section">
-          <h1 v-if="currentEpisode?.title?.trim()" class="video-title">{{ currentEpisode?.title }}</h1>
-          <h1 v-else class="video-title">{{ video.title }}</h1>
-          <div class="video-meta">
-            <span class="view-count">{{ formatCount(currentEpisode?.playCount || 0) }}次播放</span>
-            <span class="separator">·</span>
-            <span class="upload-time">{{ video.createTime }}</span>
-          </div>
-        </div>
-        <div class="author-card">
-          <div class="author-avatar" @click="goToUpProfile" style="cursor: pointer;">
-            <img v-if="video.avatarUrl" :src="video.avatarUrl" :alt="video.nickName || 'UP主头像'" />
-            <span v-else>{{ video.nickName?.charAt(0) }}</span>
-          </div>
-          <div class="author-content">
-            <div class="author-info">
-              <span class="author-name">{{ video.nickName }}</span>
-              <span class="author-desc" v-if="video.descript">{{ video.descript }}</span>
+        <template v-if="video">
+          <div class="video-info-section">
+            <h1 v-if="currentEpisode?.title?.trim()" class="video-title">{{ currentEpisode?.title }}</h1>
+            <h1 v-else class="video-title">{{ video.title }}</h1>
+            <div class="video-meta">
+              <span class="view-count">{{ formatCount(currentEpisode?.playCount || 0) }}次播放</span>
+              <span class="separator">·</span>
+              <span class="upload-time">{{ video.createTime }}</span>
             </div>
-            <button v-if="!isOwnVideo" class="follow-btn" :class="{ followed: isFollowed }" @click="handleFollow">
-              {{ isFollowed ? '已关注' : '+ 关注' }}
-            </button>
           </div>
+          <div class="author-card">
+            <div class="author-avatar" @click="goToUpProfile" style="cursor: pointer;">
+              <img v-if="video.avatarUrl" :src="fileUrl(video.avatarUrl)" :alt="video.nickName || 'UP主头像'" />
+              <span v-else>{{ video.nickName?.charAt(0) }}</span>
+            </div>
+            <div class="author-content">
+              <div class="author-info">
+                <span class="author-name">{{ video.nickName }}</span>
+                <span class="author-desc" v-if="video.descript">{{ video.descript }}</span>
+              </div>
+              <button v-if="!isOwnVideo" class="follow-btn" :class="{ followed: isFollowed }" @click="handleFollow">
+                {{ isFollowed ? '已关注' : '+ 关注' }}
+              </button>
+            </div>
+          </div>
+        </template>
+        <div v-else-if="pageLoading" class="video-info-section header-state">
+          <div class="header-state-spinner"></div>
+          <span>视频信息加载中...</span>
+        </div>
+        <div v-else class="video-info-section header-state header-state--error">
+          <span>视频信息加载失败</span>
+          <button class="retry-btn retry-btn--sm" @click="reloadVideo">重新加载</button>
         </div>
       </div>
 
@@ -35,7 +45,7 @@
               <videoPlay
                 v-if="currentPlayUrl"
                 :src="currentPlayUrl"
-                :poster="video.coverUrl"
+                :poster="fileUrl(video?.coverUrl)"
                 :autoPlay="true"
                 :loop="false"
                 :muted="false"
@@ -55,12 +65,23 @@
                   <circle cx="12" cy="12" r="10" stroke-opacity="0.3"/>
                   <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
                 </svg>
-                <span>点击播放视频</span>
+                <span>{{ vipLockVisible ? '该视频需要大会员观看' : '点击播放视频' }}</span>
               </div>
+            </div>
+            <div v-if="vipLockVisible" class="vip-lock-tip">
+              <svg class="vip-lock-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 18l-1.5-9L7 12.5 12 4l5 8.5L22.5 9 21 18H3z"/>
+                <path d="M3 18h18"/>
+              </svg>
+              <div class="vip-lock-info">
+                <span class="vip-lock-text">该视频需要大会员观看</span>
+                <span class="vip-lock-sub">开通大会员后即可观看该剧集</span>
+              </div>
+              <button class="vip-lock-btn" @click="handleBuyVip">充值大会员</button>
             </div>
           </div>
 
-          <div class="video-actions">
+          <div class="video-actions" v-if="video">
             <button class="action-btn" :class="{ active: isLiked }" @click="handleLike">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
@@ -96,7 +117,7 @@
             </button>
           </div>
 
-          <div class="video-desc-section" v-if="video.description || video.tags?.length">
+          <div class="video-desc-section" v-if="video && (video.description || video.tags?.length)">
             <div class="desc-content" v-if="video.description">
               <p class="desc-text" :class="{ collapsed: !descExpanded }">{{ video.description }}</p>
               <span class="desc-toggle" v-if="video.description.length > 100" @click="descExpanded = !descExpanded">
@@ -120,7 +141,7 @@
 
             <div v-if="isLoggedIn" class="comment-input-inline" ref="commentInputRef">
               <div class="input-avatar">
-                <img v-if="currentUser?.avatar || currentUser?.avatarUrl" :src="currentUser.avatar || currentUser.avatarUrl" />
+                <img v-if="currentUser?.avatar || currentUser?.avatarUrl" :src="fileUrl(currentUser.avatar || currentUser.avatarUrl)" />
                 <span v-else>{{ currentUser?.nickname?.charAt(0) || '?' }}</span>
               </div>
               <div class="input-area">
@@ -260,12 +281,13 @@
                 v-for="(ep, idx) in episodes"
                 :key="ep.id"
                 class="episode-list-item"
-                :class="{ active: currentEpisodeIndex === idx }"
+                :class="{ active: currentEpisodeIndex === idx, 'has-vip': ep.needVip }"
                 @click="currentEpisodeIndex = idx"
               >
                 <span v-if="currentEpisodeIndex === idx" class="playing-icon"></span>
                 <span class="episode-title">{{ ep.title }}</span>
                 <span class="episode-duration" v-if="ep.duration">{{ formatDuration(ep.duration) }}</span>
+                <span v-if="ep.needVip" class="episode-ribbon">大会员</span>
               </button>
             </div>
             <div v-else class="episode-grid">
@@ -276,7 +298,8 @@
                 :class="{ active: currentEpisodeIndex === idx }"
                 @click="currentEpisodeIndex = idx"
               >
-                {{ ep.episodeNumber || idx + 1 }}
+                <span class="episode-num">{{ ep.episodeNumber || idx + 1 }}</span>
+                <span v-if="ep.needVip" class="episode-ribbon">大会员</span>
               </button>
             </div>
           </div>
@@ -292,7 +315,7 @@
                 @click.prevent="handleRelatedClick(item)"
               >
                 <div class="related-cover">
-                  <img v-if="item.coverUrl" :src="item.coverUrl" />
+                  <img v-if="item.coverUrl" :src="fileUrl(item.coverUrl)" />
                   <div v-else class="cover-placeholder"></div>
                   <span class="duration-tag">{{ formatDuration(item.totalDuration) }}</span>
                 </div>
@@ -442,6 +465,8 @@ import { formatCount, formatDuration } from '../utils/format'
 import { ElMessage } from 'element-plus'
 import { throttle } from '../utils/format'
 import request from '../api/request'
+import { fileUrl } from '../config'
+import { openAppPage, redirectAppPage } from '../utils/navigation'
 import { videoPlay } from 'vue3-video-play'
 import 'vue3-video-play/dist/style.css'
 import { followUser, unfollowUser, checkIsFollowed, getRelatedVideos, likeEpisode, coinEpisode, getEpisodeStatus, getFavoriteStatus, removeFavorite, recordWatchHistory, getWatchHistoryList } from '../api/video'
@@ -459,6 +484,8 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const video = ref(null)
+const pageLoading = ref(true)
+const loadError = ref(false)
 const episodes = ref([])
 const currentEpisodeIndex = ref(0)
 const comments = ref([])
@@ -684,13 +711,43 @@ const isOwnVideo = computed(() => {
 })
 
 const currentPlayUrl = computed(() => {
-  return currentEpisode.value?.playUrl || video.value?.currentEpisode?.playUrl || ''
+  return fileUrl(currentEpisode.value?.playUrl || video.value?.currentEpisode?.playUrl || '')
 })
+
+const vipLockVisible = computed(() => {
+  const ep = currentEpisode.value
+  if (!video.value || !ep) return false
+  const needVip = ep.needVip ?? video.value.needVip
+  if (!needVip) return false
+  return !(ep.playUrl || ep.playLink) && !currentPlayUrl.value
+})
+
+const handleBuyVip = () => {
+  if (!isLoggedIn.value) {
+    requireLogin()
+    return
+  }
+  window.dispatchEvent(new CustomEvent('open-vip-dialog'))
+}
 
 const updateDocumentTitle = () => {
   const ep = currentEpisode.value
   const epTitle = ep?.title || (ep?.episodeNumber ? `第${ep.episodeNumber}集` : '')
   document.title = epTitle ? `${epTitle} - ${video.value?.title || ''}` : `${video.value?.title || '视频播放'} - VideoHub`
+}
+
+const loadRelatedVideos = async (avid) => {
+  if (!avid) {
+    relatedVideos.value = []
+    return
+  }
+  try {
+    const res = await getRelatedVideos(avid)
+    relatedVideos.value = res?.records || []
+  } catch (e) {
+    console.error('获取相关推荐失败:', e)
+    relatedVideos.value = []
+  }
 }
 
 const applyVideoData = async (data) => {
@@ -733,19 +790,11 @@ const applyVideoData = async (data) => {
   }
 
   updateDocumentTitle()
-
-  try {
-    const res = await getRelatedVideos(data.avid || data.id)
-    relatedVideos.value = res?.records || []
-  } catch (e) {
-    console.error('获取相关推荐失败:', e)
-    relatedVideos.value = []
-  }
 }
 
 const loadEpisodeStatus = async () => {
   if (!isLoggedIn.value) return
-  const episodeUid = currentEpisode.value?.avid || currentEpisode.value?.id
+  const episodeUid = currentEpisode.value?.avid || currentEpisode.value?.id || route.params.episodeUid
   if (!episodeUid) return
   try {
     const [statusRes, favRes] = await Promise.all([
@@ -787,20 +836,23 @@ const handleTimeUpdate = (e) => {
 const loadVideo = async () => {
   const videoUid = route.params.videoUid
   const episodeUid = route.params.episodeUid
-  
-  if (videoUid && episodeUid) {
-    try {
+
+  pageLoading.value = true
+  loadError.value = false
+
+  try {
+    if (videoUid && episodeUid) {
       const res = await request.get(`/client/video/${videoUid}/episode/${episodeUid}`)
       const data = res.data || res
       await applyVideoData(data)
-      
+
       // 优先使用 query 参数中的 t（从历史记录点击时传递的播放进度）
       const queryTime = route.query.t ? Number(route.query.t) : 0
       if (queryTime > 0) {
         savedTime.value = queryTime
         return
       }
-      
+
       if (isLoggedIn.value) {
         try {
           const historyRes = await getWatchHistoryList({ page: 1, size: 100 })
@@ -830,10 +882,22 @@ const loadVideo = async () => {
         }
       }
       return
-    } catch (e) {
-      console.error('获取播放信息失败:', e)
     }
+    loadError.value = !video.value
+  } catch (e) {
+    console.error('获取播放信息失败:', e)
+    if (video.value) {
+      ElMessage.error('获取播放信息失败')
+    } else {
+      loadError.value = true
+    }
+  } finally {
+    pageLoading.value = false
   }
+}
+
+const reloadVideo = () => {
+  loadVideo()
 }
 
 const commentPage = ref(1)
@@ -843,8 +907,8 @@ const loadingComments = ref(false)
 const hasMoreComments = ref(true)
 
 const loadComments = async (isLoadMore = false) => {
-  const videoUid = video.value?.avid || video.value?.id
-  const episodeUid = currentEpisode.value?.avid || currentEpisode.value?.id
+  const videoUid = video.value?.avid || video.value?.id || route.params.videoUid
+  const episodeUid = currentEpisode.value?.avid || currentEpisode.value?.id || route.params.episodeUid
   if (!videoUid || !episodeUid) return
   
   loadingComments.value = true
@@ -1021,7 +1085,7 @@ const handleRelatedClick = (item) => {
     path = `/client/video/${item.id}/episode/${item.currentEpisode?.id || item.id}`
   }
   if (path) {
-    window.open(path, '_blank')
+    openAppPage(path)
   }
 }
 
@@ -1062,7 +1126,7 @@ const handleLikeComment = async (comment) => {
 
 const handleReply = (comment) => {
   if (!isLoggedIn.value) {
-    window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`
+    redirectAppPage(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
     return
   }
   replyingTo.value = comment
@@ -1173,21 +1237,16 @@ const parseTwemoji = (el) => {
 
 onMounted(async () => {
   await authStore.init()
-  await loadVideo()
+
+  // 与播放详情接口无关的数据并行加载，互不影响
+  loadRelatedVideos(route.params.videoUid)
+  const videoReady = loadVideo()
   if (isLoggedIn.value) {
-    loadComments()
     currentUser.value = authStore.user
-    try {
-      const uid = video.value?.uid
-      if (uid && !isOwnVideo.value) {
-        const res = await checkIsFollowed(uid)
-        isFollowed.value = res === true
-      }
-    } catch (e) {
-      console.error('检查关注状态失败:', e)
-    }
+    loadComments()
     loadEpisodeStatus()
   }
+
   nextTick(() => {
     checkCommentInputVisibility()
   })
@@ -1203,6 +1262,20 @@ onMounted(async () => {
   // 只监听评论区容器，而不是整个document.body
   const commentContainer = commentSectionRef.value || document.body
   twemojiObserver.observe(commentContainer, { childList: true, subtree: true })
+
+  await videoReady
+
+  if (isLoggedIn.value) {
+    try {
+      const uid = video.value?.uid
+      if (uid && !isOwnVideo.value) {
+        const res = await checkIsFollowed(uid)
+        isFollowed.value = res === true
+      }
+    } catch (e) {
+      console.error('检查关注状态失败:', e)
+    }
+  }
 })
 
 onUnmounted(() => {
@@ -1215,15 +1288,22 @@ onUnmounted(() => {
 })
 
 watch(() => [route.params.videoUid, route.params.episodeUid], async () => {
-  await loadVideo()
   isLiked.value = false
   isCoined.value = false
   isFavorited.value = false
   favoriteFolderUid.value = ''
   isFollowed.value = false
-  
+
+  loadRelatedVideos(route.params.videoUid)
+  const videoReady = loadVideo()
   if (isLoggedIn.value) {
     loadComments()
+    loadEpisodeStatus()
+  }
+
+  await videoReady
+
+  if (isLoggedIn.value) {
     // 检查是否已关注（仅非自己投稿的视频）
     try {
       const uid = video.value?.uid
@@ -1234,7 +1314,6 @@ watch(() => [route.params.videoUid, route.params.episodeUid], async () => {
     } catch (e) {
       console.error('检查关注状态失败:', e)
     }
-    loadEpisodeStatus()
   }
 })
 
@@ -1266,6 +1345,55 @@ watch(currentEpisodeIndex, async (newIdx) => {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 0%, transparent 100%);
   pointer-events: none;
   z-index: 100;
+}
+
+.header-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text3);
+  font-size: 14px;
+}
+
+.header-state--error {
+  color: var(--text3);
+}
+
+.header-state-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid var(--line_light);
+  border-top-color: var(--brand_pink);
+  border-radius: 50%;
+  animation: pageStateSpin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.retry-btn {
+  padding: 9px 28px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--brand_pink) 0%, #ff8cb0 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(255, 102, 153, 0.3);
+}
+
+.retry-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 102, 153, 0.4);
+}
+
+.retry-btn--sm {
+  padding: 6px 16px;
+  font-size: 13px;
+}
+
+@keyframes pageStateSpin {
+  to { transform: rotate(360deg); }
 }
 
 .page-container {
@@ -1438,6 +1566,57 @@ watch(currentEpisodeIndex, async (newIdx) => {
 
 .player-placeholder span {
   font-size: 14px;
+}
+
+.vip-lock-tip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #2e1a22 0%, #231318 100%);
+  border-top: 1px solid rgba(255, 102, 153, 0.3);
+}
+
+.vip-lock-icon {
+  flex-shrink: 0;
+  color: var(--brand_pink);
+}
+
+.vip-lock-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vip-lock-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--brand_pink);
+}
+
+.vip-lock-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.vip-lock-btn {
+  flex-shrink: 0;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--brand_pink) 0%, #ff8cb0 100%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vip-lock-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 102, 153, 0.4);
 }
 
 .video-actions {
@@ -1974,6 +2153,8 @@ watch(currentEpisodeIndex, async (newIdx) => {
 }
 
 .episode-btn {
+  position: relative;
+  overflow: hidden;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -2007,6 +2188,8 @@ watch(currentEpisodeIndex, async (newIdx) => {
 }
 
 .episode-list-item {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2018,6 +2201,10 @@ watch(currentEpisodeIndex, async (newIdx) => {
   text-align: left;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.episode-list-item.has-vip {
+  padding-right: 24px;
 }
 
 .episode-list-item:hover {
@@ -2046,6 +2233,28 @@ watch(currentEpisodeIndex, async (newIdx) => {
   flex-shrink: 0;
   font-size: 12px;
   color: var(--text4);
+}
+
+.episode-ribbon {
+  position: absolute;
+  top: 4px;
+  right: -22px;
+  transform: rotate(45deg);
+  padding: 2px 22px;
+  background: linear-gradient(135deg, var(--brand_pink) 0%, #ff8cb0 100%);
+  color: #fff;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.episode-btn.active .episode-ribbon {
+  background: #fff;
+  color: var(--brand_pink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .episode-list-item.active .episode-duration {

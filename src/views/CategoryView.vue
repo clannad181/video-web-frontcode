@@ -52,7 +52,8 @@
             >
               <a class="video-card__wrap">
                 <div class="video-card__image">
-                  <img :src="video.coverUrl" :alt="video.title" loading="lazy" class="video-card__cover" />
+                  <img :src="fileUrl(video.coverUrl)" :alt="video.title" loading="lazy" class="video-card__cover" />
+                  <span v-if="video.needVip" class="vip-corner-badge">大会员</span>
                   <div class="video-card__mask">
                     <div class="video-card__stats">
                       <div class="video-card__stats--left">
@@ -110,6 +111,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getCategoryList } from '../api/category'
 import { getClientVideoList } from '../api/video'
 import { formatDuration, formatCount } from '../utils/fileUpload'
+import { fileUrl } from '../config'
 import IconUp from '../icons/IconUp.vue'
 import { handleVideoClick } from '../utils/video'
 
@@ -450,6 +452,22 @@ watch(() => route.params.id, () => {
   height: 42px;
   padding: 18px 10px 8px;
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85));
+}
+
+.vip-corner-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  padding: 2px 7px;
+  background: linear-gradient(135deg, var(--brand_pink) 0%, #ff8cb0 100%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
 }
 
 .video-card__stats {

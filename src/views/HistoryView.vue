@@ -61,7 +61,7 @@
                 >
                   <a class="video-card__wrap">
                     <div class="video-card__image">
-                      <img v-if="item.videoCover" :src="item.videoCover" :alt="item.videoTitle" loading="lazy" class="video-card__cover" />
+                      <img v-if="item.videoCover" :src="fileUrl(item.videoCover)" :alt="item.videoTitle" loading="lazy" class="video-card__cover" />
                       <div v-else class="video-card__cover-offline">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                           <circle cx="12" cy="12" r="10"/>
@@ -141,6 +141,7 @@ import { useRouter } from 'vue-router'
 import { searchWatchHistory, deleteWatchHistory } from '../api/video'
 import IconUp from '../icons/IconUp.vue'
 import { throttle } from '../utils/format'
+import { fileUrl } from '../config'
 
 const router = useRouter()
 

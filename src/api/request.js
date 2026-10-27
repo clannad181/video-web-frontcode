@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { API_BASE_URL } from '../config'
 
 const request = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   timeout: 15000
 })
 
@@ -80,7 +81,7 @@ request.interceptors.response.use(
         }
         
         isRefreshing = true
-        return axios.get('/api/client/user/refresh', {
+        return axios.get(`${API_BASE_URL}/client/user/refresh`, {
           headers: { 'refresh-token': refreshToken }
         }).then(res => {
           if (res.data.code === 200) {

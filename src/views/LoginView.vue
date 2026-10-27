@@ -93,7 +93,7 @@
                     @focus="focusField = 'captcha'" @blur="focusField = ''"/>
                 </div>
                 <div class="captcha-img" @click="refreshCaptcha">
-                  <img v-if="captchaImg" :src="captchaImg" alt="验证码"/>
+                  <img v-if="captchaImg" :src="fileUrl(captchaImg)" alt="验证码"/>
                   <span v-else>加载中</span>
                 </div>
               </div>
@@ -178,6 +178,7 @@ import { useI18n } from 'vue-i18n'
 import { getClientCaptcha, clientLogin, getClientUserInfo } from '../api/auth'
 import { useAuthStore } from '../stores/auth'
 import { ElMessage } from 'element-plus'
+import { fileUrl } from '../config'
 import { IconWechat, IconQQ, IconWeibo, IconGoogle } from '../icons'
 import md5 from 'md5'
 

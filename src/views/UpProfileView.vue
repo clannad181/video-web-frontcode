@@ -72,7 +72,7 @@
                 >
                   <div class="video-card__wrap">
                     <div class="video-card__image">
-                      <img :src="video.coverUrl || video.videoCover" :alt="video.title" loading="lazy" class="video-card__cover" />
+                      <img :src="fileUrl(video.coverUrl || video.videoCover)" :alt="video.title" loading="lazy" class="video-card__cover" />
                     </div>
                     <div class="video-card__mask">
                       <div class="video-card__stats">
@@ -137,6 +137,8 @@ import { getUserInfoByUid } from '../api/auth'
 import { getUserVideos } from '../api/video'
 import { IconVideo } from '../icons'
 import { formatCount, formatDuration, formatDate, throttle } from '../utils/format'
+import { fileUrl } from '../config'
+import { openAppPage } from '../utils/navigation'
 
 const route = useRoute()
 
@@ -217,7 +219,7 @@ const goToVideo = (video) => {
     path = `/client/video/${video.id}/episode/${video.currentEpisode?.id || video.id}`
   }
   if (path) {
-    window.open(path, '_blank')
+    openAppPage(path)
   }
 }
 

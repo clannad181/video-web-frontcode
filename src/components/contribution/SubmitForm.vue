@@ -172,7 +172,7 @@
                 @change="handleCoverChange"
               />
               <div v-if="coverPreview" class="cover-preview">
-                <img :src="coverPreview" alt="封面预览" />
+                <img :src="fileUrl(coverPreview)" alt="封面预览" />
                 <div class="cover-overlay">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -260,6 +260,16 @@
                   class="episode-title-input"
                   :placeholder="'P' + (episodes.length - index) + ' 剧集标题'"
                 />
+                <label 
+                  class="vip-switch" 
+                  :class="{ active: episode.needVip }" 
+                  title="是否需要大会员观看"
+                  @click.stop
+                >
+                  <input type="checkbox" v-model="episode.needVip" />
+                  <span class="vip-switch-track"><span class="vip-switch-thumb"></span></span>
+                  <span class="vip-switch-text">大会员</span>
+                </label>
                 <button 
                   v-if="episodes.length > 1"
                   class="episode-delete-btn" 
@@ -274,7 +284,7 @@
               </div>
               <div class="episode-card-body">
                 <div v-if="episode.videoPreviewUrl" class="video-preview">
-                  <video :src="episode.videoPreviewUrl" class="preview-video" controls></video>
+                  <video :src="fileUrl(episode.videoPreviewUrl)" class="preview-video" controls></video>
                   <div class="video-info">
                     <span class="video-name">{{ episode.file?.name || '已上传视频' }}</span>
                     <span class="video-duration" v-if="episode.duration">{{ formatDuration(episode.duration) }}</span>
@@ -459,7 +469,7 @@
               <div class="capture-video-container">
                 <video 
                   ref="captureVideoRef"
-                  :src="captureVideoUrl" 
+                  :src="fileUrl(captureVideoUrl)" 
                   class="capture-video" 
                   controls
                   @loadedmetadata="onCaptureVideoLoaded"
@@ -499,6 +509,7 @@ import { uploadFile } from '../../utils/fileUpload'
 import { submitVideo, updateVideo, getVideoDetailByUid, saveDraft as saveDraftApi, getDraft, deleteDraft } from '../../api/video'
 import { ElMessage } from 'element-plus'
 import { formatDuration } from '../../utils/format'
+import { fileUrl } from '../../config'
 
 const props = defineProps({
   editVideoUid: { type: String, default: '' },
@@ -533,6 +544,7 @@ function createEpisode() {
     file: null,
     videoPreviewUrl: '',
     duration: 0,
+    needVip: false,
     uploading: false,
     progress: 0
   }
@@ -619,6 +631,7 @@ const loadEditData = async (videoUid) => {
           file: null,
           videoPreviewUrl: ep.playUrl || '',
           duration: ep.duration || 0,
+          needVip: !!ep.needVip,
           uploading: false,
           progress: 0
         }))
@@ -728,7 +741,8 @@ const getDraftData = () => {
       .map(ep => ({
         title: ep.title,
         playUrl: ep.videoPreviewUrl,
-        duration: ep.duration
+        duration: ep.duration,
+        needVip: !!ep.needVip
       })),
     step: currentStep.value
   }
@@ -771,7 +785,8 @@ const loadDraftIfNeeded = async () => {
         ...createEpisode(),
         title: ep.title,
         videoPreviewUrl: ep.playUrl,
-        duration: ep.duration
+        duration: ep.duration,
+        needVip: !!ep.needVip
       }))
       episodeIdCounter = episodes.value.length + 1
     }
@@ -823,14 +838,16 @@ const handleSubmit = async () => {
         episodeData.push({
           title: ep.title,
           playUrl,
-          duration: ep.duration
+          duration: ep.duration,
+          needVip: !!ep.needVip
         })
       } else if (ep.serverId) {
         episodeData.push({
           id: ep.serverId,
           title: ep.title,
           playUrl: ep.videoPreviewUrl,
-          duration: ep.duration
+          duration: ep.duration,
+          needVip: !!ep.needVip
         })
       }
     }
@@ -1547,6 +1564,59 @@ defineExpose({ resetForm, captureCoverFromVideo })
 
 .episode-title-input::placeholder {
   color: var(--text4);
+}
+
+.vip-switch {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.vip-switch input {
+  display: none;
+}
+
+.vip-switch-track {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--bg3);
+  transition: background 0.2s ease;
+}
+
+.vip-switch.active .vip-switch-track {
+  background: var(--brand_pink);
+}
+
+.vip-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.vip-switch.active .vip-switch-thumb {
+  transform: translateX(16px);
+}
+
+.vip-switch-text {
+  font-size: 12px;
+  color: var(--text3);
+  transition: color 0.2s ease;
+}
+
+.vip-switch.active .vip-switch-text {
+  color: var(--brand_pink);
+  font-weight: 600;
 }
 
 .episode-delete-btn {

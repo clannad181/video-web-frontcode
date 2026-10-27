@@ -41,7 +41,7 @@
     <div v-else-if="list.length > 0" class="contributions-grid">
       <div v-for="item in list" :key="item.videoUid" class="contribution-card">
         <div class="card-cover" @click="goToVideo(item)">
-          <img :src="item.coverUrl" :alt="item.title" />
+          <img :src="fileUrl(item.coverUrl)" :alt="item.title" />
           <span class="cover-badge" v-if="item.episodeCount">{{ item.episodeCount }}P</span>
           <div class="cover-hover">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
@@ -155,6 +155,7 @@ import { useRouter } from 'vue-router'
 import { getMyContributions, toggleVideoOngoing } from '../../api/video'
 import { formatCount } from '../../utils/format'
 import { ElMessage } from 'element-plus'
+import { fileUrl } from '../../config'
 
 const props = defineProps({
   initialPage: { type: Number, default: 1 },

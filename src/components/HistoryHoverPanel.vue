@@ -21,7 +21,7 @@
           @click="video.videoAvid && handleVideoClick(video, router)"
         >
           <div class="video-cover">
-            <img v-if="video.videoCover" :src="video.videoCover" :alt="video.videoTitle" />
+            <img v-if="video.videoCover" :src="fileUrl(video.videoCover)" :alt="video.videoTitle" />
             <div v-else class="video-cover-offline">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="12" cy="12" r="10"/>
@@ -67,6 +67,7 @@ import { useRouter } from 'vue-router'
 import { getWatchHistoryList } from '../api/video'
 import { handleVideoClick } from '../utils/video'
 import { formatDuration } from '../utils/format'
+import { fileUrl } from '../config'
 
 const props = defineProps({
   visible: { type: Boolean, default: false }

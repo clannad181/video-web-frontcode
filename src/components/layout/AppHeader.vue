@@ -14,7 +14,7 @@
           @mouseenter="handleCategoryMouseEnter"
           @mouseleave="handleCategoryMouseLeave"
         >
-          <a class="default-entry" href="/">
+          <a class="default-entry" href="#/">
             首页
             <svg class="category-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6 9 12 15 18 9"/>
@@ -75,7 +75,7 @@
 
         <div class="user-menu" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
           <div class="avatar-wrapper" @click="isLoggedIn ? router.push('/profile') : router.push({ path: '/login', query: { redirect: route.fullPath } })">
-          <img v-if="isLoggedIn && user?.avatar" :src="user.avatar" class="avatar-img" :alt="user?.nickname || '用户头像'" />
+          <img v-if="isLoggedIn && user?.avatar" :src="fileUrl(user.avatar)" class="avatar-img" :alt="user?.nickname || '用户头像'" />
           <div v-else class="avatar-default">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
@@ -230,7 +230,7 @@
     <!-- 个人中心页用户信息 -->
     <div v-if="isProfilePage && isLoggedIn" class="banner-profile-info">
       <div class="banner-avatar" @click="emitEditProfile">
-        <img v-if="user?.avatar" :src="user.avatar" alt="avatar" />
+        <img v-if="user?.avatar" :src="fileUrl(user.avatar)" alt="avatar" />
         <span v-else>{{ (user?.nikeName || user?.nickname || 'U').charAt(0).toUpperCase() }}</span>
       </div>
       <div class="banner-user-detail">
@@ -257,7 +257,7 @@
     <!-- UP主页用户信息 -->
     <div v-if="isUpProfilePage && upUserInfo" class="banner-profile-info">
       <div class="banner-avatar">
-        <img v-if="upUserInfo.avatar" :src="upUserInfo.avatar" alt="avatar" />
+        <img v-if="upUserInfo.avatar" :src="fileUrl(upUserInfo.avatar)" alt="avatar" />
         <span v-else>{{ (upUserInfo.nikeName || 'U').charAt(0).toUpperCase() }}</span>
       </div>
       <div class="banner-user-detail">
@@ -429,6 +429,8 @@ import { clientLogout, getUserInfoByUid, activateVip } from '../../api/auth'
 import { createOrder, payOrder, getVipPlans } from '../../api/order'
 import { followUser, unfollowUser } from '../../api/video'
 import { useAuthStore } from '../../stores/auth'
+import { fileUrl } from '../../config'
+import { openAppPage } from '../../utils/navigation'
 import FavoriteHoverPanel from '../FavoriteHoverPanel.vue'
 import HistoryHoverPanel from '../HistoryHoverPanel.vue'
 import MessagePanel from '../MessagePanel.vue'
@@ -664,8 +666,7 @@ const toggleUserMenu = () => {
 
 const handleSearch = () => {
   if (searchKeyword.value.trim()) {
-    const route = router.resolve({ path: '/search', query: { q: searchKeyword.value.trim() } })
-    window.open(route.href, '_blank')
+    openAppPage(`/search?q=${encodeURIComponent(searchKeyword.value.trim())}`)
   }
 }
 
@@ -682,6 +683,10 @@ const handleVipClick = () => {
   vipCode.value = ''
   showVipDialog.value = true
   loadVipPlans()
+}
+
+const onOpenVipDialog = () => {
+  handleVipClick()
 }
 
 const submitPayForm = (html) => {
@@ -965,6 +970,7 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   handleScroll()
   fetchMessageUnreadCount()
+  window.addEventListener('open-vip-dialog', onOpenVipDialog)
   
   if (config.websocket.enabled && isLoggedIn.value) {
     connect()
@@ -981,6 +987,7 @@ onUnmounted(() => {
   if (messageHideTimer) clearTimeout(messageHideTimer)
   if (messagePollingTimer) clearInterval(messagePollingTimer)
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('open-vip-dialog', onOpenVipDialog)
   if (config.websocket.enabled) {
     disconnect()
   }

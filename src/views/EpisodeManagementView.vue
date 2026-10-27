@@ -133,6 +133,14 @@
                   <label class="form-label">剧集标题</label>
                   <input v-model="newEpisode.title" class="form-input" placeholder="请输入剧集标题" />
                 </div>
+                <div class="form-item">
+                  <label class="form-label">大会员观看</label>
+                  <label class="vip-switch" :class="{ active: newEpisode.needVip }">
+                    <input type="checkbox" v-model="newEpisode.needVip" />
+                    <span class="vip-switch-track"><span class="vip-switch-thumb"></span></span>
+                    <span class="vip-switch-text">{{ newEpisode.needVip ? '需要大会员观看' : '所有用户可观看' }}</span>
+                  </label>
+                </div>
                 <div v-if="!newEpisode.file" class="form-item">
                   <label class="form-label">视频文件</label>
                   <div class="upload-zone">
@@ -149,7 +157,7 @@
                 </div>
                 <div v-if="newEpisode.previewUrl" class="form-item">
                   <label class="form-label">视频预览</label>
-                  <video :src="newEpisode.previewUrl" controls class="video-preview"></video>
+                  <video :src="fileUrl(newEpisode.previewUrl)" controls class="video-preview"></video>
                 </div>
               </div>
               <div class="modal-footer">
@@ -182,10 +190,18 @@
                   <label class="form-label">剧集标题</label>
                   <input v-model="currentEditEpisode.title" class="form-input" placeholder="请输入剧集标题" />
                 </div>
+                <div class="form-item">
+                  <label class="form-label">大会员观看</label>
+                  <label class="vip-switch" :class="{ active: currentEditEpisode.needVip }">
+                    <input type="checkbox" v-model="currentEditEpisode.needVip" />
+                    <span class="vip-switch-track"><span class="vip-switch-thumb"></span></span>
+                    <span class="vip-switch-text">{{ currentEditEpisode.needVip ? '需要大会员观看' : '所有用户可观看' }}</span>
+                  </label>
+                </div>
                 <div v-if="currentEditEpisode.playUrl && !currentEditEpisode.newFile" class="form-item">
                   <label class="form-label">当前视频</label>
                   <div class="video-preview-wrap">
-                    <video :src="currentEditEpisode.playUrl" controls class="video-preview"></video>
+                    <video :src="fileUrl(currentEditEpisode.playUrl)" controls class="video-preview"></video>
                     <button class="remove-video-btn" @click="removeEditVideo" title="删除视频">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -209,7 +225,7 @@
                   </div>
                 </div>
                 <div v-if="currentEditEpisode.newPreviewUrl" class="form-item">
-                  <video :src="currentEditEpisode.newPreviewUrl" controls class="video-preview"></video>
+                  <video :src="fileUrl(currentEditEpisode.newPreviewUrl)" controls class="video-preview"></video>
                 </div>
               </div>
               <div class="modal-footer">
@@ -231,6 +247,7 @@ import CreatorHeader from '../components/layout/CreatorHeader.vue'
 import { getVideoDetailByUid, getVideoEpisodeList, addVideoEpisode, updateVideoEpisode, deleteVideoEpisode } from '../api/video'
 import { uploadFile } from '../utils/fileUpload'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { fileUrl } from '../config'
 import { formatCount, formatDuration } from '../utils/format'
 
 const router = useRouter()
@@ -246,8 +263,8 @@ const pageSize = 10
 
 const showAddDialog = ref(false)
 const showEditDialog = ref(false)
-const currentEditEpisode = ref({ avid: '', title: '', duration: 0, playUrl: '', newFile: null, newPreviewUrl: '' })
-const newEpisode = ref({ title: '', file: null, duration: 0, previewUrl: '' })
+const currentEditEpisode = ref({ avid: '', title: '', duration: 0, playUrl: '', newFile: null, newPreviewUrl: '', needVip: false })
+const newEpisode = ref({ title: '', file: null, duration: 0, previewUrl: '', needVip: false })
 
 onMounted(async () => {
   videoUid.value = route.params.videoUid
@@ -307,7 +324,7 @@ const goBack = () => {
 }
 
 const openAddDialog = () => {
-  newEpisode.value = { title: '', file: null, duration: 0, previewUrl: '' }
+  newEpisode.value = { title: '', file: null, duration: 0, previewUrl: '', needVip: false }
   showAddDialog.value = true
 }
 
@@ -329,7 +346,8 @@ const submitNewEpisode = async () => {
       videoUid: videoUid.value,
       title: newEpisode.value.title,
       playUrl,
-      duration: newEpisode.value.duration
+      duration: newEpisode.value.duration,
+      needVip: !!newEpisode.value.needVip
     })
     ElMessage.success('剧集添加成功')
     showAddDialog.value = false
@@ -347,7 +365,8 @@ const openEditDialog = (episode) => {
     duration: episode.duration || 0,
     playUrl: episode.playUrl || '',
     newFile: null,
-    newPreviewUrl: ''
+    newPreviewUrl: '',
+    needVip: !!episode.needVip
   }
   showEditDialog.value = true
 }
@@ -374,7 +393,8 @@ const submitEditEpisode = async () => {
     await updateVideoEpisode({
       episodeUid: currentEditEpisode.value.avid,
       title: currentEditEpisode.value.title,
-      playUrl
+      playUrl,
+      needVip: !!currentEditEpisode.value.needVip
     })
     ElMessage.success('剧集更新成功')
     showEditDialog.value = false
@@ -820,6 +840,59 @@ const formatTime = (dateStr) => {
   outline: none;
   border-color: var(--brand_pink);
   box-shadow: 0 0 0 3px rgba(255, 102, 153, 0.1);
+}
+
+.vip-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.vip-switch input {
+  display: none;
+}
+
+.vip-switch-track {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--bg3);
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.vip-switch.active .vip-switch-track {
+  background: var(--brand_pink);
+}
+
+.vip-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.vip-switch.active .vip-switch-thumb {
+  transform: translateX(16px);
+}
+
+.vip-switch-text {
+  font-size: 13px;
+  color: var(--text3);
+  transition: color 0.2s ease;
+}
+
+.vip-switch.active .vip-switch-text {
+  color: var(--brand_pink);
+  font-weight: 600;
 }
 
 .upload-zone {
