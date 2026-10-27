@@ -678,7 +678,7 @@ const reversedEpisodes = computed(() => {
 })
 const onCoverChange = async (e) => {
   const file = e.target.files?.[0]; if (!file) return
-  try { const r = await uploadFile(file, { category: 'image' }); editForm.coverUrl = r.url; ElMessage.success(t('封面上传成功')) } catch (err) { ElMessage.error(err.message || t('上传失败')) }
+  try { const r = await uploadFile(file, { category: 'image' }); editForm.coverUrl = r.url; ElMessage.success(t('封面上传成功')) } catch {}
 }
 
 const extractVideoRef = ref(null)
@@ -755,17 +755,17 @@ const captureFrame = async () => {
     ElMessage.success(t('封面截取成功'))
     extractModalVisible.value = false
     if (!wasPaused) video.play()
-  } catch (err) { ElMessage.error(err.message || t('截取失败')) } finally { capturing.value = false }
+  } catch (err) { if (!err?.fromRequest) ElMessage.error(err.message || t('截取失败')) } finally { capturing.value = false }
 }
 const onEpFileChange = async (e, i) => {
   const file = e.target.files?.[0]; if (!file) return
   const ep = editForm.episodes[i]; ep.fileName = file.name
-  try { const r = await uploadFile(file, { category: 'video' }); ep.playUrl = r.url; ep.duration = r.duration || 0; ElMessage.success(t('视频上传成功')) } catch (err) { ep.fileName = ''; ElMessage.error(err.message || t('上传失败')) }
+  try { const r = await uploadFile(file, { category: 'video' }); ep.playUrl = r.url; ep.duration = r.duration || 0; ElMessage.success(t('视频上传成功')) } catch (err) { ep.fileName = '' }
 }
 const onEpFileDrop = async (e, i) => {
   const file = e.dataTransfer?.files?.[0]; if (!file || !file.type.startsWith('video/')) return
   const ep = editForm.episodes[i]; ep.fileName = file.name
-  try { const r = await uploadFile(file, { category: 'video' }); ep.playUrl = r.url; ep.duration = r.duration || 0; ElMessage.success(t('视频上传成功')) } catch (err) { ep.fileName = ''; ElMessage.error(err.message || t('上传失败')) }
+  try { const r = await uploadFile(file, { category: 'video' }); ep.playUrl = r.url; ep.duration = r.duration || 0; ElMessage.success(t('视频上传成功')) } catch (err) { ep.fileName = '' }
 }
 const onSave = async (videoStatus) => {
   if (!editForm.title) return ElMessage.warning(t('请填写视频标题'))
@@ -797,7 +797,7 @@ const onSave = async (videoStatus) => {
     if (isEditing.value) { await updateVideo(payload); ElMessage.success(t('更新成功')) }
     else { await createVideo(payload); ElMessage.success(videoStatus === 0 ? t('视频已暂存') : t('视频保存成功')) }
     closeEdit(); window.dispatchEvent(new Event('review-updated')); fetchData()
-  } catch (e) { ElMessage.error(e.message || t('保存失败')) } finally { saving.value = false }
+  } catch {} finally { saving.value = false }
 }
 
 const episodeVisible = ref(false)
@@ -838,7 +838,7 @@ const onSaveEpisodes = async () => {
       episodes: episodeList.value.map((e, i) => ({ id: e.id, episodeNumber: e.episodeNumber, title: e.title, duration: e.duration, playUrl: e.playUrl, sort: i }))
     })
     ElMessage.success(t('剧集保存成功')); episodeVisible.value = false; window.dispatchEvent(new Event('review-updated')); fetchData()
-  } catch (e) { ElMessage.error(e.message || t('保存失败')) }
+  } catch {}
 }
 
 const coverPreviewVisible = ref(false)

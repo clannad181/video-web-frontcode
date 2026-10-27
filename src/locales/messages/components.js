@@ -10,7 +10,6 @@ export default {
   '文件类型不匹配': 'File type does not match',
   '文件大小不能超过 {size}': 'File size must not exceed {size}',
   '文件上传成功': 'File uploaded successfully',
-  '文件上传失败': 'File upload failed',
 
   // ---- DPlayer ----
   '播放': 'Play',

@@ -90,10 +90,11 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { OSS_BASE_URL } from '@/config'
 
 const { t, locale } = useI18n()
 
-const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
+const fileBaseUrl = OSS_BASE_URL
 
 const props = defineProps({
   data: { type: Array, default: () => [] },

@@ -14,15 +14,26 @@ import { getToken, getRefreshToken, setAuth, clearAuth } from './auth'
 import router from '@/router'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
+import { BASE_URL } from '@/config'
 
 // 配置NProgress
 NProgress.configure({ showSpinner: false })
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: BASE_URL,
   timeout: 15000
 })
+
+// 业务错误统一提示（1.2s 内相同文案去重，避免并发请求连弹）
+let lastErrorToast = { msg: '', ts: 0 }
+function toastError(msg) {
+  const now = Date.now()
+  if (!msg) return
+  if (msg === lastErrorToast.msg && now - lastErrorToast.ts < 1200) return
+  lastErrorToast = { msg, ts: now }
+  ElMessage.error(msg)
+}
 
 // 是否正在刷新token
 let isRefreshing = false
@@ -91,7 +102,7 @@ async function refreshAccessToken() {
     throw new Error('No refresh token')
   }
   const res = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL || '/api'}/admin/user/refresh`,
+    `${BASE_URL}/admin/user/refresh`,
     { headers: { 'refresh-token': refreshTokenValue } }
   )
   if (res.data.code === 200) {
@@ -166,10 +177,15 @@ service.interceptors.response.use(
     // 无权限（403）- 直接提示，不尝试刷新token
     if (res.code === 403) {
       ElMessage.error(i18n.global.t('无权限访问'))
-      return Promise.reject(new Error(res.message || i18n.global.t('无权限')))
+      const e403 = new Error(res.message || i18n.global.t('无权限'))
+      e403.fromRequest = true
+      return Promise.reject(e403)
     }
-    // 其他业务错误
-    return Promise.reject(new Error(res.message || i18n.global.t('请求失败')))
+    // 其他业务错误：全局提示一次；fromRequest 标记供页面 catch 避免重复弹窗
+    const bizErr = new Error(res.message || i18n.global.t('请求失败'))
+    bizErr.fromRequest = true
+    toastError(bizErr.message)
+    return Promise.reject(bizErr)
   },
   async error => {
     endRequest()
@@ -179,6 +195,7 @@ service.interceptors.response.use(
     if (!originalRequest) {
       const message = i18n.global.t(error.message || '网络错误') // i18n-key
       ElMessage.error(message)
+      error.fromRequest = true
       return Promise.reject(error)
     }
 
@@ -224,6 +241,7 @@ service.interceptors.response.use(
     // 其他错误
     const message = i18n.global.t(error.response?.data?.message || error.message || '网络错误') // i18n-key
     ElMessage.error(message)
+    error.fromRequest = true
     return Promise.reject(error)
   }
 )

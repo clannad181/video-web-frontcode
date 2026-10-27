@@ -286,6 +286,42 @@
           </div>
         </div>
 
+        <div class="panel-body" v-if="activeNav === 'vip'">
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-title">{{ $t('大会员月单价') }}</div>
+              <div class="setting-desc">{{ $t('未匹配套餐时按此单价×月数计算') }}</div>
+            </div>
+            <div class="suffix-input-wrapper">
+              <input v-model.number="form.vip_price_per_month" type="number" class="suffix-input" min="0" step="0.01" />
+              <span class="suffix-text">{{ $t('元/月') }}</span>
+            </div>
+          </div>
+
+          <div class="plan-block">
+            <div class="plan-head">
+              <span class="plan-title">{{ $t('价格套餐') }}</span>
+              <button class="btn btn-primary btn-sm" @click="addVipPlan">+ {{ $t('新增套餐') }}</button>
+            </div>
+            <div class="plan-cols">
+              <span class="plan-col col-name">{{ $t('套餐名称') }}</span>
+              <span class="plan-col col-months">{{ $t('时长（月）') }}</span>
+              <span class="plan-col col-price">{{ $t('现价') }}</span>
+              <span class="plan-col col-orig">{{ $t('原价') }}</span>
+              <span class="plan-col col-act">{{ $t('操作') }}</span>
+            </div>
+            <div v-if="!vipPlans.length" class="plan-empty">{{ $t('暂无套餐，点击新增套餐按钮创建') }}</div>
+            <div v-for="(p, i) in vipPlans" :key="i" class="plan-row">
+              <input v-model="p.name" class="plan-input col-name" :placeholder="$t('选填')" />
+              <input v-model.number="p.durationMonths" type="number" min="1" max="120" class="plan-input col-months" />
+              <input v-model.number="p.price" type="number" min="0" step="0.01" class="plan-input col-price" :placeholder="$t('现价')" />
+              <input v-model.number="p.originalPrice" type="number" min="0" step="0.01" class="plan-input col-orig" :placeholder="$t('选填')" @input="p.autoOrig = false" />
+              <button class="plan-del" @click="vipPlans.splice(i, 1)">{{ $t('删除') }}</button>
+            </div>
+            <p class="plan-hint">{{ $t('前台按月数下单时优先匹配同月数套餐价，未匹配则按月单价×月数计算') }}</p>
+          </div>
+        </div>
+
         <div class="panel-divider"></div>
         <div class="settings-footer">
           <button class="btn btn-outline" @click="resetToDefault">{{ $t('重置默认') }}</button>
@@ -398,7 +434,8 @@ const navItems = [
   { key: 'notification', label: '通知设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>' }, // i18n-key
   { key: 'audit', label: '审核设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' }, // i18n-key
   { key: 'appearance', label: '外观设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>' }, // i18n-key
-  { key: 'default', label: '默认设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>' } // i18n-key
+  { key: 'default', label: '默认设置', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>' }, // i18n-key
+  { key: 'vip', label: '大会员定价', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19h12M4.5 7.5l4 3.5L12 5l3.5 6 4-3.5-1.5 8.5h-13L4.5 7.5z"/></svg>' } // i18n-key
 ]
 
 const panelConfig = {
@@ -408,7 +445,8 @@ const panelConfig = {
   notification: { title: '通知设置', desc: '管理系统通知方式' }, // i18n-key
   audit: { title: '审核设置', desc: '配置内容审核策略' }, // i18n-key
   appearance: { title: '外观设置', desc: '自定义系统外观主题' }, // i18n-key
-  default: { title: '默认设置', desc: '配置系统默认行为' } // i18n-key
+  default: { title: '默认设置', desc: '配置系统默认行为' }, // i18n-key
+  vip: { title: '大会员定价', desc: '配置大会员开通与续期价格' } // i18n-key
 }
 const currentPanel = computed(() => panelConfig[activeNav.value] || panelConfig.basic)
 
@@ -421,7 +459,7 @@ const defaults = {
   front_access_token_expiry: 30, front_refresh_token_expiry: 7,
   backend_access_token_expiry: 15, backend_refresh_token_expiry: 7,
   videoReviewNotify: true, commentNotify: true, reportNotify: true,
-  default_role: '', default_category: ''
+  default_role: '', default_category: '', vip_price_per_month: 25, vip_pricing_plans: '[]'
 }
 
 const apiToForm = {
@@ -433,7 +471,9 @@ const apiToForm = {
   front_access_token_expiry: 'front_access_token_expiry', front_refresh_token_expiry: 'front_refresh_token_expiry',
   backend_access_token_expiry: 'backend_access_token_expiry', backend_refresh_token_expiry: 'backend_refresh_token_expiry',
   videoReviewNotify: 'videoReviewNotify', commentNotify: 'commentNotify', reportNotify: 'reportNotify',
-  default_role: 'default_role', default_category: 'default_category'
+  default_role: 'default_role', default_category: 'default_category',
+  vip_price_per_month: 'vip_price_per_month',
+  vip_pricing_plans: 'vip_pricing_plans'
 }
 
 function parseApiValue(val) {
@@ -451,6 +491,82 @@ const roleList = ref([])
 const categoryList = ref([])
 const serverPrimaryColor = ref('')
 const showSaveMenu = ref(false)
+
+// ===== 大会员定价套餐（web_config: vip_pricing_plans，JSON 数组）=====
+const vipPlans = ref([])
+
+function parseVipPlans(str) {
+  try {
+    const arr = JSON.parse(str)
+    if (!Array.isArray(arr)) return []
+    return arr.filter(p => p && typeof p === 'object').map(p => ({
+      name: p.name || '',
+      durationMonths: p.durationMonths ?? 1,
+      price: p.price ?? null,
+      originalPrice: p.originalPrice ?? null,
+      autoOrig: p.autoOrig !== false
+    }))
+  } catch { return [] }
+}
+
+function addVipPlan() {
+  const row = { name: '', durationMonths: 1, price: null, originalPrice: null, autoOrig: true }
+  vipPlans.value.push(row)
+  recalcPlanOrig(row)
+}
+
+// 原价自动回填：时长 × 月单价（保留两位小数）
+function recalcPlanOrig(p) {
+  const months = Number(p.durationMonths)
+  const unit = Number(form.vip_price_per_month)
+  if (!Number.isFinite(months) || months < 1) return
+  if (!Number.isFinite(unit) || unit <= 0) return
+  p.originalPrice = Math.round(months * unit * 100) / 100
+}
+
+function validateVipPlans() {
+  const seen = new Set()
+  for (const p of vipPlans.value) {
+    const m = Number(p.durationMonths)
+    if (!Number.isInteger(m) || m < 1 || m > 120) return t('套餐月数必须为 1~120 的整数')
+    if (seen.has(m)) return t('套餐月数重复，请修改后再保存')
+    seen.add(m)
+    const price = Number(p.price)
+    if (!price || price <= 0 || Number.isNaN(price)) return t('套餐现价必须大于0')
+  }
+  return ''
+}
+
+function normalizeVipPlans(list) {
+  return list.map(p => ({
+    name: (p.name || '').trim(),
+    durationMonths: Number(p.durationMonths),
+    price: p.price === null || p.price === undefined || p.price === '' ? null : Number(p.price),
+    originalPrice: p.originalPrice === null || p.originalPrice === undefined || p.originalPrice === '' ? null : Number(p.originalPrice),
+    autoOrig: p.autoOrig !== false
+  }))
+}
+
+// form ↔ 数组双向同步（load/reset 走 form→数组，编辑走 数组→form）；
+// 双端都用规范化 JSON（含 autoOrig 标记），口径一致才不会误判重解析
+watch(() => form.vip_pricing_plans, (str) => {
+  const next = str || '[]'
+  if (JSON.stringify(normalizeVipPlans(vipPlans.value)) === next) return
+  vipPlans.value = parseVipPlans(next)
+})
+watch(vipPlans, (list) => {
+  const s = JSON.stringify(normalizeVipPlans(list))
+  if (form.vip_pricing_plans !== s) form.vip_pricing_plans = s
+}, { deep: true })
+
+// 自动回填原价：autoOrig 未关闭的行跟随 时长 × 月单价；
+// 手动改过原价的行 autoOrig=false（随 JSON 持久化），不覆盖
+watch(() => vipPlans.value.map(p => p.durationMonths), () => {
+  vipPlans.value.forEach(p => { if (p.autoOrig) recalcPlanOrig(p) })
+})
+watch(() => form.vip_price_per_month, () => {
+  vipPlans.value.forEach(p => { if (p.autoOrig) recalcPlanOrig(p) })
+})
 
 const presetColors = [
   { name: '品牌粉', value: '#fb7299' }, // i18n-key
@@ -539,7 +655,8 @@ const categoryMap = {
   front_access_token_expiry: 'token_security', front_refresh_token_expiry: 'token_security',
   backend_access_token_expiry: 'token_security', backend_refresh_token_expiry: 'token_security',
   videoReviewNotify: 'notification', commentNotify: 'notification', reportNotify: 'notification',
-  default_role: 'default', default_category: 'default'
+  default_role: 'default', default_category: 'default',
+  vip_price_per_month: 'vip', vip_pricing_plans: 'vip'
 }
 
 async function saveSettings(scope = 'global') {
@@ -552,6 +669,8 @@ async function saveSettings(scope = 'global') {
     return
   }
   saving.value = true
+  const planErr = validateVipPlans()
+  if (planErr) { ElMessage.warning(planErr); saving.value = false; return }
   try {
     const settings = []
     Object.keys(form).forEach(k => {
@@ -611,8 +730,7 @@ async function submitPassword() {
     ElMessage.success(t('密码修改成功'))
     showPasswordModal.value = false
     passwordForm.oldPassword = ''; passwordForm.newPassword = ''; passwordForm.confirmPassword = ''; passwordForm.captcha = ''
-  } catch (e) {
-    ElMessage.error(e.message || t('密码修改失败'))
+  } catch {
     refreshCaptcha()
     passwordForm.captcha = ''
   }
@@ -721,6 +839,44 @@ onUnmounted(() => {
   &:focus { border-color: #fb7299; box-shadow: 0 0 0 2px rgba(251,114,153,0.15); }
 }
 .suffix-text { font-size: 13px; color: var(--text-secondary, #909399); }
+
+/* ---- 大会员定价套餐 ---- */
+.btn-sm { height: 32px; padding: 0 14px; font-size: 12px; }
+.plan-block { padding-top: 16px; }
+.plan-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.plan-title { font-size: 15px; font-weight: 600; color: var(--text-primary, #303133); }
+.plan-cols, .plan-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 0.9fr 0.9fr 72px;
+  gap: 10px;
+  align-items: center;
+}
+.plan-cols { margin-bottom: 8px; }
+.plan-col { font-size: 12px; color: var(--text-secondary, #909399); font-weight: 500; text-align: center; }
+.plan-row { margin-bottom: 8px; }
+.plan-input {
+  height: 36px; border-radius: 8px; border: 1px solid var(--border-color, #dcdfe6);
+  padding: 0 10px; font-size: 13px; background: var(--card-bg, #fff);
+  color: var(--text-primary, #303133); outline: none; width: 100%; box-sizing: border-box;
+  text-align: center;
+  &:focus { border-color: #fb7299; box-shadow: 0 0 0 2px rgba(251,114,153,0.15); }
+}
+.plan-del {
+  height: 36px; border-radius: 8px; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 500;
+  background: rgba(245,108,108,0.1); color: #f56c6c;
+  transition: all 0.2s ease;
+  &:hover { background: #f56c6c; color: #fff; }
+}
+.plan-empty {
+  padding: 24px; text-align: center; font-size: 13px;
+  color: var(--text-secondary, #909399);
+  border: 1px dashed var(--border-color, #dcdfe6); border-radius: 10px;
+}
+.plan-hint { margin: 10px 0 0; font-size: 12px; color: var(--text-secondary, #909399); }
 .pwd-input {
   width: 160px; height: 36px; border-radius: 8px; border: 1px solid var(--border-color, #dcdfe6);
   padding: 0 12px; font-size: 13px; background: var(--card-bg, #fff);
@@ -874,6 +1030,9 @@ html.dark-mode {
   .nav-item:hover { background: var(--bg-color); }
   .nav-item.active { background: rgba(251,114,153,0.12); }
   .form-input, .form-textarea, .form-select { background: var(--bg-color); border-color: var(--border-color); color: var(--text-primary); }
+  .plan-input { background: var(--bg-color); border-color: var(--border-color); color: var(--text-primary); }
+  .plan-empty { border-color: var(--border-color); }
+  .plan-title { color: var(--text-primary); }
   .modal-card { background: var(--card-bg); }
   .toggle-switch { background: var(--border-color); &.on { background: #fb7299; } }
 }

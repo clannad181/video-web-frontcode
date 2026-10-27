@@ -347,6 +347,7 @@ import { useUserStore } from '@/stores/user'
 import { logout as logoutApi, getUserInfo as getUserInfoApi, sendEmailCode } from '@/api/auth'
 import { globalSearch } from '@/api/search'
 import { clearAuth, setUserInfo } from '@/utils/auth'
+import { OSS_BASE_URL } from '@/config'
 
 const { t } = useI18n()
 
@@ -355,7 +356,7 @@ const router = useRouter()
 const route = useRoute()
 const appStore = useAppStore()
 const userStore = useUserStore()
-const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
+const fileBaseUrl = OSS_BASE_URL
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -474,12 +475,12 @@ function resetSearch() {
   activeIndex.value = 0
 }
 
-/** 点击/回车打开结果：视频→视频管理、用户→用户管理、评论→评论管理（带 query 回填） */
+/** 点击/回车打开结果：视频→视频管理、用户→用户管理（带 userName + tab 回填，按用户类型落到对应 tab）、评论→评论管理（带 query 回填） */
 function goSearchResult(type, data) {
   if (!data) return
   let target = null
   if (type === 'video') target = { path: '/video-manage', query: { videoId: data.avid } }
-  else if (type === 'user') target = { path: '/users', query: { userName: data.userName } }
+  else if (type === 'user') target = { path: '/users', query: { userName: data.userName, tab: data.type === 1 ? 'admin' : 'user' } }
   else if (type === 'comment') target = { path: '/comment-manage', query: { keyword: data.content } }
   if (!target) return
   resetSearch()
@@ -641,9 +642,7 @@ async function handleAvatarUpload(e) {
     })
     profileForm.value.avatarUrl = result.url
     ElMessage.success(t('头像上传成功'))
-  } catch {
-    ElMessage.error(t('头像上传失败'))
-  } finally {
+  } catch {} finally {
     setTimeout(() => { profileForm.value.uploadProgress = 0 }, 1000)
   }
 }
@@ -667,9 +666,7 @@ async function handleSendCode() {
       codeCountdown.value--
       if (codeCountdown.value <= 0) clearInterval(codeTimer)
     }, 1000)
-  } catch {
-    ElMessage.error(t('发送验证码失败'))
-  }
+  } catch {}
 }
 
 /**
@@ -705,12 +702,8 @@ async function handleSaveProfile() {
       window.dispatchEvent(new CustomEvent('user-updated'))
       ElMessage.success(t('保存成功'))
       profileVisible.value = false
-    } else {
-      ElMessage.error(res.data?.message || t('保存失败'))
     }
-  } catch {
-    ElMessage.error(t('保存失败'))
-  } finally {
+  } catch {} finally {
     profileSaving.value = false
   }
 }

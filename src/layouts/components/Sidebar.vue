@@ -43,7 +43,7 @@
               <div
                 class="menu-item submenu-title"
                 :class="{ active: isMenuActive(item) }"
-                @click="toggleSubMenu(item.id)"
+                @click="handleParentClick(item)"
               >
                 <span class="menu-icon">
                   <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
@@ -107,7 +107,7 @@
               <div
                 class="menu-item submenu-title"
                 :class="{ active: isMenuActive(item) }"
-                @click="toggleSubMenu(item.id)"
+                @click="handleParentClick(item)"
               >
                 <span class="menu-icon">
                   <el-icon><component :is="resolveIcon(item.icon)" /></el-icon>
@@ -225,6 +225,7 @@ import { constantRoutes } from '@/router'
 import { getVideoReviewStats, getCommentStatusStats } from '@/api/review'
 import { SwitchButton, Fold, Expand, ArrowDown, Document } from '@element-plus/icons-vue'
 import * as ElementPlusIcons from '@element-plus/icons-vue'
+import { OSS_BASE_URL } from '@/config'
 
 // 路由和状态管理
 const route = useRoute()
@@ -235,7 +236,7 @@ const scrollbarRef = ref(null)
 const menuRefreshKey = ref(0)
 
 // 文件基础URL
-const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
+const fileBaseUrl = OSS_BASE_URL
 
 // 主题色（从CSS变量获取）
 const primaryColor = computed(() => {
@@ -525,6 +526,18 @@ function toggleSubMenu(id) {
   }
   expandedMenuIds.value = new Set(expandedMenuIds.value)
   localStorage.setItem(STORAGE_KEY, JSON.stringify([...expandedMenuIds.value]))
+}
+
+/**
+ * 父菜单点击：展开/收起子级，并同时跳转父级自身页面（解析不到路径时仅展开）
+ * 折叠态保持既有交互：仅展开侧边栏，不跳转
+ * @param {Object} item - 菜单项
+ */
+function handleParentClick(item) {
+  const wasCollapsed = appStore.sidebar.collapsed
+  toggleSubMenu(item.id)
+  if (wasCollapsed) return
+  if (item.path) navigateTo(item.path)
 }
 
 /**

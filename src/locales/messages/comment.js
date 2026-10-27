@@ -14,7 +14,6 @@ export default {
   '批量审核': 'Batch Review',
   '批量删除': 'Batch Delete',
   '批量删除成功': 'Batch deleted successfully',
-  '批量操作失败，请重试': 'Batch operation failed, please try again',
   '取消选择': 'Clear Selection',
   '评论内容': 'Comment Content',
   '点击查看详情': 'Click to view details',
@@ -52,7 +51,6 @@ export default {
   '评论已驳回': 'Comment rejected',
   '评论已驳回，已通知作者': 'Comment rejected; author has been notified',
   '请填写驳回原因': 'Please enter a reject reason',
-  '操作失败，请重试': 'Operation failed, please try again',
   '跳转到视频 ID: {id}': 'Go to video ID: {id}',
   '确定通过选中的 {count} 条评论审核吗？': 'Approve the {count} selected comments?',
   '确定': 'OK',
@@ -91,7 +89,6 @@ export default {
   '确定要恢复该评论吗？': 'Restore this comment?',
   '屏蔽成功': 'Blocked successfully',
   '恢复成功': 'Restored successfully',
-  '加载视频信息失败': 'Failed to load video info',
   '评论上下文': 'Comment Context',
   '匿名用户': 'Anonymous',
   '暂无评论内容': 'No comment content'

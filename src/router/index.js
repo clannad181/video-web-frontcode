@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import NProgress from 'nprogress'
 import { getToken } from '@/utils/auth'
 
@@ -51,6 +51,30 @@ export const constantRoutes = [
         name: 'UserManage',
         component: () => import('@/views/user/user-manage.vue'),
         meta: { title: '人员管理', icon: 'User', requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/vip-manage',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'VipManage',
+        component: () => import('@/views/user/vip-manage.vue'),
+        meta: { title: '大会员管理', icon: 'GoldMedal', hidden: true, requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/goods-manage',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'GoodsManage',
+        component: () => import('@/views/goods/goods-manage.vue'),
+        meta: { title: '商品管理', icon: 'Goods', hidden: true, requiresAuth: true }
       }
     ]
   },
@@ -145,6 +169,18 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/notice',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'Notice',
+        component: () => import('@/views/system/notification.vue'),
+        meta: { title: '通知设置', icon: 'Bell', hidden: true, requiresAuth: true }
+      }
+    ]
+  },
+  {
     path: '/system-info',
     component: Layout,
     children: [
@@ -225,7 +261,7 @@ export const constantRoutes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: constantRoutes
 })
 

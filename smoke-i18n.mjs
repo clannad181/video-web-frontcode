@@ -50,6 +50,8 @@ const ROUTES = [
   ['/data-analysis', '数据分析', 'Analytics'],
   ['/video-manage', '视频管理', 'Videos'],
   ['/users', '人员管理', 'Users'],
+  ['/vip-manage', '大会员管理', 'VIP Membership'],
+  ['/goods-manage', '商品管理', 'Goods'],
   ['/roles', '角色管理', 'Roles'],
   ['/menus', '菜单管理', 'Menus'],
   ['/category-manage', '分类管理', 'Categories'],
@@ -64,6 +66,7 @@ const ROUTES = [
   ['/operation-log', '运行日志', 'Operation Logs'],
   ['/log-statistics', '日志统计', 'Log Stats'],
   ['/profile', '个人中心', 'Profile'],
+  ['/notice', '通知设置', 'Notifications'],
   ['/this-page-does-not-exist', '页面不存在', 'Page not found']
 ]
 

@@ -365,11 +365,7 @@ const handleApprove = async (row) => {
     await auditComment(row.id, { status: 1 })
     ElMessage.success(t('评论已通过审核'))
     fetchData()
-  } catch (e) {
-    if (e !== 'cancel') {
-      ElMessage.error(t('操作失败，请重试'))
-    }
-  } finally {
+  } catch {} finally {
     actionLoadingId.value = null
     actionType.value = ''
   }
@@ -397,9 +393,7 @@ const handleReject = async () => {
     ElMessage.success(notifyAuthor.value ? t('评论已驳回，已通知作者') : t('评论已驳回'))
     rejectDialogVisible.value = false
     fetchData()
-  } catch {
-    ElMessage.error(t('操作失败，请重试'))
-  } finally {
+  } catch {} finally {
     rejectLoading.value = false
   }
 }
@@ -436,11 +430,7 @@ const handleBatchApprove = async () => {
     ElMessage.success(t('已通过 {count} 条评论', { count: selectedIds.value.length }))
     clearSelection()
     fetchData()
-  } catch (e) {
-    if (e !== 'cancel') {
-      ElMessage.error(t('批量操作失败，请重试'))
-    }
-  } finally {
+  } catch {} finally {
     loading.value = false
   }
 }

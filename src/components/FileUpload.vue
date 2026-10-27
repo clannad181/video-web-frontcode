@@ -216,7 +216,6 @@ async function processFile(file) {
     emit('success', fileData)
     ElMessage.success(t('文件上传成功'))
   } catch (err) {
-    ElMessage.error(err.message || t('文件上传失败'))
     emit('error', err)
   } finally {
     uploading.value = false

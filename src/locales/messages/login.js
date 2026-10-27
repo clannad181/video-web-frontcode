@@ -15,6 +15,5 @@ export default {
   '登 录': 'Sign In',
   '邮箱格式不正确': 'Invalid email format',
   '登录失败，请重试': 'Login failed, please retry',
-  '验证码已发送': 'Verification code sent',
-  '发送验证码失败': 'Failed to send the verification code'
+  '验证码已发送': 'Verification code sent'
 }

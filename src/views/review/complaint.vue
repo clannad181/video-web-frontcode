@@ -375,10 +375,11 @@ import { formatDuration } from '@/utils/format'
 import { ElMessage } from 'element-plus'
 import { getEnabledDictData, getDictTypeList } from '@/api/dict'
 import { useI18n } from 'vue-i18n'
+import { OSS_BASE_URL } from '@/config'
 
 const { t } = useI18n()
 
-const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
+const fileBaseUrl = OSS_BASE_URL
 
 // 举报类型来自两个字典：report_type_equity（合法权益）、report_type_rule（社区规则）
 const REPORT_TYPE_CODES = ['report_type_equity', 'report_type_rule']
@@ -523,7 +524,7 @@ async function submitHandle() {
     handleRow.value = null
     loadData()
   } catch (e) {
-    if (!e?.response) ElMessage.error(e?.message || t('处理失败'))
+    if (!e?.fromRequest) ElMessage.error(e?.message || t('处理失败'))
   } finally {
     handleLoading.value = false
   }

@@ -244,11 +244,12 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCommentList, getCommentDetail, batchDeleteComments, toggleCommentStatus, getVideoDetail } from '@/api/comment'
 import { getEnabledDictData } from '@/api/dict'
+import { OSS_BASE_URL } from '@/config'
 
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
-const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || ''
+const fileBaseUrl = OSS_BASE_URL
 
 const loading = ref(false)
 const records = ref([])
@@ -459,7 +460,6 @@ async function openVideoDetail(row) {
     showDetailModal.value = false
     showVideoModal.value = true
   } catch (e) {
-    ElMessage.error(t('加载视频信息失败'))
     console.error('加载视频详情失败', e)
   }
 }

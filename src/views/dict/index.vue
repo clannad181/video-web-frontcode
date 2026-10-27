@@ -339,9 +339,9 @@ const { t } = useI18n()
 
 const sysDictDeleteTip = computed(() => t('系统内置字典不可删除'))
 
-// 业务错误（code!=200）由拦截器 reject 且不弹提示；HTTP 错误拦截器已弹过，避免重复
+// 请求类错误拦截器已弹过（业务/HTTP 均提示并标记 fromRequest），这里只提示非请求错误
 function showError(e, fallback) {
-  if (!e?.response) ElMessage.error(e.message || fallback)
+  if (!e?.fromRequest) ElMessage.error(e.message || fallback)
 }
 
 // ===================== 字典类型 =====================

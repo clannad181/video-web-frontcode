@@ -194,6 +194,10 @@
                       <span class="toggle-label">{{ editForm.isVip ? $t('是') : $t('否') }}</span>
                     </div>
                   </div>
+                  <div v-if="activeTab === 'user' && editForm.isVip" class="fg half">
+                    <label class="fl">{{ $t('大会员到期时间') }}</label>
+                    <input class="fi" :value="editForm.vipExpireTime || '-'" disabled />
+                  </div>
                 </div>
                 <div class="form-row">
                   <div class="fg half">
@@ -333,19 +337,26 @@ const list = ref([])
 const activeTab = ref('admin')
 const filter = reactive({ userName: '', nikeName: '', email: '', status: '', roleId: '' })
 
-// 从全局搜索跳转（/users?userName=xxx）：回填用户名并只查该用户（同页换参数由 watch 兜底）
+// 从全局搜索跳转（/users?userName=xxx&tab=admin|user）：回填用户名并只查该用户，tab 指定落到哪个页签
 const route = useRoute()
 let appliedUserName = ''
+let appliedTab = ''
 const applyUserNameQuery = () => {
   const v = route.query.userName ? String(route.query.userName) : ''
-  if (!v) { appliedUserName = ''; return }
-  if (v === appliedUserName) return
+  const tab = route.query.tab === 'admin' || route.query.tab === 'user' ? String(route.query.tab) : ''
+  const tabChanged = !!tab && tab !== appliedTab
+  if (tabChanged) {
+    appliedTab = tab
+    activeTab.value = tab
+  }
+  if (!v) { appliedUserName = ''; if (tabChanged) { pagination.value.page = 1; fetchData() } return }
+  if (v === appliedUserName && !tabChanged) return
   appliedUserName = v
   filter.userName = v
   pagination.value.page = 1
   fetchData()
 }
-watch(() => route.query.userName, applyUserNameQuery)
+watch(() => `${route.query.userName}|${route.query.tab}`, applyUserNameQuery)
 const pagination = ref({ page: 1, size: 10, total: 0 })
 const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.size) || 1)
 const visiblePages = computed(() => {
@@ -368,6 +379,10 @@ onMounted(() => {
   if (route.query.userName) {
     filter.userName = String(route.query.userName)
     appliedUserName = filter.userName
+  }
+  if (route.query.tab === 'admin' || route.query.tab === 'user') {
+    activeTab.value = String(route.query.tab)
+    appliedTab = activeTab.value
   }
   fetchData()
 })
@@ -432,10 +447,10 @@ const editClosing = ref(false)
 const isEditing = ref(false)
 const editingId = ref(null)
 const saving = ref(false)
-const editForm = reactive({ userName: '', password: '', nikeName: '', email: '', roleId: '', isVip: 0, sex: true, status: 0, descript: '', avatar: '' })
+const editForm = reactive({ userName: '', password: '', nikeName: '', email: '', roleId: '', isVip: 0, vipExpireTime: '', sex: true, status: 0, descript: '', avatar: '' })
 
 const resetEditForm = () => {
-  Object.assign(editForm, { userName: '', password: '', nikeName: '', email: '', roleId: '', isVip: 0, sex: true, status: 0, descript: '', avatar: '' })
+  Object.assign(editForm, { userName: '', password: '', nikeName: '', email: '', roleId: '', isVip: 0, vipExpireTime: '', sex: true, status: 0, descript: '', avatar: '' })
   editingId.value = null; saving.value = false
 }
 
@@ -444,7 +459,7 @@ const openEdit = (row) => {
   isEditing.value = true; resetEditForm(); editingId.value = row.id
   Object.assign(editForm, {
     userName: row.userName || '', nikeName: row.nikeName || '', email: row.email || '',
-    roleId: row.roleId || '', isVip: row.isVip || 0, sex: row.sex !== false,
+    roleId: row.roleId || '', isVip: row.isVip || 0, vipExpireTime: row.vipExpireTime || '', sex: row.sex !== false,
     status: row.status || 0, descript: row.descript || '', avatar: row.avatar || ''
   })
   editVisible.value = true
@@ -453,7 +468,7 @@ const closeEdit = () => { editClosing.value = true; setTimeout(() => { editVisib
 
 const onAvatarChange = async (e) => {
   const file = e.target.files?.[0]; if (!file) return
-  try { const r = await uploadFile(file, { category: 'image' }); editForm.avatar = r.url } catch (err) { ElMessage.error(err.message || t('上传失败')) }
+  try { const r = await uploadFile(file, { category: 'image' }); editForm.avatar = r.url } catch {}
 }
 
 const md5 = (str) => { let h = 0; for (let i = 0; i < str.length; i++) { h = ((h << 5) - h + str.charCodeAt(i)) | 0 } return Math.abs(h).toString(16).padStart(8, '0') }
@@ -472,7 +487,7 @@ const onSave = async () => {
       await addUser(d); ElMessage.success(t('用户创建成功'))
     }
     closeEdit(); fetchData()
-  } catch (e) { console.error('保存用户失败'); ElMessage.error(e.message || t('保存失败')) } finally { saving.value = false }
+  } catch (e) { console.error('保存用户失败') } finally { saving.value = false }
 }
 
 const resetPwdVisible = ref(false)
@@ -487,7 +502,7 @@ const confirmResetPwd = async () => {
     await resetPassword(resetPwdUser.value.id, activeTab.value === 'admin' ? 1 : 0)
     ElMessage.success(t('密码重置成功'))
     resetPwdVisible.value = false
-  } catch (e) { ElMessage.error(e.message || t('重置失败')) } finally { resetPwdLoading.value = false }
+  } catch {} finally { resetPwdLoading.value = false }
 }
 
 const deleteVisible = ref(false)
@@ -503,7 +518,7 @@ const confirmDelete = async () => {
     ElMessage.success(t('用户删除成功'))
     deleteVisible.value = false
     fetchData()
-  } catch (e) { ElMessage.error(e.message || t('删除失败')) } finally { deleteLoading.value = false }
+  } catch {} finally { deleteLoading.value = false }
 }
 </script>
 

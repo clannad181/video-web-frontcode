@@ -89,7 +89,6 @@ export default {
   '删除确认': 'Delete Confirmation',
   '删除成功': 'Deleted successfully',
   '封面上传成功': 'Cover uploaded successfully',
-  '上传失败': 'Upload failed',
   '播放器未就绪': 'Player is not ready',
   '截取超时': 'Capture timed out',
   '截图失败': 'Screenshot failed',
@@ -101,6 +100,5 @@ export default {
   '更新成功': 'Updated successfully',
   '视频已暂存': 'Video saved as draft',
   '视频保存成功': 'Video saved successfully',
-  '保存失败': 'Save failed',
   '剧集保存成功': 'Episodes saved successfully'
 }

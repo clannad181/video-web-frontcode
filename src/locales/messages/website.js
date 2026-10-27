@@ -89,7 +89,6 @@ export default {
   '已保存到本地浏览器': 'Saved to local browser',
   '设置保存成功': 'Settings saved successfully',
   '密码修改成功': 'Password changed successfully',
-  '密码修改失败': 'Password change failed',
   '网站设置': 'Website',
   '安全设置': 'Security Settings',
   '令牌安全': 'Token',
@@ -121,5 +120,19 @@ export default {
   '示例文本内容': 'Sample Text',
   '外观设置已保存': 'Appearance settings saved',
   '启用': 'Enabled',
-  '禁用': 'Disabled'
+  '禁用': 'Disabled',
+  '大会员定价': 'VIP Pricing',
+  '配置大会员开通与续期价格': 'Configure VIP membership activation and renewal pricing',
+  '大会员月单价': 'VIP Monthly Price',
+  '未匹配套餐时按此单价×月数计算': 'Fallback pricing: unit price × months when no plan matches',
+  '元/月': 'CNY / month',
+  '价格套餐': 'Pricing Plans',
+  '新增套餐': 'Add Plan',
+  '套餐名称': 'Plan Name',
+  '现价': 'Price',
+  '暂无套餐，点击新增套餐按钮创建': 'No plans yet, click "Add Plan" to create one',
+  '前台按月数下单时优先匹配同月数套餐价，未匹配则按月单价×月数计算': 'Orders match a plan with the same month count first; otherwise unit price × months is used',
+  '套餐月数必须为 1~120 的整数': 'Plan months must be an integer between 1 and 120',
+  '套餐月数重复，请修改后再保存': 'Duplicate plan months, please fix before saving',
+  '套餐现价必须大于0': 'Plan price must be greater than 0'
 }

@@ -464,9 +464,7 @@ async function sendCode() {
       countdown.value--
       if (countdown.value <= 0) clearInterval(timer)
     }, 1000)
-  } catch (e) {
-    ElMessage.error(t('发送验证码失败'))
-  } finally {
+  } catch {} finally {
     sendingCode.value = false
   }
 }
