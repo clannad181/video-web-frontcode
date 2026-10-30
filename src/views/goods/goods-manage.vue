@@ -73,7 +73,7 @@
             <tr v-for="(row, idx) in records" :key="row.id" class="table-row">
               <td class="col-index">{{ (query.page - 1) * query.size + idx + 1 }}</td>
               <td>
-                <img v-if="row.cover" class="goods-cover" :src="row.cover" />
+                <img v-if="row.cover" class="goods-cover" :src="resUrl(row.cover)" />
                 <div v-else class="goods-cover goods-cover-ph">{{ $t('暂无数据') }}</div>
               </td>
               <td class="name-cell">{{ row.name }}</td>
@@ -166,7 +166,7 @@
                 <div class="img-uploader">
                   <div class="cover-upload" @click="$refs.coverInput.click()">
                     <input ref="coverInput" type="file" accept="image/*" style="display:none" @change="onCoverChange" />
-                    <img v-if="editForm.cover" :src="editForm.cover" class="cover-preview" />
+                    <img v-if="editForm.cover" :src="resUrl(editForm.cover)" class="cover-preview" />
                     <div v-else class="cover-ph">
                       <span>{{ coverUploading ? '...' : $t('上传主图') }}</span>
                     </div>
@@ -178,7 +178,7 @@
                 <label class="fl">{{ $t('商品详情图') }}</label>
                 <div class="img-list">
                   <div v-for="(img, i) in editForm.images" :key="img + i" class="img-thumb">
-                    <img :src="img" />
+                    <img :src="resUrl(img)" />
                     <span class="img-remove" @click="editForm.images.splice(i, 1)">&times;</span>
                   </div>
                   <div class="img-add" @click="$refs.imagesInput.click()">
@@ -258,7 +258,7 @@
                 <div class="detail-item detail-full">
                   <span class="dk">{{ $t('商品主图') }}</span>
                   <span class="dv">
-                    <img v-if="detail.cover" class="detail-img" :src="detail.cover" />
+                    <img v-if="detail.cover" class="detail-img" :src="resUrl(detail.cover)" />
                     <template v-else>-</template>
                   </span>
                 </div>
@@ -267,7 +267,7 @@
                   <span class="dv">
                     <div v-if="detail.images && detail.images.length" class="img-list">
                       <div v-for="(img, i) in detail.images" :key="img + i" class="img-thumb readonly">
-                        <img :src="img" />
+                        <img :src="resUrl(img)" />
                       </div>
                     </div>
                     <template v-else>-</template>
@@ -291,6 +291,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { getGoodsList, getGoodsDetail, addGoods, updateGoods, deleteGoods } from '@/api/goods'
 import { getEnabledDictData } from '@/api/dict'
 import { uploadFile } from '@/utils/upload'
+import { resUrl } from '@/utils/resUrl'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

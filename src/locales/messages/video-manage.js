@@ -70,6 +70,7 @@ export default {
   '暂无剧集，点击上方添加': 'No episodes yet, click above to add',
   '删除剧集': 'Delete episode',
   '剧集标题': 'Episode Title',
+  '需要大会员': 'Requires VIP',
   '点击或拖拽视频到此处': 'Click or drag a video here',
   '支持大文件自动分片上传': 'Large files are uploaded in chunks automatically',
   '取消': 'Cancel',

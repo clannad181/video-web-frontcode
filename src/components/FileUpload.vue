@@ -76,6 +76,7 @@ import { ElMessage } from 'element-plus'
 import { Upload, Document, Close } from '@element-plus/icons-vue'
 import { uploadFile, probeVideoDuration } from '@/utils/upload'
 import { formatFileSize } from '@/utils/format'
+import { resUrl } from '@/utils/resUrl'
 
 const { t } = useI18n()
 
@@ -128,7 +129,7 @@ const displayValue = computed(() => {
 
 // 预览 URL
 const previewSrc = computed(() => {
-  return displayValue.value?.url || displayValue.value || ''
+  return resUrl(displayValue.value?.url || displayValue.value || '')
 })
 
 // 文件名

@@ -71,7 +71,7 @@
               <td class="col-index">{{ (query.page - 1) * query.size + idx + 1 }}</td>
               <td>
                 <div class="user-cell">
-                  <img v-if="row.avatar && !avatarErr.has(row.userUid)" class="user-avatar" :src="row.avatar" @error="onAvatarErr(row.userUid)" />
+                  <img v-if="row.avatar && !avatarErr.has(row.userUid)" class="user-avatar" :src="resUrl(row.avatar)" @error="onAvatarErr(row.userUid)" />
                   <div v-else class="user-avatar avatar-fb">{{ (row.userName || '?')[0].toUpperCase() }}</div>
                   <span class="user-uid">UID {{ row.userUid }}</span>
                 </div>
@@ -307,6 +307,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getVipList, getVipDetail, openVip, renewVip, deleteVip } from '@/api/vip'
 import { useI18n } from 'vue-i18n'
+import { resUrl } from '@/utils/resUrl'
 
 const { t } = useI18n()
 

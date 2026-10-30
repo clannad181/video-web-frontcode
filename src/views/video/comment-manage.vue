@@ -88,7 +88,7 @@
               <td>
                 <div class="user-cell">
                   <div class="user-avatar" v-if="row.avatar">
-                    <img :src="fileBaseUrl + row.avatar" alt="" />
+                    <img :src="resUrl(row.avatar)" alt="" />
                   </div>
                   <div class="user-avatar user-avatar-placeholder" v-else>
                     {{ (row.nickName || row.username || 'A')[0].toUpperCase() }}
@@ -160,7 +160,7 @@
               <!-- 视频信息卡片 -->
               <div v-if="detailData.rootComment" class="detail-video-card" @click="openVideoDetail(detailData.rootComment)">
                 <div class="video-cover-wrap">
-                  <img v-if="detailData.rootComment.videoCover" :src="detailData.rootComment.videoCover" class="detail-video-cover" />
+                  <img v-if="detailData.rootComment.videoCover" :src="resUrl(detailData.rootComment.videoCover)" class="detail-video-cover" />
                   <div v-else class="detail-video-cover detail-video-cover-empty">
                     <span class="cover-play-icon">▶</span>
                   </div>
@@ -179,7 +179,6 @@
                   :comment="detailData.rootComment"
                   :target-id="detailData.targetId"
                   :depth="0"
-                  :file-base-url="fileBaseUrl"
                   :status-class="statusClass"
                   :status-text="statusText"
                 />
@@ -213,7 +212,7 @@
                 <h2 class="video-detail-title">{{ videoInfo.title }}</h2>
                 <div class="video-author">
                   <div class="author-avatar" v-if="videoInfo.avatarUrl">
-                    <img :src="fileBaseUrl + videoInfo.avatarUrl" alt="" />
+                    <img :src="resUrl(videoInfo.avatarUrl)" alt="" />
                   </div>
                   <div class="author-avatar author-avatar-placeholder" v-else>
                     {{ (videoInfo.nickName || 'U')[0].toUpperCase() }}
@@ -244,12 +243,11 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCommentList, getCommentDetail, batchDeleteComments, toggleCommentStatus, getVideoDetail } from '@/api/comment'
 import { getEnabledDictData } from '@/api/dict'
-import { OSS_BASE_URL } from '@/config'
+import { resUrl } from '@/utils/resUrl'
 
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
-const fileBaseUrl = OSS_BASE_URL
 
 const loading = ref(false)
 const records = ref([])
@@ -258,7 +256,7 @@ const selectedIds = ref([])
 const statusOpen = ref(false)
 
 function getVideoCover(row) {
-  return row.coverUrl || row.videoCover || row.cover || ''
+  return resUrl(row.coverUrl || row.videoCover || row.cover)
 }
 
 const query = reactive({
@@ -453,9 +451,9 @@ async function openVideoDetail(row) {
     const episodes = data.episodes || []
     if (episodes.length > 0) {
       episodes.sort((a, b) => (a.sortOrder ?? a.id) - (b.sortOrder ?? b.id))
-      videoUrl.value = episodes[0].playUrl
+      videoUrl.value = resUrl(episodes[0].playUrl)
     } else {
-      videoUrl.value = data.videoUrl || ''
+      videoUrl.value = resUrl(data.videoUrl)
     }
     showDetailModal.value = false
     showVideoModal.value = true
@@ -834,6 +832,7 @@ html.dark-mode {
 <script>
 import { defineComponent, h } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { resUrl } from '@/utils/resUrl'
 
 export default { name: 'CommentManage' }
 
@@ -843,7 +842,6 @@ export const CommentNode = defineComponent({
     comment: Object,
     targetId: [Number, String],
     depth: { type: Number, default: 0 },
-    fileBaseUrl: String,
     statusClass: Function,
     statusText: Function
   },
@@ -856,7 +854,7 @@ export const CommentNode = defineComponent({
       const replies = c.replies || []
 
       const avatarNode = c.avatar
-        ? h('div', { class: 'comment-node-avatar' }, [h('img', { src: c.avatar, alt: '' })])
+        ? h('div', { class: 'comment-node-avatar' }, [h('img', { src: resUrl(c.avatar), alt: '' })])
         : h('div', { class: 'comment-node-avatar comment-node-avatar-placeholder' }, (c.nickName || 'A')[0].toUpperCase())
 
       const headerNodes = [h('span', { class: 'comment-node-name' }, c.nickName || t('匿名用户'))]
@@ -893,7 +891,6 @@ export const CommentNode = defineComponent({
             comment: reply,
             targetId: props.targetId,
             depth: props.depth + 1,
-            fileBaseUrl: props.fileBaseUrl,
             statusClass: props.statusClass,
             statusText: props.statusText,
             key: reply.id

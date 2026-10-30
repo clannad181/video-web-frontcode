@@ -132,16 +132,16 @@
         <div class="locate-player">
           <DPlayer
             v-if="locateData.videoUrl"
-            :src="locateData.videoUrl"
+            :src="resUrl(locateData.videoUrl)"
             :title="locateData.title"
-            :poster="locateData.videoCover"
+            :poster="resUrl(locateData.videoCover)"
             :currentTime="locateData.timePoint"
             :height="'100%'"
           />
           <div v-else class="player-wrap">
             <img
               v-if="locateData.videoCover"
-              :src="locateData.videoCover"
+              :src="resUrl(locateData.videoCover)"
               class="player-cover"
               alt=""
             />
@@ -188,6 +188,7 @@ import { Search, Refresh, WarningFilled, VideoPlay, Clock } from '@element-plus/
 import { formatDuration } from '@/utils/format'
 import { getDanmakuList, deleteDanmaku } from '@/api/danmaku'
 import DPlayer from '@/components/DPlayer.vue'
+import { resUrl } from '@/utils/resUrl'
 
 const { t } = useI18n()
 

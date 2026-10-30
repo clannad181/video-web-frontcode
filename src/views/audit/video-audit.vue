@@ -28,7 +28,7 @@
             @click="selectVideo(item)"
           >
             <div class="card-cover">
-              <img v-if="item.cover" :src="item.cover" alt="" />
+              <img v-if="item.cover" :src="resUrl(item.cover)" alt="" />
               <div v-else class="card-cover-placeholder">
                 <el-icon :size="24"><VideoPlay /></el-icon>
               </div>
@@ -72,15 +72,15 @@
           <div class="preview-player">
             <DPlayer
               v-if="selectedVideo.videoUrl"
-              :src="selectedVideo.videoUrl"
+              :src="resUrl(selectedVideo.videoUrl)"
               :title="selectedVideo.title"
-              :poster="selectedVideo.cover"
+              :poster="resUrl(selectedVideo.cover)"
               :height="'100%'"
             />
             <div v-else class="player-wrap">
               <img
                 v-if="selectedVideo.cover"
-                :src="selectedVideo.cover"
+                :src="resUrl(selectedVideo.cover)"
                 class="player-cover"
                 alt=""
               />
@@ -188,6 +188,7 @@ import { getVideoList } from '@/api/video'
 import { auditItem, rejectItem, getAuditStats } from '@/api/audit'
 import DPlayer from '@/components/DPlayer.vue'
 import { useI18n } from 'vue-i18n'
+import { resUrl } from '@/utils/resUrl'
 
 const { t } = useI18n()
 

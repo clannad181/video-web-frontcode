@@ -92,14 +92,14 @@
                 <td>{{ (videoPagination.page - 1) * videoPagination.size + idx + 1 }}</td>
                 <td>
                   <div class="cover-thumb-wrap">
-                    <img v-if="row.coverUrl" :src="row.coverUrl" class="cover-thumb" />
+                    <img v-if="row.coverUrl" :src="resUrl(row.coverUrl)" class="cover-thumb" />
                     <div v-else class="cover-empty"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
                   </div>
                 </td>
                 <td class="col-title"><span class="title-text">{{ row.title }}</span></td>
                 <td>
                   <div class="user-cell">
-                    <img v-if="row.avatarUrl" :src="row.avatarUrl" class="user-avatar" />
+                    <img v-if="row.avatarUrl" :src="resUrl(row.avatarUrl)" class="user-avatar" />
                     <div v-else class="user-avatar avatar-fb">{{ (row.nickName || '?')[0].toUpperCase() }}</div>
                     <span class="user-name">{{ row.nickName || $t('匿名用户') }}</span>
                   </div>
@@ -192,7 +192,7 @@
                 <td>{{ (commentPagination.page - 1) * commentPagination.size + idx + 1 }}</td>
                 <td>
                   <div class="user-cell">
-                    <img v-if="row.avatarUrl || row.avatar" :src="row.avatarUrl || row.avatar" class="user-avatar" />
+                    <img v-if="row.avatarUrl || row.avatar" :src="resUrl(row.avatarUrl || row.avatar)" class="user-avatar" />
                     <div v-else class="user-avatar avatar-fb">{{ (row.nickName || '?')[0].toUpperCase() }}</div>
                     <span class="user-name">{{ row.nickName || $t('匿名用户') }}</span>
                   </div>
@@ -200,7 +200,7 @@
                 <td class="col-title"><span class="title-text">{{ row.content }}</span></td>
                 <td>
                   <div class="user-cell">
-                    <div v-if="row.videoCover" class="cover-thumb-mini"><img :src="row.videoCover" /></div>
+                    <div v-if="row.videoCover" class="cover-thumb-mini"><img :src="resUrl(row.videoCover)" /></div>
                     <span class="user-name">{{ row.videoTitle || '-' }}</span>
                   </div>
                 </td>
@@ -248,7 +248,7 @@
               <div class="episode-layout">
                 <div class="episode-player-area">
                   <div v-if="currentEpisode" class="player-box">
-                    <DPlayer :src="currentEpisode.playUrl" :poster="currentEpisode.coverUrl || currentEpisode.cover || ''" @ended="onPlayerEnded" />
+                    <DPlayer :src="resUrl(currentEpisode.playUrl)" :poster="resUrl(currentEpisode.coverUrl || currentEpisode.cover)" @ended="onPlayerEnded" />
                   </div>
                   <div v-else class="player-empty">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -309,6 +309,7 @@ import {
 } from '@/api/review'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { resUrl } from '@/utils/resUrl'
 
 const { t } = useI18n()
 

@@ -170,7 +170,7 @@
         <!-- 用户头像 -->
         <el-avatar :size="36" class="user-avatar">
           <template v-if="userStore.userInfo?.avater || userStore.userInfo?.avatar">
-            <img :src="fileBaseUrl + (userStore.userInfo.avater || userStore.userInfo.avatar)" alt="avatar" />
+            <img :src="resUrl(userStore.userInfo.avater || userStore.userInfo.avatar)" alt="avatar" />
           </template>
           <template v-else>
             {{ userStore.userInfo?.nikeName?.[0] || userStore.user?.name?.[0] || 'A' }}
@@ -225,7 +225,7 @@ import { constantRoutes } from '@/router'
 import { getVideoReviewStats, getCommentStatusStats } from '@/api/review'
 import { SwitchButton, Fold, Expand, ArrowDown, Document } from '@element-plus/icons-vue'
 import * as ElementPlusIcons from '@element-plus/icons-vue'
-import { OSS_BASE_URL } from '@/config'
+import { resUrl } from '@/utils/resUrl'
 
 // 路由和状态管理
 const route = useRoute()
@@ -234,9 +234,6 @@ const appStore = useAppStore()
 const userStore = useUserStore()
 const scrollbarRef = ref(null)
 const menuRefreshKey = ref(0)
-
-// 文件基础URL
-const fileBaseUrl = OSS_BASE_URL
 
 // 主题色（从CSS变量获取）
 const primaryColor = computed(() => {

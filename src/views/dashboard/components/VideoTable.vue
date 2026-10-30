@@ -32,7 +32,7 @@
           <tr v-for="row in list" :key="row.id" class="table-row">
             <td>
               <div class="cell-video">
-                <div class="video-thumb" :style="{ backgroundImage: `url(${fileBaseUrl}${row.coverUrl})` }" />
+                <div class="video-thumb" :style="{ backgroundImage: `url(${resUrl(row.coverUrl)})` }" />
                 <div class="video-info">
                   <div class="video-title">{{ row.title }}</div>
                   <div class="video-id">AVID: {{ row.avid }}</div>
@@ -43,7 +43,7 @@
               <div class="cell-user">
                 <img
                   v-if="row.avatarUrl"
-                  :src="fileBaseUrl + row.avatarUrl"
+                  :src="resUrl(row.avatarUrl)"
                   class="user-avatar-img"
                   @error="e => e.target.style.display='none'"
                 />
@@ -90,11 +90,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { OSS_BASE_URL } from '@/config'
+import { resUrl } from '@/utils/resUrl'
 
 const { t, locale } = useI18n()
-
-const fileBaseUrl = OSS_BASE_URL
 
 const props = defineProps({
   data: { type: Array, default: () => [] },

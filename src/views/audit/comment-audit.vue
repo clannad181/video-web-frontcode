@@ -55,8 +55,8 @@
             <div class="user-cell">
               <div class="user-avatar">
                 <img
-                  v-if="row.avatar"
-                  :src="row.avatar"
+                v-if="row.avatar"
+                :src="resUrl(row.avatar)"
                   alt=""
                 />
                 <span v-else class="avatar-placeholder">{{ row.username?.charAt(0)?.toUpperCase() }}</span>
@@ -210,7 +210,7 @@
             <div class="detail-avatar">
               <img
                 v-if="detailTarget.avatar"
-                :src="detailTarget.avatar"
+                :src="resUrl(detailTarget.avatar)"
                 alt=""
               />
               <span v-else class="avatar-placeholder large">
@@ -255,6 +255,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { CircleCheckFilled, CircleCloseFilled, Pointer, ChatDotRound } from '@element-plus/icons-vue'
 import { getCommentList, auditComment, getCommentDetail } from '@/api/comment'
+import { resUrl } from '@/utils/resUrl'
 
 const { t } = useI18n()
 

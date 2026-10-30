@@ -347,7 +347,7 @@ import { useUserStore } from '@/stores/user'
 import { logout as logoutApi, getUserInfo as getUserInfoApi, sendEmailCode } from '@/api/auth'
 import { globalSearch } from '@/api/search'
 import { clearAuth, setUserInfo } from '@/utils/auth'
-import { OSS_BASE_URL } from '@/config'
+import { resUrl } from '@/utils/resUrl'
 
 const { t } = useI18n()
 
@@ -356,7 +356,7 @@ const router = useRouter()
 const route = useRoute()
 const appStore = useAppStore()
 const userStore = useUserStore()
-const fileBaseUrl = OSS_BASE_URL
+
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -399,11 +399,6 @@ const commentStatusText = (s) => COMMENT_STATUS_TEXT[s] || '未知' // i18n-key
 const videoStatusClass = (s) => ({ 0: 'muted', 1: 'warn', 2: 'ok', 3: 'bad' }[s] || 'muted')
 const commentStatusClass = (s) => ({ 0: 'ok', 1: 'muted', 2: 'bad', 3: 'warn' }[s] || 'muted')
 
-// 资源地址：绝对地址原样返回，相对路径拼接文件服务前缀
-const resUrl = (u) => {
-  if (!u) return ''
-  return /^https?:\/\//i.test(u) ? u : fileBaseUrl + u
-}
 const fmtCount = (n) => Number(n || 0).toLocaleString('en-US')
 
 /** 防抖 300ms 调用全局搜索，带序号防串号 */
@@ -529,7 +524,7 @@ const fontOptions = ['默认', '微软雅黑', '宋体', '黑体', '楷体', '�
 // 计算属性：头像URL
 const avatarUrl = computed(() => {
   const av = userStore.userInfo?.avatar || userStore.userInfo?.avater
-  return av ? fileBaseUrl + av : ''
+  return resUrl(av)
 })
 
 // 计算属性：用户首字母（用于头像占位符）

@@ -98,7 +98,7 @@
             <tr v-for="(row, idx) in list" :key="row.id" v-loading="loading">
               <td>{{ (pagination.page - 1) * pagination.size + idx + 1 }}</td>
               <td>
-                <img v-if="row.avatar" :src="row.avatar" class="user-avatar" />
+                <img v-if="row.avatar" :src="resUrl(row.avatar)" class="user-avatar" />
                 <div v-else class="user-avatar avatar-fb">{{ (row.userName || '?')[0].toUpperCase() }}</div>
               </td>
               <td>{{ row.userName }}</td>
@@ -230,7 +230,7 @@
                   <div class="avatar-editor">
                     <div class="cover-upload" @click="$refs.avatarInput.click()">
                       <input ref="avatarInput" type="file" accept="image/*" style="display:none" @change="onAvatarChange" />
-                      <img v-if="editForm.avatar" :src="editForm.avatar" class="cover-preview" />
+                      <img v-if="editForm.avatar" :src="resUrl(editForm.avatar)" class="cover-preview" />
                       <div v-else class="cover-ph">
                         <el-icon :size="28"><Plus /></el-icon>
                         <span>{{ $t('上传头像') }}</span>
@@ -326,9 +326,12 @@ import { Plus, WarningFilled } from '@element-plus/icons-vue'
 import { getUserList, addUser, updateUser, deleteUser, resetPassword, getRoleList } from '@/api/user'
 import { getEnabledDictData } from '@/api/dict'
 import { uploadFile } from '@/api/file'
+import { resUrl } from '@/utils/resUrl'
 import { useI18n } from 'vue-i18n'
+import { useUserStore } from '@/stores/user'
 
 const { t } = useI18n()
+const userStore = useUserStore()
 
 const loading = ref(false)
 const statusOpen = ref(false)
@@ -370,10 +373,8 @@ const onPageSizeChange = () => { pagination.value.page = 1; fetchData() }
 
 const roleOptions = ref([])
 const statusOptions = ref([])
-const currentUser = ref(null)
 
 onMounted(() => {
-  try { currentUser.value = JSON.parse(localStorage.getItem('user')) } catch { }
   fetchRoles()
   fetchStatusOptions()
   if (route.query.userName) {
@@ -417,10 +418,39 @@ const fetchStatusOptions = async () => {
   }
 }
 
+/**
+ * 当前登录管理员的角色等级
+ * 优先取 Pinia 中的用户信息，其次回退到 localStorage 缓存。
+ * 等级越小权限越高（1 = 超级管理员）。
+ */
+const currentLevel = computed(() => {
+  const info = userStore.userInfo || {}
+  const basic = userStore.user || {}
+  const candidates = [info.roleLevel, basic.roleLevel, info.level, basic.level]
+  const hit = candidates.find(v => v !== undefined && v !== null && v !== '')
+  if (hit !== undefined) return Number(hit)
+  try {
+    const cached = JSON.parse(localStorage.getItem('user') || 'null')
+    if (cached && cached.roleLevel !== undefined && cached.roleLevel !== null) {
+      return Number(cached.roleLevel)
+    }
+  } catch { }
+  return null
+})
+
+/**
+ * 操作列按钮显隐：只能操作同级或更低权限的账号。
+ * 任意一侧等级缺失时不做限制，避免按钮整体消失。
+ */
 const canOperate = (row) => {
   if (activeTab.value === 'user') return true
-  if (!currentUser.value) return false
-  return (row.level || 0) >= (currentUser.value.roleLevel || 0)
+  const myLevel = currentLevel.value
+  if (myLevel === null || Number.isNaN(myLevel)) return true
+  const target = row?.level ?? row?.roleLevel
+  if (target === undefined || target === null || target === '') return true
+  const targetLevel = Number(target)
+  if (Number.isNaN(targetLevel)) return true
+  return targetLevel >= myLevel
 }
 
 const fetchData = async () => {

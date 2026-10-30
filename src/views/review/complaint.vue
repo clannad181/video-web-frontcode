@@ -375,11 +375,9 @@ import { formatDuration } from '@/utils/format'
 import { ElMessage } from 'element-plus'
 import { getEnabledDictData, getDictTypeList } from '@/api/dict'
 import { useI18n } from 'vue-i18n'
-import { OSS_BASE_URL } from '@/config'
+import { resUrl } from '@/utils/resUrl'
 
 const { t } = useI18n()
-
-const fileBaseUrl = OSS_BASE_URL
 
 // 举报类型来自两个字典：report_type_equity（合法权益）、report_type_rule（社区规则）
 const REPORT_TYPE_CODES = ['report_type_equity', 'report_type_rule']
@@ -451,11 +449,7 @@ function makePages(cur, total) {
 }
 const visiblePages = computed(() => makePages(pagination.page, totalPages.value))
 
-function coverUrl(u) {
-  if (!u) return ''
-  if (/^(https?:)?\/\//i.test(u) || u.startsWith('data:')) return u
-  return fileBaseUrl + (u.startsWith('/') ? u : '/' + u)
-}
+const coverUrl = resUrl
 
 function typeLabel(v) { return reportTypeLabelMap.value[String(v)] || '其他' } // i18n-key
 function statusLabel(s) { return STATUS_MAP[s] ?? '待处理' } // i18n-key
@@ -537,7 +531,7 @@ const previewTracks = ref([])
 const trackIdx = ref(0)
 
 const currentTrack = computed(() => previewTracks.value[trackIdx.value] || null)
-const currentSrc = computed(() => currentTrack.value?.src || '')
+const currentSrc = computed(() => resUrl(currentTrack.value?.src))
 const previewPoster = computed(() => coverUrl(currentTrack.value?.poster) || coverUrl(previewRow.value?.videoCover) || '')
 
 function buildTracks(data) {

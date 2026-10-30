@@ -124,7 +124,7 @@
               <td class="col-index">{{ (pagination.page - 1) * pagination.pageSize + index + 1 }}</td>
               <td class="col-id mono">{{ row.avid || '-' }}</td>
               <td class="col-cover">
-                <img v-if="row.cover" :src="row.cover" class="cover-thumb" @click="previewCover(row.cover)" />
+                <img v-if="row.cover" :src="resUrl(row.cover)" class="cover-thumb" @click="previewCover(row.cover)" />
                 <div v-else class="cover-empty"><el-icon :size="16">
                     <VideoPlay />
                   </el-icon></div>
@@ -136,7 +136,7 @@
               </td>
               <td class="col-user">
                 <div class="user-cell">
-                  <img v-if="row.avatar" :src="row.avatar" class="user-avatar" />
+                  <img v-if="row.avatar" :src="resUrl(row.avatar)" class="user-avatar" />
                   <div v-else class="user-avatar avatar-fb">{{ (row.username || '?')[0].toUpperCase() }}</div>
                   <span class="user-name">{{ row.username }}</span>
                 </div>
@@ -202,7 +202,7 @@
                 <div class="detail-left">
                   <div class="player-box">
                     <DPlayer v-if="currentPlayUrl" :src="currentPlayUrl" :title="detailData.title"
-                      :poster="detailData.cover" height="100%" />
+                      :poster="resUrl(detailData.cover)" height="100%" />
                     <div v-else class="player-empty"><el-icon :size="48" color="#555">
                         <VideoPlay />
                       </el-icon>
@@ -229,7 +229,7 @@
                     <span class="badge" :class="epReviewBadgeCls(curEpData?.reviewStatus)">{{ $t(epReviewLbl(curEpData?.reviewStatus)) }}</span>
                   </div>
                   <div class="detail-user">
-                    <img v-if="detailData.avatar" :src="detailData.avatar" class="user-avatar" />
+                    <img v-if="detailData.avatar" :src="resUrl(detailData.avatar)" class="user-avatar" />
                     <div v-else class="user-avatar avatar-fb">{{ (detailData.username || '?')[0].toUpperCase() }}</div>
                     <div>
                       <div class="user-name">{{ detailData.username }}</div>
@@ -258,7 +258,7 @@
                   <div class="info-item full"><span class="il">{{ $t('创建时间') }}</span><span class="iv">{{ detailData.createTime
                       }}</span></div>
                   <div class="detail-cover" v-if="detailData.coverUrl || detailData.cover" @click="previewCover(detailData.coverUrl || detailData.cover)">
-                    <img :src="detailData.coverUrl || detailData.cover" />
+                    <img :src="resUrl(detailData.coverUrl || detailData.cover)" />
                   </div>
                 </div>
               </div>
@@ -302,7 +302,7 @@
                     <div class="cover-row">
                       <div class="cover-upload" @click="$refs.coverInput.click()">
                         <input ref="coverInput" type="file" accept="image/*" style="display:none" @change="onCoverChange" />
-                        <img v-if="editForm.coverUrl" :src="editForm.coverUrl" class="cover-preview"
+                        <img v-if="editForm.coverUrl" :src="resUrl(editForm.coverUrl)" class="cover-preview"
                           @click.stop="coverPreviewVisible = true" />
                         <button v-if="editForm.coverUrl" class="cover-rm-x" @click.stop="editForm.coverUrl = ''">❌</button>
                         <div v-else class="cover-ph">
@@ -352,6 +352,10 @@
                       <button class="ep-rm" @click="editForm.episodes.splice(ep._origIdx, 1)" :title="$t('删除剧集')">&times;</button>
                     </div>
                     <input v-model="editForm.episodes[ep._origIdx].title" class="fi" :placeholder="$t('剧集标题')" />
+                    <label class="ep-vip-toggle">
+                      <input type="checkbox" v-model="editForm.episodes[ep._origIdx].needVip" />
+                      <span>{{ $t('需要大会员') }}</span>
+                    </label>
                     <div v-if="!ep.playUrl" class="ep-dropzone"
                       :class="{ 'dragover': ep._dragover }"
                       @dragover.prevent="ep._dragover = true"
@@ -367,7 +371,7 @@
                       </div>
                     </div>
                     <div v-if="ep.playUrl" class="ep-preview">
-                      <video :src="ep.playUrl" controls preload="metadata" class="ep-video"></video>
+                      <video :src="resUrl(ep.playUrl)" controls preload="metadata" class="ep-video"></video>
                       <button class="ep-video-rm" @click="editForm.episodes[ep._origIdx].playUrl=''; editForm.episodes[ep._origIdx].fileName=''; editForm.episodes[ep._origIdx].duration=0">❌</button>
                     </div>
                     <div v-if="ep.fileName" class="ep-file-info">
@@ -414,9 +418,13 @@
                   <div class="ep-card-top"><span class="ep-num">{{ $t('第 {n} 集', { n: ep.episodeNumber || episodeList.length - i })
                       }}</span><button class="ep-rm" @click="episodeList.splice(i, 1)">&times;</button></div>
                   <input v-model="ep.title" class="fi" :placeholder="$t('剧集标题')" />
+                  <label class="ep-vip-toggle">
+                    <input type="checkbox" v-model="ep.needVip" />
+                    <span>{{ $t('需要大会员') }}</span>
+                  </label>
                   <div v-if="ep.playUrl" class="ep-preview">
-                    <video :src="ep.playUrl" controls preload="metadata" class="ep-video"></video>
-                    <button class="ep-video-rm" @click="ep.playUrl=''; ep.fileName=''; ep.duration=0">❌</button>
+                  <video :src="resUrl(ep.playUrl)" controls preload="metadata" class="ep-video"></video>
+                  <button class="ep-video-rm" @click="ep.playUrl=''; ep.fileName=''; ep.duration=0">❌</button>
                   </div>
                   <div v-else class="ep-dropzone"
                     :class="{ 'dragover': ep._dragover }"
@@ -509,6 +517,7 @@ import { getVideoList, getVideoDetail, createVideo, updateVideo, deleteVideo, sa
 import { getCategoryList } from '@/api/category'
 import { getEnabledDictData } from '@/api/dict'
 import { uploadFile } from '@/utils/upload'
+import { resUrl } from '@/utils/resUrl'
 import DPlayer from '@/components/DPlayer.vue'
 
 const route = useRoute()
@@ -611,8 +620,8 @@ const detailActiveEp = ref(0)
 const currentPlayUrl = computed(() => {
   if (!detailData.value) return ''
   const eps = detailData.value.episodes
-  if (eps?.length) return eps[detailActiveEp.value]?.playUrl || eps[detailActiveEp.value]?.url || detailData.value.videoUrl || ''
-  return detailData.value.videoUrl || ''
+  if (eps?.length) return resUrl(eps[detailActiveEp.value]?.playUrl || eps[detailActiveEp.value]?.url || detailData.value.videoUrl)
+  return resUrl(detailData.value.videoUrl)
 })
 const curEpData = computed(() => detailData.value?.episodes?.[detailActiveEp.value] || null)
 
@@ -657,7 +666,7 @@ const openEdit = async (row) => {
       title: d.title, categoryId: d.categoryId, coverUrl: d.coverUrl || '',
       description: d.description || '', isOngoing: d.serialStatus || 0,
       tags: d.tags || [],
-      episodes: (d.episodes || []).map(e => ({ id: e.id, episodeNumber: e.episodeNumber, title: e.title, duration: e.duration, playUrl: e.playUrl || '', fileName: '', _dragover: false }))
+      episodes: (d.episodes || []).map(e => ({ id: e.id, episodeNumber: e.episodeNumber, title: e.title, duration: e.duration, playUrl: e.playUrl || '', needVip: !!e.needVip, fileName: '', _dragover: false }))
     })
   } catch (e) { console.error(e) }
   editVisible.value = true
@@ -671,7 +680,7 @@ const addTag = () => {
 }
 let epIdCounter = 0
 const addEditEpisode = () => {
-  editForm.episodes.push({ _epId: ++epIdCounter, title: '', duration: 0, playUrl: '', fileName: '', _dragover: false })
+  editForm.episodes.push({ _epId: ++epIdCounter, title: '', duration: 0, playUrl: '', needVip: false, fileName: '', _dragover: false })
 }
 const reversedEpisodes = computed(() => {
   return editForm.episodes.map((ep, i) => ({ ...ep, _origIdx: i, _num: i + 1, _key: `${ep._epId}` })).reverse()
@@ -693,7 +702,7 @@ const capturing = ref(false)
 const onExtractEpChange = () => {
   extractCurrent.value = 0; extractDuration.value = 0
   const ep = editForm.episodes[extractEpIndex.value]
-  extractVideoSrc.value = ep?.playUrl || ''
+  extractVideoSrc.value = resUrl(ep?.playUrl)
 }
 const onExtractLoaded = () => {
   const dplayer = extractDPlayerRef.value
@@ -790,6 +799,7 @@ const onSave = async (videoStatus) => {
       title: e.title || undefined,
       duration: e.duration || undefined,
       playUrl: e.playUrl || undefined,
+      needVip: !!e.needVip,
       sort: i
     }))
   }
@@ -813,13 +823,13 @@ const openEpisode = async (row) => {
     episodeVideo.value = { ...row, serialStatus: d.isOngoing ? 1 : 0, title: d.title || row.title }
     episodeList.value = (d.episodes || [])
       .sort((a, b) => (b.episodeNumber || b.sort || 0) - (a.episodeNumber || a.sort || 0))
-      .map(e => ({ id: e.id, episodeNumber: e.episodeNumber, title: e.title, duration: e.duration, playUrl: e.playUrl || '', fileName: '', _dragover: false }))
+      .map(e => ({ id: e.id, episodeNumber: e.episodeNumber, title: e.title, duration: e.duration, playUrl: e.playUrl || '', needVip: !!e.needVip, fileName: '', _dragover: false }))
   } catch (e) { episodeList.value = [] }
   episodeVisible.value = true
 }
 const addEpManage = () => {
   const max = episodeList.value.reduce((m, e) => Math.max(m, e.episodeNumber || 0), 0)
-  episodeList.value.unshift({ episodeNumber: max + 1, title: '', duration: 0, playUrl: '', fileName: '', _dragover: false })
+  episodeList.value.unshift({ episodeNumber: max + 1, title: '', duration: 0, playUrl: '', needVip: false, fileName: '', _dragover: false })
 }
 const onEmFileChange = async (e, i) => {
   const file = e.target.files?.[0]; if (!file) return
@@ -835,7 +845,7 @@ const onSaveEpisodes = async () => {
   try {
     await saveEpisodes({
       videoId: episodeVideo.value.id,
-      episodes: episodeList.value.map((e, i) => ({ id: e.id, episodeNumber: e.episodeNumber, title: e.title, duration: e.duration, playUrl: e.playUrl, sort: i }))
+      episodes: episodeList.value.map((e, i) => ({ id: e.id, episodeNumber: e.episodeNumber, title: e.title, duration: e.duration, playUrl: e.playUrl, needVip: !!e.needVip, sort: i }))
     })
     ElMessage.success(t('剧集保存成功')); episodeVisible.value = false; window.dispatchEvent(new Event('review-updated')); fetchData()
   } catch {}
@@ -843,7 +853,7 @@ const onSaveEpisodes = async () => {
 
 const coverPreviewVisible = ref(false)
 const coverPreviewUrl = ref('')
-const previewCover = (url) => { if (url) { coverPreviewUrl.value = url; coverPreviewVisible.value = true } }
+const previewCover = (url) => { if (url) { coverPreviewUrl.value = resUrl(url); coverPreviewVisible.value = true } }
 
 const titleTip = reactive({ visible: false, text: '', x: 0, y: 0 })
 let titleTipTimer = null
@@ -2351,6 +2361,27 @@ onActivated(() => {
   margin-left: auto;
   color: var(--color-primary, #fb7299);
   font-weight: 500;
+}
+
+.ep-vip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #909399);
+  cursor: pointer;
+  user-select: none;
+  align-self: flex-start;
+
+  input[type='checkbox'] {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: var(--color-primary, #fb7299);
+    cursor: pointer;
+  }
+
+  &:hover { color: var(--color-primary, #fb7299); }
 }
 
 .ep-preview {
