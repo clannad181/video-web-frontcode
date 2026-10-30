@@ -2,7 +2,6 @@
 
 一个基于 **Vue 3 + Vite + Element Plus** 构建的现代化视频平台后台管理系统。覆盖视频内容、剧集、用户、评论、审核、分类、权限、日志与系统设置等完整运营场景，内置深浅色主题、中英文国际化、全局搜索与大数据量文件上传能力。
 
-> 界面预览截图由 `scripts/capture-screenshots.mjs` 自动生成，可直接运行脚本重新出图。
 
 ---
 
@@ -274,30 +273,6 @@ video-administer-new/
 
 ---
 
-## 重新生成截图
-
-截图脚本会自动：
-
-1. 拉起（或复用）Vite 开发服务器；
-2. 使用本机 **Microsoft Edge** 无头模式打开页面；
-3. 拦截后端接口并返回内置演示数据，无需真实后端；
-4. 将各页面截图输出到 `docs/screenshots/`。
-
-```bash
-node scripts/capture-screenshots.mjs
-```
-
-自定义参数：
-
-```bash
-# 指定浏览器路径
-EDGE_PATH="C:\Program Files\Google\Chrome\Application\chrome.exe" node scripts/capture-screenshots.mjs
-
-# 指定开发服务器端口
-SHOT_PORT=5180 node scripts/capture-screenshots.mjs
-
-# 只重拍指定页面（逗号分隔，不会清空其它截图）
-SHOT_ONLY="dashboard,user-manage" node scripts/capture-screenshots.mjs
 ```
 
 > 说明：脚本默认使用 Microsoft Edge 无头模式；若浏览器安装在非默认路径，请通过 `EDGE_PATH` 指定。调试模式可加 `SHOT_DEBUG=1` 输出请求失败与控制台错误。
