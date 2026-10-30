@@ -27,18 +27,18 @@
 
 账号 / 邮箱双模式登录，支持图形验证码与邮箱验证码。
 
-![登录页](docs/screenshots/login.png)
+![登录页](./docs/screenshots/login.png)
 
 ### 工作台
 
 今日新增、待审核概览、视频增量趋势与最近动态一屏掌握。
 
-![工作台](docs/screenshots/dashboard.png)
+![工作台](./docs/screenshots/dashboard.png)
 
 <details>
 <summary>🌙 深色模式效果</summary>
 
-![工作台 · 深色模式](docs/screenshots/dashboard-dark.png)
+![工作台 · 深色模式](./docs/screenshots/dashboard-dark.png)
 
 </details>
 
@@ -46,75 +46,75 @@
 
 播放量、活跃用户、内容分布、实时访客与分类增量多维可视化。
 
-![数据分析](docs/screenshots/analytics.png)
+![数据分析](./docs/screenshots/analytics.png)
 
 ### 视频管理
 
 视频检索、排序、详情预览、新增 / 编辑、封面上传与截帧、剧集管理、大文件分片上传。
 
-![视频管理](docs/screenshots/video-manage.png)
+![视频管理](./docs/screenshots/video-manage.png)
 
 ### 人员管理
 
 「管理人员 / 用户」双 Tab 切换，支持用户名、昵称、邮箱、状态、角色筛选与账号操作。
 
-![人员管理](docs/screenshots/user-manage.png)
+![人员管理](./docs/screenshots/user-manage.png)
 
 ### 评论管理
 
 评论检索、视频关联、点赞 / 回复统计、批量删除与屏蔽操作。
 
-![评论管理](docs/screenshots/comment-manage.png)
+![评论管理](./docs/screenshots/comment-manage.png)
 
 ### 内容审核
 
 稿件审核与评论审核双面板，支持通过 / 驳回与详情查看。
 
-![内容审核](docs/screenshots/review.png)
+![内容审核](./docs/screenshots/review.png)
 
 ### 分类管理
 
 分类排序、展示状态、系统内置标识与启用状态管理。
 
-![分类管理](docs/screenshots/category-manage.png)
+![分类管理](./docs/screenshots/category-manage.png)
 
 ### 角色管理
 
 角色权限配置、菜单绑定、层级与状态管理。
 
-![角色管理](docs/screenshots/role-manage.png)
+![角色管理](./docs/screenshots/role-manage.png)
 
 ### 菜单管理
 
 树形菜单维护，支持图标、标识符、排序与显隐控制。
 
-![菜单管理](docs/screenshots/menu-manage.png)
+![菜单管理](./docs/screenshots/menu-manage.png)
 
 ### 系统信息
 
 JVM、CPU、内存、线程与磁盘运行状态实时监控。
 
-![系统信息](docs/screenshots/system-info.png)
+![系统信息](./docs/screenshots/system-info.png)
 
 ### 系统日志
 
 登录日志、运行日志与日志统计，便于安全审计与问题排查。
 
-![登录日志](docs/screenshots/login-log.png)
+![登录日志](./docs/screenshots/login-log.png)
 
-![运行日志](docs/screenshots/operation-log.png)
+![运行日志](./docs/screenshots/operation-log.png)
 
 ### 系统设置
 
 网站信息、主题外观、安全策略、Token 有效期、审核开关、通知与会员定价统一配置。
 
-![系统设置](docs/screenshots/settings.png)
+![系统设置](./docs/screenshots/settings.png)
 
 ### 个人中心
 
 个人资料、头像与密码修改。
 
-![个人中心](docs/screenshots/profile.png)
+![个人中心](./docs/screenshots/profile.png)
 
 ---
 
