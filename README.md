@@ -5,6 +5,11 @@
 
 ---
 
+## 其他代码说明
+前台代码： front分支
+后台代码： admin分支
+后端代码： https://github.com/clannad181/video-web
+
 ## 目录
 
 - [界面预览](#界面预览)
