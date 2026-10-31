@@ -79,6 +79,7 @@
                   class="bili-video-card__cover"
                   loading="lazy"
                 />
+                <span v-if="video.needVip" class="vip-corner-badge">大会员</span>
                 <div class="bili-video-card__mask">
                   <div class="bili-video-card__stats">
                     <div class="bili-video-card__stats--left">
@@ -610,6 +611,22 @@ watch(() => route.query.q, (val) => {
   height: 42px;
   padding: 18px 10px 8px;
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85));
+}
+
+.vip-corner-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  padding: 2px 7px;
+  background: linear-gradient(135deg, var(--brand_pink) 0%, #ff8cb0 100%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
 }
 
 .bili-video-card__stats {
