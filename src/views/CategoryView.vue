@@ -594,6 +594,27 @@ watch(() => route.params.id, () => {
   .video-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  /* 频道 chips 改为可横向滚动，避免横向溢出 */
+  .channel-chips {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .channel-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .channel-link,
+  .more-btn {
+    flex: 0 0 auto;
+    width: auto;
+    height: auto;
+  }
 }
 
 @media (max-width: 480px) {

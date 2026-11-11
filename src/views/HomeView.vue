@@ -813,5 +813,28 @@ onUnmounted(() => {
   .channel-bar { padding: 0 16px; }
   .feed-card { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .bili-carousel-cell { grid-column: span 2; grid-row: span 2; }
+
+  /* 频道 chips 改为可横向滚动，避免纵向两行布局横向溢出 */
+  .channel-chips,
+  .channel-chips--more {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .channel-chips::-webkit-scrollbar,
+  .channel-chips--more::-webkit-scrollbar {
+    display: none;
+  }
+
+  .channel-link,
+  .more-btn {
+    flex: 0 0 auto;
+    width: auto;
+    height: auto;
+  }
 }
 </style>

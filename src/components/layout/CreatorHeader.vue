@@ -384,4 +384,44 @@ const handleLogout = async () => {
   opacity: 0;
   transform: translateY(-8px);
 }
+
+/* ===== 移动端适配 ===== */
+@media (max-width: 768px) {
+  .creator-header__bar {
+    padding: 0 12px;
+    height: 52px;
+  }
+
+  .left-section {
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .logo-text {
+    display: none;
+  }
+
+  .divider {
+    display: none;
+  }
+
+  .creator-label {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .nav-link {
+    padding: 6px 10px;
+    white-space: nowrap;
+  }
+
+  .right-section {
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .days-badge {
+    display: none;
+  }
+}
 </style>

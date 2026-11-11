@@ -1777,13 +1777,81 @@ onUnmounted(() => {
     display: none;
   }
 
+  .bili-header__bar {
+    padding: 0 12px;
+  }
+
+  .left-entry {
+    margin-right: 4px;
+  }
+
+  .entry-title {
+    margin-right: 4px;
+  }
+
   .center-search-container {
     max-width: none;
-    margin: 0 12px;
+    min-width: 0;
+    margin: 0 8px;
+  }
+
+  .nav-search-input {
+    min-width: 0;
+    padding: 0 10px;
   }
 
   .register-btn {
     display: none;
+  }
+
+  /* 右侧功能区：图标化，压缩占位 */
+  .mini-header-right {
+    margin-left: 4px;
+  }
+
+  .header-action,
+  .favorite-wrapper,
+  .message-wrapper,
+  .history-wrapper {
+    min-width: 36px;
+    margin-right: 0;
+  }
+
+  .header-action-text {
+    display: none;
+  }
+
+  .user-menu {
+    margin-left: 4px;
+  }
+
+  .upload-btn {
+    width: 40px;
+    margin-left: 6px;
+  }
+
+  .upload-text {
+    display: none;
+  }
+
+  .upload-btn .upload-icon {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .entry-title span {
+    display: none;
+  }
+
+  /* 收藏/历史收进头像下拉菜单，避免顶栏拥挤 */
+  .favorite-wrapper,
+  .history-wrapper {
+    display: none;
+  }
+
+  .center-search-container {
+    margin: 0 6px;
   }
 }
 

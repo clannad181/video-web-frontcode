@@ -134,7 +134,7 @@
                 <span class="check"></span>
                 记住我
               </label>
-              <a href="#">忘记密码？</a>
+              <a href="javascript:;" @click="forgotPassword">忘记密码？</a>
             </div>
 
             <!-- 按钮 -->
@@ -222,6 +222,10 @@ const particleStyles = Array.from({ length: 20 }, () => ({
 
 const handleSocialLogin = (type) => {
   ElMessage.info(`${type}登录功能开发中，敬请期待`)
+}
+
+const forgotPassword = () => {
+  ElMessage.info('忘记密码功能开发中，敬请期待')
 }
 
 const refreshCaptcha = async () => {

@@ -2462,11 +2462,21 @@ watch(currentEpisodeIndex, async (newIdx) => {
   .page-container {
     padding: 12px 16px 24px;
   }
-  
+
   .video-title {
     font-size: 18px;
   }
-  
+
+  /* 操作按钮行允许换行，避免横向溢出 */
+  .video-actions {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .action-btn {
+    padding: 6px 8px;
+  }
+
   .related-cover {
     width: 140px;
     height: 88px;
