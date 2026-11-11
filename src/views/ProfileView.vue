@@ -135,7 +135,9 @@
     </van-tabs>
 
     <div class="logout-zone">
-      <van-button block plain size="small" color="#FF6699" round @click="handleLogout">退出登录</van-button>
+      <div class="logout-card">
+        <van-button block plain size="small" color="#FF6699" round @click="handleLogout">退出登录</van-button>
+      </div>
     </div>
 
     <!-- 编辑资料 -->
@@ -675,7 +677,18 @@ onMounted(async () => {
 }
 
 .logout-zone {
-  padding: 8px 16px 24px;
+  /* 与 tab 内容拉开距离，明确它是整页页脚而非某个 tab 的一部分 */
+  margin-top: 20px;
+  padding: 16px 14px calc(28px + var(--sab));
+  background: var(--bg3);
+  border-top: 1px solid var(--line_light);
+}
+
+.logout-card {
+  padding: 14px;
+  background: var(--bg1);
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .edit-body {
