@@ -24,17 +24,18 @@
           @click="playItem(item)"
         >
           <div class="history-cover">
-            <img :src="fileUrl(item.coverUrl)" :alt="item.title" loading="lazy" />
+            <img :src="fileUrl(item.videoCover || item.coverUrl)" :alt="item.videoTitle || item.title" loading="lazy" />
             <span v-if="item.needVip" class="vip-badge history-vip">大会员</span>
             <span class="history-progress" v-if="item.watchProgress">
               {{ Math.min(100, Math.round(item.watchProgress * 100)) }}%
             </span>
+            <span class="history-progress" v-else-if="item.watchedTime">{{ item.watchedTime }}</span>
           </div>
           <div class="history-info">
-            <div class="history-title">{{ item.title }}</div>
+            <div class="history-title">{{ item.videoTitle || item.title }}</div>
             <div class="history-meta">{{ item.episodeTitle || item.nickName }}</div>
             <div class="history-actions">
-              <span class="history-time">{{ formatDate(item.updateTime || item.createTime) }}</span>
+              <span class="history-time">{{ formatDate(item.watchTime || item.updateTime || item.createTime) }}</span>
               <button class="history-delete" @click.stop="removeItem(item)">
                 <van-icon name="delete-o" size="15" />
               </button>
@@ -136,10 +137,10 @@ const playItem = (item) => {
 const removeItem = async (item) => {
   try {
     await showConfirmDialog({ title: '删除记录', message: '确定删除这条观看记录吗？' })
-    await deleteWatchHistory({
-      videoId: item.videoAvid || item.videoUid,
-      episodeId: item.episodeAvid || item.episodeUid
-    })
+    const params = { videoUid: item.videoAvid || item.videoUid || item.videoId }
+    const episodeUid = item.episodeAvid || item.episodeUid
+    if (episodeUid) params.episodeUid = episodeUid
+    await deleteWatchHistory(params)
     showToast('已删除')
     handleSearch()
   } catch {}

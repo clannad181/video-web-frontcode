@@ -55,6 +55,22 @@ const mkUsers = (n, tag) => Array.from({ length: n }, (_, i) => ({
   avatarUrl: `https://picsum.photos/seed/${encodeURIComponent(tag)}${i}/80/80`
 }))
 
+// 观看历史接口的真实字段（videoTitle / videoCover / watchTime / watchedTime）
+const mkHistory = (n, tag) => Array.from({ length: n }, (_, i) => ({
+  videoAvid: `av-${tag}-${i}`,
+  videoTitle: `历史视频 ${i + 1}：这是一段用于版式验收的较长视频标题`,
+  videoCover: `https://picsum.photos/seed/h${tag.replace(/-/g, '')}${i}/320/200`,
+  nickName: '移动端用户',
+  avatarUrl: '',
+  episodeAvid: `ep-${tag}-${i}`,
+  episodeTitle: '第1集',
+  episodeNumber: 1,
+  watchedSeconds: 60 + i * 37,
+  watchedTime: `${12 + i}:${String(35 + i).padStart(2, '0')}`,
+  playLink: `/client/video/av-${tag}-${i}/episode/ep-${tag}-${i}`,
+  watchTime: `${tag} 10:0${i}:00`
+}))
+
 // 收藏接口的真实字段（videoTitle / videoCover / duration / episodeAvid）
 const mkFavVideos = (n, tag) => Array.from({ length: n }, (_, i) => ({
   episodeAvid: `ep-${tag}-${i}`,
@@ -128,6 +144,21 @@ page.on('request', (req) => {
       data = { list: { records: mkFavVideos(n, body.folderUid || 'fav'), total: n } }
     } else if (url.includes('/client/favorite/search')) {
       data = { records: mkFavVideos(3, '搜索'), total: 3 }
+    } else if (url.includes('/client/watch-history/search')) {
+      data = {
+        records: [
+          { month: '2026-11', days: [
+            { date: '2026-11-11', items: mkHistory(3, '2026-11-11') },
+            { date: '2026-11-10', items: mkHistory(2, '2026-11-10') }
+          ] },
+          { month: '2026-10', days: [
+            { date: '2026-10-30', items: mkHistory(4, '2026-10-30') }
+          ] }
+        ],
+        total: 2,
+        size: 10,
+        current: 1
+      }
     } else if (url.includes('/client/video/list')) {
       data = { records: mkVideos(8, 'cat'), total: 8 }
     } else if (/\/client\/video\/[^/]+\/episode\/[^/]+/.test(url)) {
@@ -185,8 +216,11 @@ await waitImages()
 await page.screenshot({ path: OUT, fullPage: !CLICKS.length })
 const probe = await page.evaluate(() => ({
   app: (document.getElementById('app')?.innerHTML || '').slice(0, 200),
-  text: (document.body.innerText || '').slice(0, 200),
+  text: (document.body.innerText || '').slice(0, 400),
   card: !!document.querySelector('.profile-card'),
+  imgs: (() => { const a = [...document.images]; return `loaded=${a.filter((i) => i.complete && i.naturalWidth > 0).length}/${a.length}` })(),
+  imgStates: [...document.images].slice(0, 3).map((i) => ({ src: (i.getAttribute('src') || '').slice(0, 80), complete: i.complete, nw: i.naturalWidth })),
+  title0: document.querySelector('.history-title')?.textContent || 'none',
   header: !!document.querySelector('.mobile-header, header'),
   scroll: `${document.documentElement.scrollHeight}/${document.documentElement.clientHeight}`,
   mc: (() => {
@@ -197,4 +231,5 @@ const probe = await page.evaluate(() => ({
   kids: [...document.querySelectorAll('#app > *')].map(e => `${e.tagName}.${(e.className || '').toString().split(' ').slice(0, 2).join('.')}:${Math.round(e.getBoundingClientRect().height)}`)
 }))
 console.log('url=', page.url(), JSON.stringify(probe), 'errors=', errors.join(' ; ') || 'none')
+fs.writeFileSync('probe-latest.json', JSON.stringify(probe, null, 2))
 await browser.close()
