@@ -9,7 +9,7 @@
       </router-link>
     </div>
 
-    <van-tabs v-model:active="activeMenu" color="#FF6699" shrink sticky :offset-top="48">
+    <van-tabs v-model:active="activeMenu" color="#FF6699" shrink sticky :offset-top="54">
       <van-tab title="稿件管理" name="contributions">
         <ContributionList @edit="startEdit" @go-submit="activeMenu = 'submit'" />
       </van-tab>
@@ -74,7 +74,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  height: calc(48px + var(--sat));
+  height: calc(var(--header-h) + var(--sat));
   padding: var(--sat) 14px 0;
   background: var(--bg1);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);

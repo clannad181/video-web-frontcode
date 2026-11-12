@@ -1,8 +1,22 @@
 import puppeteer from 'puppeteer-core'
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
+import path from 'node:path'
 
-const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+function pickBrowser() {
+  if (process.env.BROWSER_PATH && fs.existsSync(process.env.BROWSER_PATH)) return process.env.BROWSER_PATH
+  const pwRoot = path.join(process.env.LOCALAPPDATA || '', 'ms-playwright')
+  if (fs.existsSync(pwRoot)) {
+    for (const d of fs.readdirSync(pwRoot).filter(x => x.startsWith('chromium'))) {
+      for (const sub of ['chrome-win64', 'chrome-win']) {
+        const p = path.join(pwRoot, d, sub, 'chrome.exe')
+        if (fs.existsSync(p)) return p
+      }
+    }
+  }
+  return 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+}
+const EDGE = pickBrowser()
 const BASE = 'http://localhost:5175'
 const OUT = 'D:/ai/ai_coding/video-adminster/vue-front-mobile/docs/mobile-audit'
 fs.mkdirSync(OUT, { recursive: true })

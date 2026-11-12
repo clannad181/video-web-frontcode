@@ -400,7 +400,7 @@ const formatTime = (dateStr) => {
   display: flex;
   align-items: center;
   gap: 12px;
-  height: calc(48px + var(--sat));
+  height: calc(var(--header-h) + var(--sat));
   padding: var(--sat) 14px 0;
   background: var(--bg1);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);

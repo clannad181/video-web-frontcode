@@ -139,12 +139,12 @@ onUnmounted(() => {
 .home-page {
   min-height: 100vh;
   background: var(--bg3);
-  padding-top: calc(48px + var(--sat));
+  padding-top: calc(var(--header-h) + var(--sat));
 }
 
 .channel-bar {
   position: sticky;
-  top: calc(48px + var(--sat));
+  top: calc(var(--header-h) + var(--sat));
   z-index: 20;
   background: var(--bg1);
   border-bottom: 1px solid var(--line_light);

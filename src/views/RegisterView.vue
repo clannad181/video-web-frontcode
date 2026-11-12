@@ -163,7 +163,7 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: calc(48px + var(--sat)) 0 28px;
+  padding: calc(var(--header-h) + var(--sat)) 0 28px;
   color: #fff;
 }
 

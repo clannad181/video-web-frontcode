@@ -2,6 +2,9 @@
   <div class="play-page">
     <!-- 播放器区 -->
     <div class="player-box">
+      <button class="play-back" type="button" aria-label="返回" @click="goBack">
+        <van-icon name="arrow-left" size="18" />
+      </button>
       <video
         v-if="currentPlayUrl && !vipLockVisible"
         ref="videoRef"
@@ -666,6 +669,15 @@ const goUp = () => {
   if (video.value?.uid) router.push(`/up/${video.value.uid}`)
 }
 
+const goBack = () => {
+  // 有上一个页面记录才返回，否则回首页（避免新标签直接打开时退回空白页）
+  if (window.history.state?.back) {
+    router.back()
+  } else {
+    router.push('/')
+  }
+}
+
 const goRelated = (rv) => {
   let path = ''
   if (rv.playLink) {
@@ -749,6 +761,28 @@ watch(currentEpisodeIndex, (newIdx) => {
   width: 100%;
   aspect-ratio: 16 / 9;
   background: #000;
+}
+
+.play-back {
+  position: absolute;
+  top: calc(var(--sat) + 8px);
+  left: 10px;
+  z-index: 31;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  cursor: pointer;
+}
+
+.play-back:active {
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .player-video {

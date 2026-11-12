@@ -1,144 +1,137 @@
 <template>
   <div class="profile-page">
-    <!-- 用户头部 -->
-    <div class="profile-hero">
-      <div class="profile-hero-bg"></div>
+    <!-- 头部白卡：用户信息 + 数据 + 快捷入口 -->
+    <div class="profile-card">
       <div class="profile-user">
-        <div class="profile-avatar" @click="openEditProfile">
+        <div class="profile-avatar">
           <img v-if="avatarUrl" :src="avatarUrl" alt="" />
           <van-icon v-else name="user-circle-o" size="54" />
           <span v-if="user?.isVip" class="profile-vip-tag">大会员</span>
         </div>
         <div class="profile-meta">
           <div class="profile-name">{{ user?.nikeName || user?.nickname || '未登录' }}</div>
-          <div class="profile-sign" @click="openEditProfile">{{ user?.descript || '这个人很懒，什么都没留下' }}</div>
+          <div class="profile-sign">{{ user?.descript || '这个人很懒，什么都没留下' }}</div>
         </div>
-        <van-button
-          size="small"
-          round
-          plain
-          color="#FFFFFF"
-          class="edit-btn"
-          @click="openEditProfile"
-        >编辑</van-button>
       </div>
 
       <div class="profile-stats">
-        <div class="stat" @click="switchTab('follow')">
+        <div class="stat" @click="openSheet('follow')">
           <strong>{{ formatCount(followTotal) }}</strong>
           <span>关注</span>
         </div>
-        <div class="stat" @click="switchTab('fans')">
+        <div class="stat" @click="openSheet('fans')">
           <strong>{{ formatCount(fansTotal) }}</strong>
           <span>粉丝</span>
         </div>
-        <div class="stat" @click="openVip">
+        <div class="stat stat-vip" @click="openVip">
           <strong>{{ user?.isVip ? '已开通' : '未开通' }}</strong>
           <span>大会员</span>
         </div>
       </div>
+
+      <div class="card-sep"></div>
+
+      <div class="quick-row">
+        <div class="quick-item" @click="router.push('/history')">
+          <span class="quick-icon"><van-icon name="clock-o" size="20" /></span>
+          <span>历史</span>
+        </div>
+        <div class="quick-item" @click="router.push('/messages')">
+          <span class="quick-icon"><van-icon name="bell" size="20" /></span>
+          <span>消息</span>
+        </div>
+        <div class="quick-item" @click="router.push('/contribution')">
+          <span class="quick-icon"><van-icon name="add-square" size="20" /></span>
+          <span>投稿</span>
+        </div>
+        <div class="quick-item" @click="router.push('/favorites')">
+          <span class="quick-icon"><van-icon name="star-o" size="20" /></span>
+          <span>收藏</span>
+        </div>
+      </div>
     </div>
 
-    <!-- 快捷入口 -->
-    <div class="quick-grid">
-      <div class="quick-item" @click="router.push('/history')">
-        <van-icon name="clock-o" size="22" />
-        <span>历史</span>
+    <!-- 设置功能菜单 -->
+    <div class="settings-card">
+      <div class="set-item" @click="openEditProfile">
+        <span class="set-icon" style="background: #ffeef4; color: #ff6699">
+          <van-icon name="edit" size="18" />
+        </span>
+        <span class="set-label">个性设置</span>
+        <van-icon name="arrow" class="set-arrow" />
       </div>
-      <div class="quick-item" @click="router.push('/messages')">
-        <van-icon name="bell" size="22" />
-        <span>消息</span>
+      <div class="set-item" @click="clearCache">
+        <span class="set-icon" style="background: #e8f7ff; color: #00aeec">
+          <van-icon name="delete-o" size="18" />
+        </span>
+        <span class="set-label">清除缓存</span>
+        <van-icon name="arrow" class="set-arrow" />
       </div>
-      <div class="quick-item" @click="router.push('/contribution')">
-        <van-icon name="add-square" size="22" />
-        <span>投稿</span>
+      <div class="set-item" @click="showToast('帮助与反馈功能开发中')">
+        <span class="set-icon" style="background: #fff4e8; color: #ff976a">
+          <van-icon name="chat-o" size="18" />
+        </span>
+        <span class="set-label">帮助与反馈</span>
+        <van-icon name="arrow" class="set-arrow" />
       </div>
-      <div class="quick-item" @click="openVip">
-        <van-icon name="diamond" size="22" />
-        <span>大会员</span>
+      <div class="set-item" @click="showAbout">
+        <span class="set-icon" style="background: #e6faf8; color: #00b8a9">
+          <van-icon name="info-o" size="18" />
+        </span>
+        <span class="set-label">关于 VideoHub</span>
+        <van-icon name="arrow" class="set-arrow" />
       </div>
-    </div>
-
-    <!-- Tab 切换 -->
-    <van-tabs v-model:active="activeTab" color="#FF6699" shrink sticky :offset-top="offsetTop" @change="switchTab">
-      <van-tab title="投稿" name="submit">
-        <van-loading v-if="loadingSubmit" class="page-loading" color="#FF6699">加载中…</van-loading>
-        <div v-else-if="submitVideos.length" class="video-grid">
-          <div v-for="v in submitVideos" :key="v.id" class="mine-card" @click="goMineVideo(v)">
-            <div class="mine-cover">
-              <img :src="fileUrl(v.coverUrl)" :alt="v.title" />
-              <span v-if="v.needVip" class="vip-badge mine-vip">大会员</span>
-            </div>
-            <div class="mine-info">
-              <div class="mine-title">{{ v.title }}</div>
-              <div class="mine-meta">{{ formatCount(v.playCount || 0) }}播放</div>
-            </div>
-            <van-icon name="ellipsis" class="mine-more" @click.stop="openMenu(v)" />
-          </div>
-          <van-button
-            size="small"
-            plain
-            type="primary"
-            color="#FF6699"
-            class="manage-btn"
-            @click="router.push('/contribution')"
-          >去创作中心管理</van-button>
-        </div>
-        <van-empty v-else description="还没有投稿">
-          <van-button round type="primary" color="#FF6699" size="small" @click="router.push('/contribution')">去投稿</van-button>
-        </van-empty>
-      </van-tab>
-
-      <van-tab title="收藏" name="favorites">
-        <van-loading v-if="loadingFavorites" class="page-loading" color="#FF6699">加载中…</van-loading>
-        <div v-else-if="favoriteVideos.length" class="video-grid">
-          <VideoCard v-for="v in favoriteVideos" :key="v.id" :video="v" />
-        </div>
-        <van-empty v-else description="还没有收藏" />
-      </van-tab>
-
-      <van-tab title="关注" name="follow">
-        <van-loading v-if="loadingFollowList" class="page-loading" color="#FF6699">加载中…</van-loading>
-        <div v-else-if="followList.length" class="up-list">
-          <div v-for="up in followList" :key="up.uid" class="up-item" @click="goUp(up)">
-            <img class="up-avatar" :src="fileUrl(up.avatarUrl || up.avatar)" alt="" />
-            <div class="up-info">
-              <div class="up-name">{{ up.nickName || up.nickname }}</div>
-              <div class="up-sign">{{ up.descript || '这个人很懒，什么都没留下' }}</div>
-            </div>
-            <van-button
-              size="mini"
-              round
-              plain
-              type="primary"
-              color="#FF6699"
-              @click.stop="unfollow(up)"
-            >已关注</van-button>
-          </div>
-        </div>
-        <van-empty v-else description="还没有关注任何人" />
-      </van-tab>
-
-      <van-tab title="粉丝" name="fans">
-        <van-loading v-if="loadingFansList" class="page-loading" color="#FF6699">加载中…</van-loading>
-        <div v-else-if="fansList.length" class="up-list">
-          <div v-for="up in fansList" :key="up.uid" class="up-item" @click="goUp(up)">
-            <img class="up-avatar" :src="fileUrl(up.avatarUrl || up.avatar)" alt="" />
-            <div class="up-info">
-              <div class="up-name">{{ up.nickName || up.nickname }}</div>
-              <div class="up-sign">{{ up.descript || '这个人很懒，什么都没留下' }}</div>
-            </div>
-          </div>
-        </div>
-        <van-empty v-else description="还没有粉丝" />
-      </van-tab>
-    </van-tabs>
-
-    <div class="logout-zone">
-      <div class="logout-card">
-        <van-button block plain size="small" color="#FF6699" round @click="handleLogout">退出登录</van-button>
+      <div class="set-item set-item--danger" @click="handleLogout">
+        <span class="set-icon" style="background: #ffecec; color: #ff4d4f">
+          <van-icon name="sign" size="18" />
+        </span>
+        <span class="set-label">退出登录</span>
+        <van-icon name="arrow" class="set-arrow" />
       </div>
     </div>
+
+    <!-- 关注 / 粉丝 弹层 -->
+    <van-popup
+      v-model:show="sheet.show"
+      position="bottom"
+      round
+      class="sheet-popup"
+      :style="{ height: '68%' }"
+    >
+      <div class="sheet-head">
+        <span class="sheet-title">{{ sheet.title }}</span>
+        <van-icon name="cross" size="18" color="#9499A0" @click="sheet.show = false" />
+      </div>
+
+      <div class="sheet-body hide-scrollbar">
+        <van-loading
+          v-if="sheet.type === 'follow' ? loadingFollowList : loadingFansList"
+          class="page-loading"
+          color="#FF6699"
+        >加载中…</van-loading>
+        <template v-else>
+          <div v-if="sheetUsers.length" class="up-list">
+            <div v-for="up in sheetUsers" :key="up.uid" class="up-item" @click="goUp(up)">
+              <img class="up-avatar" :src="fileUrl(up.avatarUrl || up.avatar)" alt="" />
+              <div class="up-info">
+                <div class="up-name">{{ up.nickName || up.nickname }}</div>
+                <div class="up-sign">{{ up.descript || '这个人很懒，什么都没留下' }}</div>
+              </div>
+              <van-button
+                v-if="sheet.type === 'follow'"
+                size="mini"
+                round
+                plain
+                type="primary"
+                color="#FF6699"
+                @click.stop="unfollow(up)"
+              >已关注</van-button>
+            </div>
+          </div>
+          <van-empty v-else :description="sheet.type === 'follow' ? '还没有关注任何人' : '还没有粉丝'" />
+        </template>
+      </div>
+    </van-popup>
 
     <!-- 编辑资料 -->
     <van-action-sheet v-model:show="showEditProfile" title="编辑资料" cancel-text="取消">
@@ -164,53 +157,35 @@
         >保存</van-button>
       </div>
     </van-action-sheet>
-
-    <!-- 投稿操作菜单 -->
-    <van-action-sheet
-      v-model:show="showMenu"
-      :actions="menuActions"
-      cancel-text="取消"
-      @select="onMenuSelect"
-    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { showToast, showConfirmDialog } from 'vant'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { showToast, showConfirmDialog, showDialog } from 'vant'
 import { useAuthStore } from '../stores/auth'
 import { getClientUserInfo } from '../api/auth'
 import { fileUrl } from '../config'
 import {
-  getFavoriteFolderList, getFavoriteFolderDetail,
-  getMyContributions, getFollowList, searchFans,
-  unfollowUser, updateUserProfile, deleteMyContribution
+  getFollowList, searchFans,
+  unfollowUser, updateUserProfile
 } from '../api/video'
 import { uploadFile } from '../utils/fileUpload'
 import { formatCount } from '../utils/format'
-import { handleVideoClick, handleUserClick } from '../utils/video'
-import VideoCard from '../components/video/VideoCard.vue'
+import { handleUserClick } from '../utils/video'
 
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
 
 const user = computed(() => authStore.user)
 const avatarUrl = computed(() => fileUrl(user.value?.avatar || user.value?.avatarUrl || ''))
 
-const activeTab = ref('submit')
-const offsetTop = computed(() => 48)
-
-const submitVideos = ref([])
-const favoriteVideos = ref([])
 const followList = ref([])
 const fansList = ref([])
 const followTotal = ref(0)
 const fansTotal = ref(0)
 
-const loadingSubmit = ref(false)
-const loadingFavorites = ref(false)
 const loadingFollowList = ref(false)
 const loadingFansList = ref(false)
 
@@ -220,13 +195,17 @@ const editAvatar = ref('')
 const editSaving = ref(false)
 const avatarInput = ref(null)
 
-const showMenu = ref(false)
-const menuTarget = ref(null)
-const menuActions = [
-  { name: '编辑稿件', value: 'edit' },
-  { name: '管理选集', value: 'episodes' },
-  { name: '删除', value: 'delete', color: '#ee0a24' }
-]
+/* 关注 / 粉丝 弹层 */
+const sheet = reactive({ show: false, type: 'follow', title: '' })
+const sheetUsers = computed(() => (sheet.type === 'fans' ? fansList.value : followList.value))
+
+const openSheet = (type) => {
+  sheet.type = type
+  sheet.title = type === 'follow' ? '我的关注' : '我的粉丝'
+  if (type === 'follow' && !followList.value.length) loadFollows()
+  if (type === 'fans' && !fansList.value.length) loadFans()
+  sheet.show = true
+}
 
 const openVip = () => {
   window.dispatchEvent(new CustomEvent('open-vip-dialog'))
@@ -239,38 +218,6 @@ const loadUserInfo = async () => {
     localStorage.setItem('frontUser', JSON.stringify(res))
   } catch (e) {
     console.error('获取用户信息失败:', e)
-  }
-}
-
-const loadSubmissions = async () => {
-  loadingSubmit.value = true
-  try {
-    const res = await getMyContributions({ page: 1, size: 50 })
-    submitVideos.value = res?.records || []
-  } catch (e) {
-    console.error('获取投稿失败:', e)
-    submitVideos.value = []
-  } finally {
-    loadingSubmit.value = false
-  }
-}
-
-const loadFavorites = async () => {
-  loadingFavorites.value = true
-  try {
-    const folders = await getFavoriteFolderList()
-    const list = Array.isArray(folders) ? folders : []
-    if (list.length) {
-      const detail = await getFavoriteFolderDetail({ favoriteFolderUid: list[0].uid || list[0].favoriteFolderUid, page: 1, size: 20 })
-      favoriteVideos.value = detail?.records || detail?.list || []
-    } else {
-      favoriteVideos.value = []
-    }
-  } catch (e) {
-    console.error('获取收藏失败:', e)
-    favoriteVideos.value = []
-  } finally {
-    loadingFavorites.value = false
   }
 }
 
@@ -302,13 +249,6 @@ const loadFans = async () => {
   }
 }
 
-const switchTab = (name) => {
-  if (name === 'submit' && !submitVideos.value.length) loadSubmissions()
-  if (name === 'favorites' && !favoriteVideos.value.length) loadFavorites()
-  if (name === 'follow' && !followList.value.length) loadFollows()
-  if (name === 'fans' && !fansList.value.length) loadFans()
-}
-
 const goUp = (up) => handleUserClick(up.uid, router)
 
 const unfollow = async (up) => {
@@ -319,33 +259,6 @@ const unfollow = async (up) => {
     showToast('已取消关注')
   } catch (e) {
     showToast(e.message || '操作失败')
-  }
-}
-
-const goMineVideo = (v) => {
-  handleVideoClick({ ...v, videoAvid: v.avid || v.videoUid, episodeAvid: v.episodeAvid || v.currentEpisode?.avid || v.id }, router)
-}
-
-const openMenu = (v) => {
-  menuTarget.value = v
-  showMenu.value = true
-}
-
-const onMenuSelect = async (action) => {
-  showMenu.value = false
-  const v = menuTarget.value
-  if (!v) return
-  if (action.value === 'edit') {
-    router.push({ path: '/contribution', query: { edit: v.avid || v.videoUid } })
-  } else if (action.value === 'episodes') {
-    router.push(`/contribution/episodes/${v.avid || v.videoUid}`)
-  } else if (action.value === 'delete') {
-    try {
-      await showConfirmDialog({ title: '删除稿件', message: '确定删除该稿件吗？删除后不可恢复。' })
-      await deleteMyContribution(v.avid || v.videoUid)
-      submitVideos.value = submitVideos.value.filter(x => x.id !== v.id)
-      showToast('已删除')
-    } catch {}
   }
 }
 
@@ -398,6 +311,22 @@ const saveEditProfile = async () => {
   }
 }
 
+const clearCache = () => {
+  try {
+    sessionStorage.clear()
+    showToast('缓存已清理')
+  } catch {
+    showToast('清理失败')
+  }
+}
+
+const showAbout = () => {
+  showDialog({
+    title: '关于 VideoHub',
+    message: 'VideoHub 移动端 v1.0.0\n一个轻量的视频分享与观看平台'
+  }).catch(() => {})
+}
+
 const handleLogout = async () => {
   try {
     await showConfirmDialog({ title: '退出登录', message: '确定要退出当前账号吗？' })
@@ -413,11 +342,6 @@ onMounted(async () => {
     return
   }
   await loadUserInfo()
-  const tab = route.query.tab
-  if (tab && ['submit', 'favorites', 'follow', 'fans'].includes(tab)) {
-    activeTab.value = tab
-  }
-  switchTab(activeTab.value)
   // 粉丝数预加载
   try {
     const res = await searchFans({ page: 1, size: 1 })
@@ -430,25 +354,19 @@ onMounted(async () => {
 .profile-page {
   min-height: 100vh;
   background: var(--bg3);
-  padding-top: calc(48px + var(--sat));
+  padding-top: calc(var(--header-h) + var(--sat));
   padding-bottom: calc(70px + var(--sab));
 }
 
-.profile-hero {
-  position: relative;
-  padding: 18px 16px 16px;
+.profile-card {
+  margin: 12px 12px 0;
+  padding: 18px 16px 8px;
   background: var(--bg1);
-}
-
-.profile-hero-bg {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #FF8CB0 0%, #FF6699 60%, #FF9966 100%);
-  opacity: 0.12;
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
 
 .profile-user {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -456,12 +374,11 @@ onMounted(async () => {
 
 .profile-avatar {
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   overflow: visible;
   flex-shrink: 0;
-  cursor: pointer;
 }
 
 .profile-avatar img {
@@ -478,7 +395,7 @@ onMounted(async () => {
   bottom: -6px;
   transform: translateX(-50%);
   padding: 1px 6px;
-  background: linear-gradient(135deg, #FFB199 0%, #FF6699 100%);
+  background: linear-gradient(135deg, #ffb199 0%, #ff6699 100%);
   color: #fff;
   font-size: 9px;
   border-radius: 8px;
@@ -508,14 +425,7 @@ onMounted(async () => {
   text-overflow: ellipsis;
 }
 
-.edit-btn {
-  flex-shrink: 0;
-  border-color: var(--brand_pink) !important;
-  color: var(--brand_pink) !important;
-}
-
 .profile-stats {
-  position: relative;
   display: flex;
   margin-top: 16px;
 }
@@ -529,6 +439,11 @@ onMounted(async () => {
   cursor: pointer;
 }
 
+/* 数据行内分隔 */
+.stat + .stat {
+  border-left: 1px solid var(--line_light);
+}
+
 .stat strong {
   font-size: 16px;
   color: var(--text1);
@@ -539,17 +454,27 @@ onMounted(async () => {
   color: var(--text3);
 }
 
-.quick-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin: 10px 12px;
-  padding: 14px 8px;
-  background: var(--bg1);
-  border-radius: 12px;
+/* 大会员：头部唯一醒目入口 */
+.stat-vip strong {
+  background: linear-gradient(135deg, #ffb199 0%, #ff6699 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card-sep {
+  height: 1px;
+  margin: 14px -16px 0;
+  background: var(--line_light);
+}
+
+.quick-row {
+  display: flex;
+  padding: 12px 0 6px;
 }
 
 .quick-item {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -559,8 +484,103 @@ onMounted(async () => {
   cursor: pointer;
 }
 
+.quick-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--brand_pink_thin);
+  color: var(--brand_pink);
+  transition: transform 0.15s;
+}
+
+.quick-item:active .quick-icon {
+  transform: scale(0.92);
+}
+
 .quick-item:active {
   color: var(--brand_pink);
+}
+
+/* ---------- 设置菜单 ---------- */
+.settings-card {
+  margin: 12px;
+  padding: 4px 16px;
+  background: var(--bg1);
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.set-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  font-size: 14px;
+  color: var(--text1);
+  cursor: pointer;
+}
+
+.set-item + .set-item {
+  border-top: 1px solid var(--line_light);
+}
+
+.set-item:active {
+  opacity: 0.7;
+}
+
+.set-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+
+.set-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.set-arrow {
+  color: var(--text4);
+  font-size: 14px;
+}
+
+.set-item--danger .set-label {
+  color: #ff4d4f;
+}
+
+/* ---------- 弹层 ---------- */
+.sheet-popup {
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 10px;
+  flex-shrink: 0;
+}
+
+.sheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text1);
+}
+
+.sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px calc(20px + var(--sab));
 }
 
 .page-loading {
@@ -568,74 +588,8 @@ onMounted(async () => {
   padding: 50px 0;
 }
 
-.video-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px 10px;
-  padding: 14px 12px;
-}
-
-.mine-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-}
-
-.mine-cover {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--graph_bg_thin);
-}
-
-.mine-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.mine-vip {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-}
-
-.mine-info {
-  padding: 6px 2px 0;
-}
-
-.mine-title {
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--text1);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-.mine-meta {
-  font-size: 11px;
-  color: var(--text3);
-  margin-top: 4px;
-}
-
-.mine-more {
-  position: absolute;
-  right: 0;
-  bottom: 4px;
-  padding: 4px;
-  color: var(--text3);
-}
-
-.manage-btn {
-  grid-column: span 2;
-}
-
 .up-list {
-  padding: 4px 12px 16px;
+  padding: 4px 0 16px;
 }
 
 .up-item {
@@ -643,8 +597,12 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid var(--line-light);
+  border-bottom: 1px solid var(--line_light);
   cursor: pointer;
+}
+
+.up-item:last-child {
+  border-bottom: none;
 }
 
 .up-avatar {
@@ -676,21 +634,7 @@ onMounted(async () => {
   text-overflow: ellipsis;
 }
 
-.logout-zone {
-  /* 与 tab 内容拉开距离，明确它是整页页脚而非某个 tab 的一部分 */
-  margin-top: 20px;
-  padding: 16px 14px calc(28px + var(--sab));
-  background: var(--bg3);
-  border-top: 1px solid var(--line_light);
-}
-
-.logout-card {
-  padding: 14px;
-  background: var(--bg1);
-  border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-}
-
+/* ---------- 编辑资料 ---------- */
 .edit-body {
   padding: 16px 16px calc(24px + var(--sab));
 }

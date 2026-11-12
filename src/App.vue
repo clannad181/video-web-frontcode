@@ -4,9 +4,14 @@
     <main class="main-content" :class="{ 'full-page': hideLayout }">
       <router-view :key="route.fullPath" />
     </main>
-    <van-tabbar v-if="showTabbar" route safe-area-inset-bottom placeholder>
+    <van-tabbar v-if="showTabbar" route safe-area-inset-bottom placeholder class="app-tabbar">
       <van-tabbar-item to="/" icon="home-o">首页</van-tabbar-item>
       <van-tabbar-item to="/category" icon="apps-o">分区</van-tabbar-item>
+      <van-tabbar-item to="/contribution" class="tabbar-post">
+        <span class="post-btn"><van-icon name="add" size="22" color="#fff" /></span>
+        <span class="post-spacer"></span>
+        <span class="post-label">投稿</span>
+      </van-tabbar-item>
       <van-tabbar-item to="/search" icon="search">搜索</van-tabbar-item>
       <van-tabbar-item to="/profile" icon="user-o" :badge="unreadBadge || ''">我的</van-tabbar-item>
     </van-tabbar>
@@ -70,5 +75,57 @@ onUnmounted(() => {
 
 .main-content.full-page {
   padding-top: 0;
+}
+
+/* 底部栏：中间凸起的投稿按钮（bilibili 式） */
+.app-tabbar {
+  overflow: visible;
+  z-index: 1001;
+}
+
+.tabbar-post {
+  position: relative;
+  overflow: visible;
+}
+
+.tabbar-post .van-tabbar-item__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.post-spacer {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+.post-btn {
+  position: absolute;
+  left: 50%;
+  top: -14px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff8cb0 0%, #ff6699 100%);
+  border: 3px solid var(--bg1);
+  box-shadow: 0 4px 10px rgba(255, 102, 153, 0.4);
+  z-index: 1;
+  transition: transform 0.15s;
+}
+
+.tabbar-post:active .post-btn {
+  transform: translateX(-50%) scale(0.94);
+}
+
+.post-label {
+  display: block;
+  font-size: 11px;
+  line-height: 1;
 }
 </style>

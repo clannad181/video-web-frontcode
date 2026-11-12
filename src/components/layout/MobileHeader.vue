@@ -1,14 +1,14 @@
 <template>
   <header class="m-header" :class="{ opaque: opaque || route.name === 'Search' }">
     <router-link to="/" class="m-header__logo">
-      <svg viewBox="0 0 32 32" width="24" height="24">
+      <svg viewBox="0 0 32 32" width="26" height="26">
         <rect width="32" height="32" rx="6" fill="var(--brand_pink)" />
         <path d="M12 9L23 16L12 23V9Z" fill="white" />
       </svg>
     </router-link>
 
     <div class="m-header__search" @click="router.push('/search')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8" />
         <line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
@@ -24,15 +24,15 @@
         <span class="vip-entry-dot">大</span>
       </div>
       <div class="m-header__icon" title="消息" @click="goMessages">
-        <van-icon name="bell" size="20" />
+        <van-icon name="bell" size="23" />
         <span v-if="unread > 0" class="m-header__badge">{{ unread > 99 ? '99+' : unread }}</span>
       </div>
       <div class="m-header__icon" title="投稿" @click="router.push('/contribution')">
-        <van-icon name="add-o" size="20" />
+        <van-icon name="add-o" size="23" />
       </div>
       <div class="m-header__avatar" @click="goProfile">
         <img v-if="avatar" :src="avatar" alt="" />
-        <van-icon v-else name="user-circle-o" size="26" />
+        <van-icon v-else name="user-circle-o" size="29" />
       </div>
     </div>
   </header>
@@ -106,7 +106,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: calc(48px + var(--sat));
+  height: calc(var(--header-h) + var(--sat));
   padding: var(--sat) 12px 0;
   background: transparent;
   transition: background-color 0.25s ease, box-shadow 0.25s ease;
@@ -125,16 +125,16 @@ onUnmounted(() => {
 .m-header__search {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex: 1;
   min-width: 0;
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 16px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 19px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid var(--line_regular);
   color: var(--text3);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .m-header.opaque .m-header__search {
@@ -151,7 +151,7 @@ onUnmounted(() => {
 .m-header__actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -160,8 +160,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   color: var(--text2);
   cursor: pointer;
@@ -175,25 +175,25 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 23px;
+  height: 23px;
   border-radius: 50%;
   background: linear-gradient(135deg, #FFB199 0%, #FF6699 100%);
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .m-header__badge {
   position: absolute;
-  top: 0;
+  top: 1px;
   right: 0;
-  min-width: 15px;
-  height: 15px;
+  min-width: 16px;
+  height: 16px;
   padding: 0 4px;
   background: var(--brand_pink);
   color: #fff;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   border-radius: 8px;
   display: flex;
@@ -206,8 +206,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   overflow: hidden;
   border: 1.5px solid var(--line_regular);

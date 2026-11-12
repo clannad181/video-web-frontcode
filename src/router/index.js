@@ -64,6 +64,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/favorites',
+    name: 'Favorites',
+    component: () => import('../views/FavoritesView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/contribution',
     name: 'Contribution',
     component: () => import('../views/ContributionView.vue'),

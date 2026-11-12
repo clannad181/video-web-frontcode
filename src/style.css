@@ -27,6 +27,9 @@
   /* 移动端安全区 */
   --sat: env(safe-area-inset-top);
   --sab: env(safe-area-inset-bottom);
+
+  /* 顶部导航栏高度（页面 padding-top、吸顶 offset 与之同步） */
+  --header-h: 54px;
 }
 
 * {
@@ -89,4 +92,5 @@ img {
 
 #app {
   min-height: 100vh;
+  min-height: 100dvh;
 }
