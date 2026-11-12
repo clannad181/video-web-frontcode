@@ -14,7 +14,15 @@
 
     <van-loading v-if="loading && !groups.length" class="page-loading" color="#FF6699">加载中…</van-loading>
 
-    <template v-else-if="groups.length">
+    <van-list
+      v-else-if="groups.length"
+      v-model:loading="loading"
+      :finished="noMore"
+      finished-text="没有更多了"
+      loading-text="加载中…"
+      :offset="150"
+      @load="loadMore"
+    >
       <div v-for="group in groups" :key="group.date" class="date-group">
         <div class="date-label">{{ group.date }}</div>
         <div
@@ -43,17 +51,7 @@
           </div>
         </div>
       </div>
-
-      <div class="list-end">
-        <van-button
-          v-if="!noMore && !loading"
-          plain size="small"
-          round
-          @click="loadHistory(currentPage + 1)"
-        >加载更多</van-button>
-        <span v-else>没有更多了</span>
-      </div>
-    </template>
+    </van-list>
 
     <van-empty v-else description="暂无观看历史">
       <van-button round type="primary" color="#FF6699" size="small" @click="router.push('/')">去首页逛逛</van-button>
@@ -85,8 +83,9 @@ const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate(
 const endDate = ref(fmt(now))
 const startDate = ref(fmt(new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())))
 
-const loadHistory = async (page = 1) => {
-  if (loading.value) return
+const loadHistory = async (page = 1, fromScroll = false) => {
+  // 滚动触发时 van-list 已自行把 loading 置 true 并做了去重，这里不能再被守卫挡回
+  if (!fromScroll && loading.value) return
   loading.value = true
   try {
     const res = await searchWatchHistory({
@@ -118,6 +117,11 @@ const loadHistory = async (page = 1) => {
   } finally {
     loading.value = false
   }
+}
+
+const loadMore = () => {
+  // 滚动到底自动触发（无感加载），van-list 在 loading/finished 时不会重复触发
+  loadHistory(currentPage.value + 1, true)
 }
 
 const handleSearch = () => {
@@ -279,10 +283,13 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.list-end {
+:deep(.van-list__finished-text) {
   padding: 16px 0 32px;
-  text-align: center;
   font-size: 12px;
   color: var(--text4);
+}
+
+:deep(.van-list__loading) {
+  padding: 14px 0 24px;
 }
 </style>

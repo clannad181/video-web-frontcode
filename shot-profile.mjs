@@ -125,6 +125,7 @@ page.on('request', (req) => {
   const url = req.url()
   const isApi = new URL(url).pathname.startsWith('/api/')
   if (isApi) {
+    if (process.env.MOCK_LOG) console.log('[REQ]', req.method(), url, '| body:', (req.postData() || '').slice(0, 100))
     const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': '*' }
     if (req.method() === 'OPTIONS') {
       return req.respond({ status: 204, headers: CORS, body: '' })
@@ -145,20 +146,31 @@ page.on('request', (req) => {
     } else if (url.includes('/client/favorite/search')) {
       data = { records: mkFavVideos(3, '搜索'), total: 3 }
     } else if (url.includes('/client/watch-history/search')) {
-      data = {
-        records: [
-          { month: '2026-11', days: [
-            { date: '2026-11-11', items: mkHistory(3, '2026-11-11') },
-            { date: '2026-11-10', items: mkHistory(2, '2026-11-10') }
-          ] },
-          { month: '2026-10', days: [
-            { date: '2026-10-30', items: mkHistory(4, '2026-10-30') }
-          ] }
-        ],
-        total: 2,
-        size: 10,
-        current: 1
-      }
+      // 分页 mock：第1页 2026-11（5条），第2页 2026-10（4条），total=月数
+      const hPage = JSON.parse(req.postData() || '{}').page || 1
+      data = hPage === 1
+        ? {
+            records: [
+              { month: '2026-11', days: [
+                { date: '2026-11-11', items: mkHistory(4, '2026-11-11') },
+                { date: '2026-11-10', items: mkHistory(4, '2026-11-10') },
+                { date: '2026-11-09', items: mkHistory(4, '2026-11-09') }
+              ] }
+            ],
+            total: 2,
+            size: 20,
+            current: 1
+          }
+        : {
+            records: [
+              { month: '2026-10', days: [
+                { date: '2026-10-30', items: mkHistory(4, '2026-10-30') }
+              ] }
+            ],
+            total: 2,
+            size: 20,
+            current: 2
+          }
     } else if (url.includes('/client/video/list')) {
       data = { records: mkVideos(8, 'cat'), total: 8 }
     } else if (/\/client\/video\/[^/]+\/episode\/[^/]+/.test(url)) {
@@ -176,7 +188,8 @@ page.on('request', (req) => {
       status: 200,
       headers: { ...CORS, 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: 200, data, message: 'ok' })
-    })
+    }).then(() => { if (process.env.MOCK_LOG) console.log('[RES ]', url.slice(0, 90)) })
+      .catch((e) => console.log('[RES ERR]', url.slice(0, 90), e.message))
   }
   return req.continue()
 })
@@ -202,7 +215,11 @@ const waitImages = async () => {
 await waitImages()
 const CLICKS = process.argv[4] ? process.argv[4].split('|').filter(Boolean) : []
 for (const sel of CLICKS) {
-  await page.click(sel).catch(() => {})
+  if (sel === 'scroll') {
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+  } else {
+    await page.click(sel).catch(() => {})
+  }
   await new Promise((r) => setTimeout(r, 2000))
 }
 const TYPE = process.argv[5]
@@ -221,6 +238,9 @@ const probe = await page.evaluate(() => ({
   imgs: (() => { const a = [...document.images]; return `loaded=${a.filter((i) => i.complete && i.naturalWidth > 0).length}/${a.length}` })(),
   imgStates: [...document.images].slice(0, 3).map((i) => ({ src: (i.getAttribute('src') || '').slice(0, 80), complete: i.complete, nw: i.naturalWidth })),
   title0: document.querySelector('.history-title')?.textContent || 'none',
+  items: document.querySelectorAll('.history-item').length,
+  hasLoadMoreBtn: document.body.innerText.includes('加载更多'),
+  finished: document.body.innerText.includes('没有更多了'),
   header: !!document.querySelector('.mobile-header, header'),
   scroll: `${document.documentElement.scrollHeight}/${document.documentElement.clientHeight}`,
   mc: (() => {
