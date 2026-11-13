@@ -35,11 +35,25 @@ const cats = [
   { id: 110, name: '影视' }, { id: 111, name: '纪录片' }, { id: 112, name: '演唱会' }
 ]
 
+// 本地内联 SVG 图片（外网 picsum 不可达时验收截图也能稳定显示封面）
+const PALETTES = [
+  ['#FF8CB0', '#FF6699'], ['#8CB8FF', '#5B8CFF'], ['#FFD08C', '#FF9F45'],
+  ['#9FE0C0', '#45B98C'], ['#C9A8FF', '#8B5CF6'], ['#FF9C9C', '#F05050']
+]
+const img = (seed, w = 320, h = 200, label = '') => {
+  let hash = 0
+  for (const ch of String(seed)) hash = (hash * 31 + ch.charCodeAt(0)) | 0
+  const [c1, c2] = PALETTES[Math.abs(hash) % PALETTES.length]
+  const text = label || String(seed).slice(0, 8)
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#g)"/><circle cx="${Math.round(w * 0.82)}" cy="${Math.round(h * 0.25)}" r="${Math.round(h * 0.3)}" fill="rgba(255,255,255,0.18)"/><text x="${w / 2}" y="${h / 2}" font-family="Arial" font-size="${Math.round(h / 5)}" fill="rgba(255,255,255,0.92)" text-anchor="middle" dominant-baseline="central">${text}</text></svg>`
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`
+}
+
 const mkVideos = (n, tag) => Array.from({ length: n }, (_, i) => ({
   id: `${tag}-${i}`,
   avid: `av${tag}${i}`,
   title: `${tag}示例标题 ${i + 1}：这是一段用于版式验收的较长视频标题`,
-  coverUrl: `https://picsum.photos/seed/${tag}${i}/320/200`,
+  coverUrl: img(`${tag}${i}`, 320, 200, `${i + 1}`),
   playCount: 1234 + i * 567,
   favoriteCount: 10 + i * 3,
   totalDuration: 60 + i * 37,
@@ -52,14 +66,14 @@ const mkUsers = (n, tag) => Array.from({ length: n }, (_, i) => ({
   uid: `${tag}${i}`,
   nickName: `${tag}UP主 ${i + 1}`,
   descript: '这个人很懒，什么都没留下',
-  avatarUrl: `https://picsum.photos/seed/${encodeURIComponent(tag)}${i}/80/80`
+  avatarUrl: img(`up${tag}${i}`, 80, 80, 'UP')
 }))
 
 // 观看历史接口的真实字段（videoTitle / videoCover / watchTime / watchedTime）
 const mkHistory = (n, tag) => Array.from({ length: n }, (_, i) => ({
   videoAvid: `av-${tag}-${i}`,
   videoTitle: `历史视频 ${i + 1}：这是一段用于版式验收的较长视频标题`,
-  videoCover: `https://picsum.photos/seed/h${tag.replace(/-/g, '')}${i}/320/200`,
+  videoCover: img(`h${tag.replace(/-/g, '')}${i}`, 320, 200, `${i + 1}`),
   nickName: '移动端用户',
   avatarUrl: '',
   episodeAvid: `ep-${tag}-${i}`,
@@ -76,7 +90,7 @@ const mkFavVideos = (n, tag) => Array.from({ length: n }, (_, i) => ({
   episodeAvid: `ep-${tag}-${i}`,
   videoAvid: `av-${tag}-${i}`,
   videoTitle: `${tag}收藏的视频 ${i + 1}：这是一段用于版式验收的较长视频标题`,
-  videoCover: `https://picsum.photos/seed/${tag}${i}/320/200`,
+  videoCover: img(`f${tag}${i}`, 320, 200, `${i + 1}`),
   duration: 60 + i * 37,
   playCount: 1234 + i * 567,
   favoriteCount: 10 + i * 3,
@@ -91,7 +105,7 @@ const mkPlayVideo = () => ({
   avid: 'av1',
   uid: 1001,
   title: '播放页验收示例视频：这是一段用于版式验收的较长视频标题',
-  coverUrl: 'https://picsum.photos/seed/play/640/360',
+  coverUrl: img('play', 640, 360, 'PLAY'),
   desc: '这是一段用于版式验收的视频简介，用于确认播放页的信息排版。',
   playCount: 12345,
   favoriteCount: 999,
@@ -115,6 +129,7 @@ await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile
 await page.evaluateOnNewDocument(() => {
   localStorage.setItem('frontAccessToken', 'mock-token')
   localStorage.setItem('frontUser', JSON.stringify({ uid: 'u001', nickname: '移动端用户', avatarUrl: '' }))
+  localStorage.setItem('frontSearchHistory', JSON.stringify(['年度动画混剪', '演唱会现场', '科技数码评测', '纪录片解说']))
 })
 const errors = []
 page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 160)))
@@ -171,6 +186,11 @@ page.on('request', (req) => {
             size: 20,
             current: 2
           }
+    } else if (url.includes('/client/search')) {
+      const st = new URL(url).searchParams.get('type')
+      data = st === 'up'
+        ? { records: mkUsers(6, '搜索'), total: 6 }
+        : { records: mkVideos(6, '搜索'), total: 6 }
     } else if (url.includes('/client/video/list')) {
       data = { records: mkVideos(8, 'cat'), total: 8 }
     } else if (/\/client\/video\/[^/]+\/episode\/[^/]+/.test(url)) {
