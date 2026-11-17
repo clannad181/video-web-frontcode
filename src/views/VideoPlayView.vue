@@ -5,19 +5,13 @@
       <button class="play-back" type="button" aria-label="返回" @click="goBack">
         <van-icon name="arrow-left" size="18" />
       </button>
-      <video
+      <transition name="resume-tip">
+        <div v-if="resumeTip" class="resume-tip">{{ resumeTip }}</div>
+      </transition>
+      <div
         v-if="currentPlayUrl && !vipLockVisible"
-        ref="videoRef"
-        class="player-video"
-        :src="currentPlayUrl"
-        :poster="fileUrl(video?.coverUrl)"
-        controls
-        autoplay
-        playsinline
-        webkit-playsinline
-        :key="currentPlayUrl"
-        @timeupdate="handleTimeUpdate"
-        @ended="handleEnded"
+        ref="playerHostRef"
+        class="player-host"
       />
       <div v-else class="player-placeholder">
         <template v-if="loadError && !video">
@@ -249,9 +243,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showToast } from 'vant'
+import Player from 'xgplayer'
+import 'xgplayer/dist/index.min.css'
 import { formatCount, formatDuration, throttle } from '../utils/format'
 import { formatDate } from '../utils/fileUpload'
 import request from '../api/request'
@@ -282,8 +278,19 @@ const isCoined = ref(false)
 const isFavorited = ref(false)
 const isFollowed = ref(false)
 const descExpanded = ref(false)
-const videoRef = ref(null)
+const playerHostRef = ref(null)
 const savedTime = ref(0)
+const resumeTip = ref('')
+let resumeTipTimer = null
+let xgPlayer = null
+
+const showResumeTip = (t) => {
+  resumeTip.value = `已为您续播 ${formatDuration(Math.floor(t))}`
+  clearTimeout(resumeTipTimer)
+  resumeTipTimer = setTimeout(() => {
+    resumeTip.value = ''
+  }, 2500)
+}
 
 const showReport = ref(false)
 const reportContent = ref('')
@@ -403,21 +410,72 @@ const loadEpisodeStatus = async () => {
   }
 }
 
-const reportWatchProgress = (seconds) => {
+let lastReportedAt = -1
+let lastSeenTime = 0
+
+const reportWatchHistory = (seconds) => {
   if (!isLoggedIn.value) return
+  const s = Math.floor(seconds)
+  if (s === lastReportedAt) return
   const videoUid = video.value?.avid || video.value?.id
   const episodeUid = currentEpisode.value?.avid || currentEpisode.value?.id
   if (videoUid && episodeUid) {
-    recordWatchHistory({ videoId: videoUid, episodeId: episodeUid, watchedSeconds: Math.floor(seconds) })
+    recordWatchHistory({ videoId: videoUid, episodeId: episodeUid, watchedSeconds: s })
+    lastReportedAt = s
   }
 }
 
-const reportProgress = throttle((e) => {
-  reportWatchProgress(e.target.currentTime)
+const reportProgress = throttle(() => {
+  reportWatchHistory(xgPlayer?.currentTime || 0)
 }, 30000)
 
-const handleTimeUpdate = (e) => {
-  reportProgress(e)
+const handleTimeUpdate = () => {
+  const t = xgPlayer?.currentTime || 0
+  lastSeenTime = t
+  reportProgress()
+}
+
+// 暂停时立即上报（30秒节流兜不住"看一会儿就退出"的场景）
+const handlePause = () => {
+  const t = xgPlayer?.currentTime || 0
+  if (t > 1) {
+    lastSeenTime = t
+    reportWatchHistory(t)
+  }
+}
+
+/* ---------- 续播：把历史进度应用到播放器 ---------- */
+const seekToSaved = (t) => {
+  const p = xgPlayer
+  if (!p) return
+  const dur = p.duration
+  // duration 未拿到或进度在时长内才跳（防止越界）
+  if (!dur || t < dur) {
+    p.currentTime = t
+    // 播放器左下角续播小弹窗（bilibili 风）
+    showResumeTip(t)
+  }
+}
+
+const applySavedTime = (t) => {
+  if (!(t > 0)) return
+  savedTime.value = t
+  const media = xgPlayer?.video
+  const url = currentPlayUrl.value
+  // 元数据已加载且播放器就是当前剧集的才立即跳；否则交给 loadedmetadata
+  const isCurrentEl = media && url && String(media.currentSrc || media.src || '').endsWith(url)
+  if (media && media.readyState >= 1 && isCurrentEl) {
+    seekToSaved(t)
+    savedTime.value = 0
+  }
+}
+
+const handleLoadedMetadata = () => {
+  const t = savedTime.value
+  if (t > 0) {
+    seekToSaved(t)
+    savedTime.value = 0
+  }
 }
 
 const handleEnded = () => {
@@ -426,6 +484,64 @@ const handleEnded = () => {
     currentEpisodeIndex.value++
   }
 }
+
+/* ---------- xgplayer 生命周期 ---------- */
+const destroyPlayer = () => {
+  if (!xgPlayer) return
+  try {
+    xgPlayer.destroy()
+  } catch (e) {
+    console.warn('销毁播放器失败:', e)
+  }
+  xgPlayer = null
+  const host = playerHostRef.value
+  if (host) host.innerHTML = ''
+}
+
+const createPlayer = async () => {
+  const url = currentPlayUrl.value
+  if (!url || vipLockVisible.value) return
+  await nextTick()
+  const host = playerHostRef.value
+  if (!host) return
+  destroyPlayer()
+  xgPlayer = new Player({
+    el: host,
+    url,
+    // 传字符串直接写入内联样式，避免库默认 600x337.5 撑破播放盒
+    width: '100%',
+    height: '100%',
+    poster: fileUrl(video.value?.coverUrl) || '',
+    autoplay: true,
+    volume: 1,
+    playsinline: true,
+    commonStyle: {
+      playedColor: '#FF6699',
+      progressColor: 'rgba(255,255,255,.3)',
+      cachedColor: 'rgba(255,255,255,.5)'
+    }
+  })
+  xgPlayer.on('loadedmetadata', handleLoadedMetadata)
+  xgPlayer.on('timeupdate', handleTimeUpdate)
+  xgPlayer.on('pause', handlePause)
+  xgPlayer.on('ended', handleEnded)
+  // 元数据可能已就绪（缓存命中），loadedmetadata 不再触发时兜底
+  const media = xgPlayer.video
+  if (savedTime.value > 0 && media && media.readyState >= 1) {
+    seekToSaved(savedTime.value)
+    savedTime.value = 0
+  }
+}
+
+// 播放地址或 VIP 锁定状态变化时重建/销毁播放器（post：等宿主 div 渲染完）
+watch(
+  [currentPlayUrl, vipLockVisible],
+  ([url, lock]) => {
+    if (url && !lock) createPlayer()
+    else destroyPlayer()
+  },
+  { flush: 'post', immediate: true }
+)
 
 const loadVideo = async () => {
   const videoUid = route.params.videoUid
@@ -442,7 +558,7 @@ const loadVideo = async () => {
 
       const queryTime = route.query.t ? Number(route.query.t) : 0
       if (queryTime > 0) {
-        savedTime.value = queryTime
+        applySavedTime(queryTime)
         return
       }
 
@@ -464,9 +580,9 @@ const loadVideo = async () => {
           })
           if (currentHistory) {
             if (currentHistory.watchedSeconds) {
-              savedTime.value = currentHistory.watchedSeconds
+              applySavedTime(currentHistory.watchedSeconds)
             } else if (currentHistory.watchProgress && currentHistory.duration) {
-              savedTime.value = Math.floor(currentHistory.watchProgress * currentHistory.duration)
+              applySavedTime(Math.floor(currentHistory.watchProgress * currentHistory.duration))
             }
           }
         } catch (e) {
@@ -725,6 +841,13 @@ onMounted(() => {
   initPage()
 })
 
+// 离开页面时补报最后进度（站内跳转不触发 pause）
+onBeforeUnmount(() => {
+  if (lastSeenTime > 1) reportWatchHistory(lastSeenTime)
+  clearTimeout(resumeTipTimer)
+  destroyPlayer()
+})
+
 watch(() => route.params.episodeUid, async (newVal, oldVal) => {
   if (newVal && newVal !== oldVal) {
     commentPage.value = 1
@@ -785,7 +908,44 @@ watch(currentEpisodeIndex, (newIdx) => {
   background: rgba(0, 0, 0, 0.7);
 }
 
-.player-video {
+/* 续播提示：播放器左下角小胶囊，悬浮于进度条之上 */
+.resume-tip {
+  position: absolute;
+  left: 10px;
+  bottom: 50px;
+  z-index: 32;
+  max-width: calc(100% - 20px);
+  padding: 5px 11px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.4;
+  border-radius: 14px;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resume-tip-enter-active {
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.resume-tip-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.resume-tip-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.resume-tip-leave-to {
+  opacity: 0;
+}
+
+/* xgplayer 宿主容器（.xgplayer 根元素由库注入，尺寸撑满播放盒） */
+.player-host {
   width: 100%;
   height: 100%;
   display: block;
@@ -1237,5 +1397,54 @@ watch(currentEpisodeIndex, (newIdx) => {
 
 .report-submit {
   margin-top: 14px;
+}
+</style>
+
+<!-- xgplayer 样式覆盖：库注入的 DOM 不带 scoped 属性，必须用全局选择器 -->
+<style>
+/* 播放盒内 xgplayer 根元素撑满（宿主 div 即 .xgplayer 根，
+   库会内联默认 600x337.5，必须 !important 压过并保持 16:9） */
+.player-host.xgplayer {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 进度条：品牌粉（覆盖库默认红色渐变） */
+.player-host.xgplayer .xgplayer-progress-played {
+  background: linear-gradient(-90deg, #ff6699 0%, #ff3d80 100%) !important;
+}
+
+.player-host.xgplayer .xgplayer-progress-cache {
+  background: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* 时间预览条的已播部分同样走品牌粉 */
+.player-host.xgplayer .xg-curbar {
+  background-color: #ff6699 !important;
+}
+
+/* 中央播放大按钮：白色描边风 */
+.player-host.xgplayer .xgplayer-start {
+  opacity: 0.92;
+}
+
+.player-host.xgplayer .xgplayer-start:active {
+  opacity: 1;
+}
+
+/* 底部控制条高度收紧，给返回按钮和续播胶囊留空间 */
+.player-host.xgplayer .xg-inner-controls {
+  height: 36px;
+}
+
+/* 控制条文字/图标统一 12px，适配移动端 16:9 小窗 */
+.player-host.xgplayer .xg-time {
+  font-size: 12px;
+  line-height: 36px;
+}
+
+/* 点击播放区域不显示右键菜单 */
+.player-host.xgplayer {
+  -webkit-touch-callout: none;
 }
 </style>

@@ -115,8 +115,11 @@ const mkPlayVideo = () => ({
   createTime: '2026-11-01',
   duration: 300,
   needVip: false,
-  episodes: [{ id: 1, avid: 'ep1', episodeNumber: 1, title: '第1集', playUrl: '' }],
-  currentEpisode: { id: 1, avid: 'ep1', episodeNumber: 1, title: '第1集', playUrl: '' }
+  episodes: [
+    { id: 1, avid: 'ep1', episodeNumber: 1, title: '第1集', playUrl: 'http://localhost:5175/demo.webm' },
+    { id: 2, avid: 'ep2', episodeNumber: 2, title: '第2集', playUrl: 'http://localhost:5175/demo.webm' }
+  ],
+  currentEpisode: { id: 1, avid: 'ep1', episodeNumber: 1, title: '第1集', playUrl: 'http://localhost:5175/demo.webm' }
 })
 
 const browser = await puppeteer.launch({
@@ -130,6 +133,25 @@ await page.evaluateOnNewDocument(() => {
   localStorage.setItem('frontAccessToken', 'mock-token')
   localStorage.setItem('frontUser', JSON.stringify({ uid: 'u001', nickname: '移动端用户', avatarUrl: '' }))
   localStorage.setItem('frontSearchHistory', JSON.stringify(['年度动画混剪', '演唱会现场', '科技数码评测', '纪录片解说']))
+  // 记录出现过的 toast / 续播提示（提示2秒后消失，probe 可能来不及看到）
+  const startObserver = () => {
+    if (window.__toasts) return
+    window.__toasts = []
+    new MutationObserver(() => {
+      document.querySelectorAll('.van-toast, .resume-tip').forEach((el) => {
+        const t = (el.innerText || '').trim()
+        if (!t) return
+        const r = el.getBoundingClientRect()
+        const box = el.closest('.player-box')?.getBoundingClientRect()
+        const rec = box
+          ? `${t} @left=${Math.round(r.left - box.left)}px,bottom=${Math.round(box.bottom - r.bottom)}px(in-player)`
+          : `${t} @${Math.round(r.left)},${Math.round(r.top)}`
+        if (!window.__toasts.includes(rec)) window.__toasts.push(rec)
+      })
+    }).observe(document.documentElement, { childList: true, subtree: true })
+  }
+  if (document.documentElement) startObserver()
+  else document.addEventListener('DOMContentLoaded', startObserver)
 })
 const errors = []
 page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 160)))
@@ -160,6 +182,14 @@ page.on('request', (req) => {
       data = { list: { records: mkFavVideos(n, body.folderUid || 'fav'), total: n } }
     } else if (url.includes('/client/favorite/search')) {
       data = { records: mkFavVideos(3, '搜索'), total: 3 }
+    } else if (url.includes('/client/watch-history/list')) {
+      // 续播验证：与路由 /client/video/1/episode/1 对应的历史记录（已看42秒）
+      data = {
+        records: [
+          { videoAvid: '1', episodeAvid: '1', videoTitle: '历史视频', videoCover: '', watchedSeconds: 5, watchTime: '2026-11-13 10:00:00', playLink: '/client/video/1/episode/1' }
+        ],
+        total: 1
+      }
     } else if (url.includes('/client/watch-history/search')) {
       // 分页 mock：第1页 2026-11（5条），第2页 2026-10（4条），total=月数
       const hPage = JSON.parse(req.postData() || '{}').page || 1
@@ -194,7 +224,20 @@ page.on('request', (req) => {
     } else if (url.includes('/client/video/list')) {
       data = { records: mkVideos(8, 'cat'), total: 8 }
     } else if (/\/client\/video\/[^/]+\/episode\/[^/]+/.test(url)) {
-      data = mkPlayVideo()
+      // MOCK_PLAY_FAIL=1 模拟视频信息接口失败（报错占位验收）
+      if (process.env.MOCK_PLAY_FAIL) {
+        return req.respond({ status: 500, headers: CORS, body: JSON.stringify({ code: 500, message: 'server error' }) })
+      }
+      // MOCK_PLAY_VIP=1 模拟 VIP 剧集无播放地址（VIP 占位验收）
+      if (process.env.MOCK_PLAY_VIP) {
+        const v = mkPlayVideo()
+        v.needVip = true
+        v.episodes = v.episodes.map((e) => ({ ...e, needVip: true, playUrl: '', playLink: '' }))
+        v.currentEpisode = { ...v.currentEpisode, needVip: true, playUrl: '', playLink: '' }
+        data = v
+      } else {
+        data = mkPlayVideo()
+      }
     } else if (url.includes('/client/video/recommend')) {
       data = { banner: mkVideos(2, 'banner'), cards: mkVideos(4, 'card') }
     } else if (url.includes('/client/user') && !url.includes('refresh')) {
@@ -215,6 +258,32 @@ page.on('request', (req) => {
 })
 const ROUTE = process.argv[3] || '/#/profile'
 await page.goto(`${BASE}${ROUTE}`, { waitUntil: 'networkidle2', timeout: 20000 }).catch(() => {})
+if (process.env.TIP_SHOT) {
+  // 续播提示仅存在2.5秒：轮询到就立刻截图
+  let tip = null
+  for (let i = 0; i < 60 && !tip; i++) {
+    tip = await page.$('.resume-tip').catch(() => null)
+    if (!tip) await new Promise((r) => setTimeout(r, 100))
+  }
+  const rect = tip
+    ? await page.evaluate(() => {
+        const el = document.querySelector('.resume-tip')
+        const r = el.getBoundingClientRect()
+        const b = el.closest('.player-box')?.getBoundingClientRect()
+        return {
+          text: el.innerText,
+          left: Math.round(r.left - (b?.left || 0)),
+          bottom: Math.round((b?.bottom || 0) - r.bottom),
+          tipH: Math.round(r.height),
+          boxH: b ? Math.round(b.height) : 0
+        }
+      })
+    : null
+  console.log('TIP', JSON.stringify(rect))
+  await page.screenshot({ path: OUT })
+  await browser.close()
+  process.exit(0)
+}
 await new Promise((r) => setTimeout(r, 2500))
 // 隐藏 vite Vue DevTools 悬浮按钮，避免遮挡底部栏
 await page.evaluate(() => {
@@ -258,6 +327,32 @@ const probe = await page.evaluate(() => ({
   imgs: (() => { const a = [...document.images]; return `loaded=${a.filter((i) => i.complete && i.naturalWidth > 0).length}/${a.length}` })(),
   imgStates: [...document.images].slice(0, 3).map((i) => ({ src: (i.getAttribute('src') || '').slice(0, 80), complete: i.complete, nw: i.naturalWidth })),
   title0: document.querySelector('.history-title')?.textContent || 'none',
+  boxes: (() => {
+    const box = document.querySelector('.player-box')
+    const xg = document.querySelector('.xgplayer')
+    const start = document.querySelector('.xgplayer-start')
+    const r = (el) => el ? `${Math.round(el.getBoundingClientRect().width)}x${Math.round(el.getBoundingClientRect().height)}@${Math.round(el.getBoundingClientRect().left)}` : 'null'
+    return `box=${r(box)} xg=${r(xg)} start=${r(start)} vw=${innerWidth}`
+  })(),
+  structure: (() => {
+    const box = document.querySelector('.player-box')
+    if (!box) return 'no-box'
+    const walk = (el, d) => {
+      if (d > 3) return ''
+      const cls = typeof el.className === 'string' ? el.className.slice(0, 60) : ''
+      const st = el.getAttribute && el.getAttribute('style')
+      return '  '.repeat(d) + el.tagName + (cls ? '.' + cls.split(' ').join('.') : '') + (st ? ' {' + st.slice(0, 120) + '}' : '') + '\n' +
+        Array.from(el.children).map(c => walk(c, d + 1)).join('')
+    }
+    return walk(box, 0)
+  })(),
+  toasts: window.__toasts || [],
+  vid: (() => {
+    const v = document.querySelector('video')
+    return v
+      ? `ct=${v.currentTime.toFixed(1)} rs=${v.readyState} dur=${Number.isFinite(v.duration) ? v.duration.toFixed(1) : '?'} err=${v.error?.code || 0} src=${v.getAttribute('src') || v.currentSrc}`
+      : 'none'
+  })(),
   items: document.querySelectorAll('.history-item').length,
   hasLoadMoreBtn: document.body.innerText.includes('加载更多'),
   finished: document.body.innerText.includes('没有更多了'),

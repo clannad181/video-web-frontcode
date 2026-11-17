@@ -16,7 +16,7 @@
         <span class="post-spacer"></span>
         <span class="post-label">投稿</span>
       </van-tabbar-item>
-      <van-tabbar-item to="/history" icon="underway-o">历史记录</van-tabbar-item>
+      <van-tabbar-item to="/history" icon="underway-o">历史</van-tabbar-item>
       <van-tabbar-item to="/profile" icon="user-o" :badge="unreadBadge || ''">我的</van-tabbar-item>
     </van-tabbar>
 
